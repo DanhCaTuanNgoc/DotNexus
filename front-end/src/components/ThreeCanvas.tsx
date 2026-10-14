@@ -49,22 +49,22 @@ export const ThreeCanvas: React.FC = () => {
     scene.add(dirLight);
 
     // Dynamic Mouse Light (follows pointer on the grid)
-    const mouseLight = new THREE.PointLight(0xc084fc, 6.0, 130, 1.4);
+    const mouseLight = new THREE.PointLight(0xd8b4fe, 6.8, 140, 1.4);
     mouseLight.position.set(0, 0, 30);
     scene.add(mouseLight);
 
-    // Left VM Light (Substrate WASM / Polkadot Magenta)
-    const wasmLight = new THREE.PointLight(0xe6007a, 4.5, 240, 1.2);
+    // Left Domain Light (Deep Electric Amethyst)
+    const wasmLight = new THREE.PointLight(0xa855f7, 5.2, 260, 1.2);
     wasmLight.position.set(-100, 40, 55);
     scene.add(wasmLight);
 
-    // Right VM Light (EVM JSON-RPC / Cyan-Indigo)
-    const evmLight = new THREE.PointLight(0x38bdf8, 4.5, 240, 1.2);
+    // Right Domain Light (Royal Neon Violet)
+    const evmLight = new THREE.PointLight(0x7c3aed, 5.2, 260, 1.2);
     evmLight.position.set(100, -30, 55);
     scene.add(evmLight);
 
-    // Center Core Light (Electric Violet)
-    const centerLight = new THREE.PointLight(0x8b5cf6, 3.8, 180, 1.2);
+    // Center Core Light (High Radiant Violet)
+    const centerLight = new THREE.PointLight(0xc084fc, 4.5, 200, 1.2);
     centerLight.position.set(0, 15, 60);
     scene.add(centerLight);
 
@@ -119,43 +119,43 @@ export const ThreeCanvas: React.FC = () => {
         const y = startY + r * SPACING_Y;
         const z = 0;
 
-        // Classify VM domain
+        // Classify domain within the Obsidian Violet Spectrum
         let vmType: 'wasm' | 'core' | 'evm' = 'core';
-        let baseColor = new THREE.Color(0x130e26);
-        let activeColor = new THREE.Color(0xc084fc);
-        let edgeColor = new THREE.Color(0x4c2889);
-        let capColor = new THREE.Color(0x8b5cf6);
+        let baseColor = new THREE.Color(0x130a28);
+        let activeColor = new THREE.Color(0xd8b4fe);
+        let edgeColor = new THREE.Color(0x8b5cf6);
+        let capColor = new THREE.Color(0xa855f7);
 
         if (c < 5) {
-          // Substrate WASM Domain (Left)
+          // Substrate WASM Domain (Deep Amethyst Violet)
           vmType = 'wasm';
-          baseColor = new THREE.Color(0x1a0d28);
-          activeColor = new THREE.Color(0xff2d95);
-          edgeColor = new THREE.Color(0xe6007a);
-          capColor = new THREE.Color(0xff3399);
-        } else if (c > 7) {
-          // EVM Domain (Right)
-          vmType = 'evm';
-          baseColor = new THREE.Color(0x0e1b36);
-          activeColor = new THREE.Color(0x38bdf8);
-          edgeColor = new THREE.Color(0x38bdf8);
-          capColor = new THREE.Color(0x60a5fa);
-        } else {
-          // Dual-VM Synthesis Core (Center)
-          vmType = 'core';
-          baseColor = new THREE.Color(0x181033);
-          activeColor = new THREE.Color(0xd8b4fe);
+          baseColor = new THREE.Color(0x16082e);
+          activeColor = new THREE.Color(0xe879f9);
           edgeColor = new THREE.Color(0xa855f7);
           capColor = new THREE.Color(0xc084fc);
+        } else if (c > 7) {
+          // EVM Domain (Royal Electric Violet)
+          vmType = 'evm';
+          baseColor = new THREE.Color(0x0f0724);
+          activeColor = new THREE.Color(0xa78bfa);
+          edgeColor = new THREE.Color(0x7c3aed);
+          capColor = new THREE.Color(0x8b5cf6);
+        } else {
+          // Dual-VM Synthesis Core (High Radiant Neon Violet)
+          vmType = 'core';
+          baseColor = new THREE.Color(0x150b2e);
+          activeColor = new THREE.Color(0xf0abfc);
+          edgeColor = new THREE.Color(0x8b5cf6);
+          capColor = new THREE.Color(0xd8b4fe);
         }
 
-        // Body Material (Dark obsidian chassis with high metalness)
+        // Body Material (Dark obsidian violet chassis with high metalness)
         const mat = new THREE.MeshStandardMaterial({
           color: baseColor,
           roughness: 0.16,
           metalness: 0.82,
           emissive: baseColor,
-          emissiveIntensity: 0.25,
+          emissiveIntensity: 0.28,
           transparent: true,
           opacity: 0.95,
         });
@@ -206,14 +206,15 @@ export const ThreeCanvas: React.FC = () => {
       }
     }
 
-    // 5. Floating Background Cyber Dust (Embers)
+    // 5. Floating Background Cyber Dust (Embers in Obsidian Violet)
     const dustCount = 280;
     const dustPositions = new Float32Array(dustCount * 3);
     const dustColors = new Float32Array(dustCount * 3);
 
-    const c1 = new THREE.Color(0x8b5cf6);
-    const c2 = new THREE.Color(0x38bdf8);
-    const c3 = new THREE.Color(0xe6007a);
+    const c1 = new THREE.Color(0x8b5cf6); // Electric Violet
+    const c2 = new THREE.Color(0xc084fc); // Radiant Lavender
+    const c3 = new THREE.Color(0xa855f7); // Amethyst
+    const c4 = new THREE.Color(0xd8b4fe); // Neon Lilac
 
     for (let i = 0; i < dustCount; i++) {
       dustPositions[i * 3] = (Math.random() - 0.5) * 600;
@@ -221,7 +222,7 @@ export const ThreeCanvas: React.FC = () => {
       dustPositions[i * 3 + 2] = -50 + (Math.random() - 0.5) * 350;
 
       const pick = Math.random();
-      const col = pick < 0.33 ? c1 : pick < 0.66 ? c2 : c3;
+      const col = pick < 0.25 ? c1 : pick < 0.5 ? c2 : pick < 0.75 ? c3 : c4;
       dustColors[i * 3] = col.r;
       dustColors[i * 3 + 1] = col.g;
       dustColors[i * 3 + 2] = col.b;
@@ -313,7 +314,7 @@ export const ThreeCanvas: React.FC = () => {
         mouseLight.position.x += (planeIntersect.x - mouseLight.position.x) * 0.18;
         mouseLight.position.y += (planeIntersect.y - mouseLight.position.y) * 0.18;
         mouseLight.position.z = 24 + Math.sin(elapsed * 4) * 3;
-        mouseLight.intensity = 4.2;
+        mouseLight.intensity = 6.5;
       } else {
         mouseLight.intensity += (0 - mouseLight.intensity) * 0.08;
       }

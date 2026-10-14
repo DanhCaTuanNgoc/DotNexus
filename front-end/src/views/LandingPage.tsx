@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Zap, 
   Layers, 
@@ -16,15 +16,18 @@ import {
   Terminal,
   Globe,
   Gauge,
+  Box,
   CornerDownRight
 } from 'lucide-react';
 import { ThreeCanvas } from '../components/ThreeCanvas';
+import { SplineScene } from '../components/SplineScene';
 
 interface LandingPageProps {
   onLaunchApp: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
+  const [threeMode, setThreeMode] = useState<'spline' | 'three'>('spline');
   return (
     <div className="relative min-h-screen bg-[#0B0813] text-[#E2E8F0] selection:bg-[#8B5CF6] selection:text-white overflow-x-hidden font-sans">
       {/* Background Cybernetic Grid & Ambient Lighting Orbs */}
@@ -80,92 +83,44 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
 
       {/* Hero Section */}
       <section className="relative min-h-[100vh] pt-28 pb-16 flex items-center justify-center px-6 overflow-hidden z-10">
-        {/* Interactive Three.js 3D Background */}
-        <ThreeCanvas />
+        {/* 3D Background: Spline Boxes Hover OR Three.js Cyber Mesh */}
+        {threeMode === 'spline' ? (
+          <SplineScene sceneUrl="https://prod.spline.design/uQMYP7ZQJi659Wch/scene.splinecode" />
+        ) : (
+          <ThreeCanvas />
+        )}
 
-        {/* Floating HUD Hologram Telemetry Widgets in Hero Space */}
-        <div className="hidden xl:block absolute top-32 left-10 w-64 p-3 rounded-lg border border-[#2D1F52] bg-[#130E26]/75 backdrop-blur-md shadow-2xl pointer-events-none z-20 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-[#261B42] pb-2 mb-2">
-            <span className="text-[#C084FC] text-[10px] flex items-center gap-1.5 font-bold">
-              <Radio className="w-3 h-3 text-[#10B981] animate-spin" />
-              LIVE TOPOLOGY RADAR
-            </span>
-            <span className="text-[10px] text-zinc-500">4 PEERS</span>
-          </div>
-          <div className="space-y-1 text-[11px] text-zinc-300">
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Substrate WS:</span>
-              <span className="text-emerald-400 font-bold">14.2 ms (9944)</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-500">EVM JSON-RPC:</span>
-              <span className="text-[#818CF8] font-bold">18.7 ms (8545)</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Consensus Mesh:</span>
-              <span className="text-[#10B981] font-bold">LOCKED PARITY</span>
-            </div>
-          </div>
+        {/* 3D Engine Mode Switcher Bar */}
+        <div className="absolute top-20 right-6 z-30 flex items-center gap-2 p-1 rounded-lg border border-[#2D1F52] bg-[#130E26]/85 backdrop-blur-md font-mono text-[11px] shadow-lg">
+          <span className="text-zinc-500 text-[10px] px-2 hidden sm:inline">3D ENGINE:</span>
+          <button
+            onClick={() => setThreeMode('spline')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-all cursor-pointer ${
+              threeMode === 'spline'
+                ? 'bg-[#8B5CF6] text-white font-bold shadow'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <Box className="w-3.5 h-3.5" />
+            <span>Spline 3D (Hover)</span>
+          </button>
+          <button
+            onClick={() => setThreeMode('three')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-all cursor-pointer ${
+              threeMode === 'three'
+                ? 'bg-[#8B5CF6] text-white font-bold shadow'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Three.js Mesh</span>
+          </button>
         </div>
 
-        <div className="hidden xl:block absolute top-32 right-10 w-64 p-3 rounded-lg border border-[#2D1F52] bg-[#130E26]/75 backdrop-blur-md shadow-2xl pointer-events-none z-20 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-[#261B42] pb-2 mb-2">
-            <span className="text-[#E6007A] text-[10px] flex items-center gap-1.5 font-bold">
-              <Activity className="w-3 h-3 text-[#E6007A]" />
-              MEMPOOL SEGREGATION
-            </span>
-            <span className="text-[10px] text-zinc-400">42 TXS</span>
-          </div>
-          <div className="space-y-1.5 text-[11px]">
-            <div className="flex justify-between text-zinc-300">
-              <span className="text-[#E6007A]">WASM Extrinsics:</span>
-              <span className="font-bold">18 (42.9%)</span>
-            </div>
-            <div className="flex justify-between text-zinc-300">
-              <span className="text-[#818CF8]">EVM Transactions:</span>
-              <span className="font-bold">24 (57.1%)</span>
-            </div>
-            <div className="w-full h-1.5 bg-[#0B0813] rounded-full overflow-hidden flex border border-[#261B42]">
-              <div className="w-[43%] bg-[#E6007A]" />
-              <div className="w-[57%] bg-[#6366F1]" />
-            </div>
-          </div>
-        </div>
-
-        <div className="hidden xl:block absolute bottom-28 left-10 w-64 p-3 rounded-lg border border-[#10B981]/40 bg-[#130E26]/75 backdrop-blur-md shadow-2xl pointer-events-none z-20 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-[#261B42] pb-2 mb-2">
-            <span className="text-[#10B981] text-[10px] flex items-center gap-1.5 font-bold">
-              <Lock className="w-3 h-3 text-[#10B981]" />
-              SLASHING GUARD MUTEX
-            </span>
-            <span className="text-[10px] text-emerald-400 font-bold">SAFE</span>
-          </div>
-          <div className="space-y-1 text-[11px] text-zinc-300">
-            <div>Node ID: <span className="text-white">validator-primary-node</span></div>
-            <div>Equivocation Lock: <span className="text-emerald-400 font-bold">ENGAGED</span></div>
-            <div>Failover Standby: <span className="text-[#C084FC]">2-Block Auto Trigger</span></div>
-          </div>
-        </div>
-
-        <div className="hidden xl:block absolute bottom-28 right-10 w-64 p-3 rounded-lg border border-[#8B5CF6]/40 bg-[#130E26]/75 backdrop-blur-md shadow-2xl pointer-events-none z-20 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-[#261B42] pb-2 mb-2">
-            <span className="text-[#C084FC] text-[10px] flex items-center gap-1.5 font-bold">
-              <Sparkles className="w-3 h-3 text-[#C084FC]" />
-              NPOS YIELD ENGINE
-            </span>
-            <span className="text-[10px] text-emerald-400 font-bold">+1.16% BOOST</span>
-          </div>
-          <div className="space-y-1 text-[11px] text-zinc-300">
-            <div>Top 16 Active Set: <span className="text-white font-bold">15 Qualified Nodes</span></div>
-            <div>Nominal APY: <span className="text-zinc-400">14.81%</span></div>
-            <div>Compound APY: <span className="text-[#C084FC] font-bold text-xs">15.97%</span></div>
-          </div>
-        </div>
-
-        {/* Foreground Hero Content */}
-        <div className="relative z-20 max-w-5xl mx-auto text-center space-y-8 pointer-events-auto">
+        {/* Foreground Hero Content with pointer-events-none to let Spline mouse hover pass through */}
+        <div className="relative z-20 max-w-5xl mx-auto text-center space-y-8 pointer-events-none">
           {/* Track Chip */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#4C2889] bg-[#130E26]/90 backdrop-blur-md text-xs font-mono text-[#C084FC] shadow-lg shadow-[#8B5CF6]/20">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#4C2889] bg-[#130E26]/90 backdrop-blur-md text-xs font-mono text-[#C084FC] shadow-lg shadow-[#8B5CF6]/20 pointer-events-auto">
             <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping" />
             <span className="font-semibold">PORTALDOT HACKER HOUSE 2026 • NODE OPERATIONS & TOOLING</span>
           </div>
@@ -184,7 +139,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           </div>
 
           {/* Action CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2 pointer-events-auto">
             <button
               onClick={onLaunchApp}
               className="flex items-center gap-2.5 px-6 py-3.5 text-sm font-mono rounded bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/35 hover:scale-[1.02] cursor-pointer"
@@ -203,7 +158,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           </div>
 
           {/* Live Floating Cluster Ticker Strip */}
-          <div className="pt-6">
+          <div className="pt-6 pointer-events-auto">
             <div className="max-w-4xl mx-auto p-4 rounded-xl border border-[#2D1F52] bg-[#130E26]/90 backdrop-blur-md grid grid-cols-2 sm:grid-cols-4 gap-3 text-left font-mono shadow-2xl">
               <div className="p-3 rounded-lg bg-[#0B0813] border border-[#261B42]/70 relative overflow-hidden group">
                 <div className="text-[10px] text-zinc-500 block mb-0.5 font-bold">WASM BEST BLOCK</div>

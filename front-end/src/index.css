@@ -25,6 +25,84 @@ body {
   font-feature-settings: 'tnum' 1;
 }
 
+/* High-tech Cyber Grid */
+.cyber-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(139, 92, 246, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(139, 92, 246, 0.07) 1px, transparent 1px);
+}
+
+/* Cyber Matrix Dots */
+.cyber-dots {
+  background-image: radial-gradient(rgba(168, 85, 247, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Scanline Overlay */
+.scanline-overlay {
+  background: linear-gradient(
+    rgba(18, 16, 38, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+
+/* Glowing Neon Radial Ambient Orbs */
+.glow-orb-violet {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(120px);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.22) 0%, rgba(139, 92, 246, 0) 70%);
+}
+
+.glow-orb-magenta {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(130px);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(230, 0, 122, 0.18) 0%, rgba(230, 0, 122, 0) 70%);
+}
+
+.glow-orb-cyan {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(130px);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(99, 102, 241, 0) 70%);
+}
+
+/* Keyframe animations */
+@keyframes radarSweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar-sweep {
+  animation: radarSweep 4s linear infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.08);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 6s ease-in-out infinite;
+}
+
 /* Custom crisp scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

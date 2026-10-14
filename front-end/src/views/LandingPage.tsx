@@ -7,16 +7,16 @@ import {
   Shield, 
   Workflow, 
   ArrowRight, 
-  ExternalLink, 
   CheckCircle2, 
   AlertTriangle, 
-  Cpu, 
-  Terminal, 
-  Server,
-  Code2,
-  Lock,
-  Flame,
-  Globe
+  Radio, 
+  Lock, 
+  Sparkles, 
+  Activity, 
+  Terminal,
+  Globe,
+  Gauge,
+  CornerDownRight
 } from 'lucide-react';
 import { ThreeCanvas } from '../components/ThreeCanvas';
 
@@ -26,29 +26,41 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
   return (
-    <div className="relative min-h-screen bg-[#0B0813] text-[#E2E8F0] selection:bg-[#8B5CF6] selection:text-white overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#0B0813] text-[#E2E8F0] selection:bg-[#8B5CF6] selection:text-white overflow-x-hidden font-sans">
+      {/* Background Cybernetic Grid & Ambient Lighting Orbs */}
+      <div className="fixed inset-0 cyber-grid opacity-60 pointer-events-none z-0" />
+      <div className="fixed inset-0 cyber-dots opacity-40 pointer-events-none z-0" />
+      <div className="fixed inset-0 scanline-overlay opacity-25 pointer-events-none z-0" />
+
+      {/* Dynamic Ambient Neon Glow Orbs */}
+      <div className="glow-orb-violet w-[700px] h-[700px] -top-40 left-1/2 -translate-x-1/2 z-0 animate-pulse-glow" />
+      <div className="glow-orb-magenta w-[600px] h-[600px] top-60 -left-60 z-0 animate-pulse-glow" style={{ animationDelay: '2s' }} />
+      <div className="glow-orb-cyan w-[600px] h-[600px] top-60 -right-60 z-0 animate-pulse-glow" style={{ animationDelay: '4s' }} />
+
       {/* Top Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[#261B42]/80 bg-[#0B0813]/85 backdrop-blur-md px-6 flex items-center justify-between">
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[#261B42]/90 bg-[#0B0813]/85 backdrop-blur-md px-6 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/20 border border-[#8B5CF6] flex items-center justify-center text-[#8B5CF6] shadow-lg shadow-[#8B5CF6]/25">
+          <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/20 border border-[#8B5CF6] flex items-center justify-center text-[#8B5CF6] shadow-lg shadow-[#8B5CF6]/30">
             <Zap className="w-4 h-4 fill-[#8B5CF6]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-base tracking-wider text-white font-mono">DOTNEXUS</span>
               <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded border border-[#4C2889] bg-[#1A1333] text-[#C084FC]">
-                v1.0.0
+                Portaldot V3.0
               </span>
             </div>
             <div className="text-[10px] text-zinc-500 font-mono hidden sm:block">
-              Portaldot Network V3.0 Dual-VM Control Plane
+              Visual Control Plane & Security Operations Engine
             </div>
           </div>
         </div>
 
         {/* Center Nav Links */}
         <div className="hidden md:flex items-center gap-6 text-xs font-mono text-zinc-400">
-          <a href="#pillars" className="hover:text-[#C084FC] transition-colors">Four Pillars</a>
+          <a href="#pillars" className="hover:text-[#C084FC] transition-colors flex items-center gap-1">
+            <span>The 4 Pillars</span>
+          </a>
           <a href="#dag-canvas" className="hover:text-[#C084FC] transition-colors">Visual DAG Engine</a>
           <a href="#comparison" className="hover:text-[#C084FC] transition-colors">Why DotNexus</a>
           <a href="#roadmap" className="hover:text-[#C084FC] transition-colors">Roadmap</a>
@@ -58,7 +70,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
         <div className="flex items-center gap-3">
           <button
             onClick={onLaunchApp}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-mono rounded bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-lg shadow-[#8B5CF6]/30 hover:scale-[1.02]"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono rounded bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white font-bold transition-all shadow-lg shadow-[#8B5CF6]/30 hover:scale-[1.02] cursor-pointer"
           >
             <span>Launch Control Center</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -67,28 +79,107 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-[92vh] pt-24 pb-16 flex items-center justify-center px-6 overflow-hidden">
+      <section className="relative min-h-[100vh] pt-28 pb-16 flex items-center justify-center px-6 overflow-hidden z-10">
         {/* Interactive Three.js 3D Background */}
         <ThreeCanvas />
 
-        {/* Foreground Content */}
-        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8 pointer-events-auto">
+        {/* Floating HUD Hologram Telemetry Widgets in Hero Space */}
+        <div className="hidden xl:block absolute top-32 left-10 w-64 p-3 rounded-lg border border-[#2D1F52] bg-[#130E26]/75 backdrop-blur-md shadow-2xl pointer-events-none z-20 font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-[#261B42] pb-2 mb-2">
+            <span className="text-[#C084FC] text-[10px] flex items-center gap-1.5 font-bold">
+              <Radio className="w-3 h-3 text-[#10B981] animate-spin" />
+              LIVE TOPOLOGY RADAR
+            </span>
+            <span className="text-[10px] text-zinc-500">4 PEERS</span>
+          </div>
+          <div className="space-y-1 text-[11px] text-zinc-300">
+            <div className="flex justify-between">
+              <span className="text-zinc-500">Substrate WS:</span>
+              <span className="text-emerald-400 font-bold">14.2 ms (9944)</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zinc-500">EVM JSON-RPC:</span>
+              <span className="text-[#818CF8] font-bold">18.7 ms (8545)</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zinc-500">Consensus Mesh:</span>
+              <span className="text-[#10B981] font-bold">LOCKED PARITY</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden xl:block absolute top-32 right-10 w-64 p-3 rounded-lg border border-[#2D1F52] bg-[#130E26]/75 backdrop-blur-md shadow-2xl pointer-events-none z-20 font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-[#261B42] pb-2 mb-2">
+            <span className="text-[#E6007A] text-[10px] flex items-center gap-1.5 font-bold">
+              <Activity className="w-3 h-3 text-[#E6007A]" />
+              MEMPOOL SEGREGATION
+            </span>
+            <span className="text-[10px] text-zinc-400">42 TXS</span>
+          </div>
+          <div className="space-y-1.5 text-[11px]">
+            <div className="flex justify-between text-zinc-300">
+              <span className="text-[#E6007A]">WASM Extrinsics:</span>
+              <span className="font-bold">18 (42.9%)</span>
+            </div>
+            <div className="flex justify-between text-zinc-300">
+              <span className="text-[#818CF8]">EVM Transactions:</span>
+              <span className="font-bold">24 (57.1%)</span>
+            </div>
+            <div className="w-full h-1.5 bg-[#0B0813] rounded-full overflow-hidden flex border border-[#261B42]">
+              <div className="w-[43%] bg-[#E6007A]" />
+              <div className="w-[57%] bg-[#6366F1]" />
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden xl:block absolute bottom-28 left-10 w-64 p-3 rounded-lg border border-[#10B981]/40 bg-[#130E26]/75 backdrop-blur-md shadow-2xl pointer-events-none z-20 font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-[#261B42] pb-2 mb-2">
+            <span className="text-[#10B981] text-[10px] flex items-center gap-1.5 font-bold">
+              <Lock className="w-3 h-3 text-[#10B981]" />
+              SLASHING GUARD MUTEX
+            </span>
+            <span className="text-[10px] text-emerald-400 font-bold">SAFE</span>
+          </div>
+          <div className="space-y-1 text-[11px] text-zinc-300">
+            <div>Node ID: <span className="text-white">validator-primary-node</span></div>
+            <div>Equivocation Lock: <span className="text-emerald-400 font-bold">ENGAGED</span></div>
+            <div>Failover Standby: <span className="text-[#C084FC]">2-Block Auto Trigger</span></div>
+          </div>
+        </div>
+
+        <div className="hidden xl:block absolute bottom-28 right-10 w-64 p-3 rounded-lg border border-[#8B5CF6]/40 bg-[#130E26]/75 backdrop-blur-md shadow-2xl pointer-events-none z-20 font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-[#261B42] pb-2 mb-2">
+            <span className="text-[#C084FC] text-[10px] flex items-center gap-1.5 font-bold">
+              <Sparkles className="w-3 h-3 text-[#C084FC]" />
+              NPOS YIELD ENGINE
+            </span>
+            <span className="text-[10px] text-emerald-400 font-bold">+1.16% BOOST</span>
+          </div>
+          <div className="space-y-1 text-[11px] text-zinc-300">
+            <div>Top 16 Active Set: <span className="text-white font-bold">15 Qualified Nodes</span></div>
+            <div>Nominal APY: <span className="text-zinc-400">14.81%</span></div>
+            <div>Compound APY: <span className="text-[#C084FC] font-bold text-xs">15.97%</span></div>
+          </div>
+        </div>
+
+        {/* Foreground Hero Content */}
+        <div className="relative z-20 max-w-5xl mx-auto text-center space-y-8 pointer-events-auto">
           {/* Track Chip */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#4C2889] bg-[#130E26]/80 backdrop-blur-md text-xs font-mono text-[#C084FC] shadow-inner">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#4C2889] bg-[#130E26]/90 backdrop-blur-md text-xs font-mono text-[#C084FC] shadow-lg shadow-[#8B5CF6]/20">
             <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping" />
-            <span>PORTALDOT HACKER HOUSE 2026 • NODE OPERATIONS & TOOLING</span>
+            <span className="font-semibold">PORTALDOT HACKER HOUSE 2026 • NODE OPERATIONS & TOOLING</span>
           </div>
 
           {/* Main Title */}
-          <div className="space-y-3">
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+          <div className="space-y-4">
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08]">
               The Visual Control Plane & <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] via-[#C084FC] to-[#38BDF8]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] via-[#C084FC] to-[#38BDF8] drop-shadow-md">
                 Automated Security Operations Engine
               </span>
             </h1>
-            <p className="max-w-2xl mx-auto text-sm sm:text-base text-zinc-300 font-normal leading-relaxed">
-              Designed specifically for <strong className="text-white font-semibold">Portaldot Network V3.0 Dual-VM</strong>. Eliminate catastrophic slashing risks, reconcile Substrate WASM vs EVM desync, and replace opaque CLI scripts with interactive drag-and-drop operational runbooks.
+            <p className="max-w-3xl mx-auto text-sm sm:text-base text-zinc-300 font-normal leading-relaxed">
+              Designed specifically for <strong className="text-white font-semibold">Portaldot Network V3.0 Dual-VM</strong>. Eliminate catastrophic slashing risks, reconcile Substrate WASM vs EVM desync in real time, and replace opaque CLI scripts with interactive drag-and-drop operational runbooks.
             </p>
           </div>
 
@@ -96,7 +187,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <button
               onClick={onLaunchApp}
-              className="flex items-center gap-2.5 px-6 py-3.5 text-sm font-mono rounded bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/35 hover:scale-[1.02]"
+              className="flex items-center gap-2.5 px-6 py-3.5 text-sm font-mono rounded bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/35 hover:scale-[1.02] cursor-pointer"
             >
               <Zap className="w-4 h-4 fill-white" />
               <span>Launch Live Control Center</span>
@@ -111,45 +202,74 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             </a>
           </div>
 
-          {/* Live Cluster Ticker Strip */}
+          {/* Live Floating Cluster Ticker Strip */}
           <div className="pt-6">
-            <div className="max-w-4xl mx-auto p-3.5 rounded-lg border border-[#261B42]/90 bg-[#130E26]/80 backdrop-blur-md grid grid-cols-2 sm:grid-cols-4 gap-3 text-left font-mono">
-              <div className="p-2 rounded bg-[#0B0813]/60 border border-[#261B42]/50">
-                <span className="text-[10px] text-zinc-500 block">WASM BEST BLOCK</span>
-                <span className="text-sm font-bold text-white tabular-nums">#4,120,912</span>
-                <span className="text-[10px] text-emerald-400 block">pallet-contracts</span>
+            <div className="max-w-4xl mx-auto p-4 rounded-xl border border-[#2D1F52] bg-[#130E26]/90 backdrop-blur-md grid grid-cols-2 sm:grid-cols-4 gap-3 text-left font-mono shadow-2xl">
+              <div className="p-3 rounded-lg bg-[#0B0813] border border-[#261B42]/70 relative overflow-hidden group">
+                <div className="text-[10px] text-zinc-500 block mb-0.5 font-bold">WASM BEST BLOCK</div>
+                <div className="text-base font-bold text-white tabular-nums">#4,120,912</div>
+                <div className="text-[10px] text-[#E6007A] block mt-1">pallet-contracts (ink!)</div>
+                <div className="absolute top-0 right-0 w-8 h-8 bg-[#E6007A]/10 rounded-bl-full pointer-events-none" />
               </div>
 
-              <div className="p-2 rounded bg-[#0B0813]/60 border border-[#261B42]/50">
-                <span className="text-[10px] text-zinc-500 block">EVM JSON-RPC</span>
-                <span className="text-sm font-bold text-[#818CF8] tabular-nums">#4,120,911</span>
-                <span className="text-[10px] text-zinc-400 block">Delta: 1 blk (Synced)</span>
+              <div className="p-3 rounded-lg bg-[#0B0813] border border-[#261B42]/70 relative overflow-hidden group">
+                <div className="text-[10px] text-zinc-500 block mb-0.5 font-bold">EVM JSON-RPC</div>
+                <div className="text-base font-bold text-[#818CF8] tabular-nums">#4,120,911</div>
+                <div className="text-[10px] text-zinc-400 block mt-1">Delta: 1 blk (Synced)</div>
+                <div className="absolute top-0 right-0 w-8 h-8 bg-[#6366F1]/10 rounded-bl-full pointer-events-none" />
               </div>
 
-              <div className="p-2 rounded bg-[#0B0813]/60 border border-[#261B42]/50">
-                <span className="text-[10px] text-zinc-500 block">SLASHING GUARD</span>
-                <span className="text-sm font-bold text-[#10B981] tabular-nums">100% Zero-Loss</span>
-                <span className="text-[10px] text-zinc-400 block">Anti-Equivocation Mutex</span>
+              <div className="p-3 rounded-lg bg-[#0B0813] border border-[#261B42]/70 relative overflow-hidden group">
+                <div className="text-[10px] text-zinc-500 block mb-0.5 font-bold">SLASHING DEFENSE</div>
+                <div className="text-base font-bold text-[#10B981] tabular-nums">100% Zero-Loss</div>
+                <div className="text-[10px] text-zinc-400 block mt-1">Anti-Equivocation Mutex</div>
+                <div className="absolute top-0 right-0 w-8 h-8 bg-[#10B981]/10 rounded-bl-full pointer-events-none" />
               </div>
 
-              <div className="p-2 rounded bg-[#0B0813]/60 border border-[#261B42]/50">
-                <span className="text-[10px] text-zinc-500 block">POT STAKING YIELD</span>
-                <span className="text-sm font-bold text-[#C084FC] tabular-nums">15.97% APY</span>
-                <span className="text-[10px] text-emerald-400 block">+1.16% Auto-Compounded</span>
+              <div className="p-3 rounded-lg bg-[#0B0813] border border-[#261B42]/70 relative overflow-hidden group">
+                <div className="text-[10px] text-zinc-500 block mb-0.5 font-bold">POT STAKING YIELD</div>
+                <div className="text-base font-bold text-[#C084FC] tabular-nums">15.97% APY</div>
+                <div className="text-[10px] text-emerald-400 block mt-1 font-bold">+1.16% Auto-Compounded</div>
+                <div className="absolute top-0 right-0 w-8 h-8 bg-[#8B5CF6]/10 rounded-bl-full pointer-events-none" />
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Realtime Cryptographic Telemetry Stream Ticker */}
+      <div className="border-y border-[#261B42] bg-[#0E0A1A] py-2.5 px-4 overflow-hidden select-none z-20 relative">
+        <div className="flex items-center gap-8 text-[11px] font-mono text-zinc-400 whitespace-nowrap animate-pulse">
+          <span className="text-[#C084FC] font-bold">⚡ CLUSTER TELEMETRY:</span>
+          <span>[WASM] Best: #4,120,912</span>
+          <span className="text-zinc-600">•</span>
+          <span>[FINALIZED] #4,120,909</span>
+          <span className="text-zinc-600">•</span>
+          <span>[EVM] Block: #4,120,911</span>
+          <span className="text-zinc-600">•</span>
+          <span className="text-emerald-400">DELTA: 1 blk (SYNCED)</span>
+          <span className="text-zinc-600">•</span>
+          <span>SS58 FORMAT: 42</span>
+          <span className="text-zinc-600">•</span>
+          <span>DECIMALS: 14 (10^14 base)</span>
+          <span className="text-zinc-600">•</span>
+          <span>CHAIN ID: 9944</span>
+          <span className="text-zinc-600">•</span>
+          <span className="text-[#10B981]">SLASH GUARD: ACTIVE</span>
+          <span className="text-zinc-600">•</span>
+          <span>POT TOKEN: NPoS OPTIMIZED</span>
+        </div>
+      </div>
+
       {/* Section: The 4 Pillars */}
-      <section id="pillars" className="py-20 px-6 border-t border-[#261B42] bg-[#0E0A1A]">
-        <div className="max-w-6xl mx-auto space-y-12">
+      <section id="pillars" className="py-24 px-6 relative z-10">
+        <div className="glow-orb-violet w-[500px] h-[500px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0" />
+        <div className="max-w-6xl mx-auto space-y-14 relative z-10">
           <div className="text-center space-y-3">
-            <div className="inline-block px-2.5 py-1 rounded border border-[#4C2889] bg-[#1A1333] text-[11px] font-mono text-[#C084FC]">
+            <div className="inline-block px-3 py-1 rounded border border-[#4C2889] bg-[#1A1333] text-[11px] font-mono text-[#C084FC] font-bold">
               ENGINE ARCHITECTURE
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
               The Four Mission-Critical Pillars
             </h2>
             <p className="text-zinc-400 text-sm max-w-xl mx-auto">
@@ -159,9 +279,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Pillar 1 */}
-            <div className="p-6 rounded-xl border border-[#261B42] bg-[#130E26] hover:border-[#8B5CF6]/60 transition-all space-y-4">
+            <div className="p-6 rounded-xl border border-[#2D1F52] bg-[#130E26]/90 backdrop-blur-md hover:border-[#E6007A]/60 transition-all space-y-4 shadow-xl relative overflow-hidden group">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-lg bg-[#E6007A]/15 border border-[#E6007A]/40 flex items-center justify-center text-[#E6007A]">
+                <div className="w-11 h-11 rounded-lg bg-[#E6007A]/15 border border-[#E6007A]/40 flex items-center justify-center text-[#E6007A] shadow-lg shadow-[#E6007A]/20">
                   <Layers className="w-5 h-5" />
                 </div>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1A1333] text-zinc-400 border border-[#261B42]">
@@ -169,34 +289,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 </span>
               </div>
 
-              <h3 className="text-lg font-bold text-white font-mono">
+              <h3 className="text-lg font-bold text-white font-mono flex items-center gap-2">
                 Dual-Engine State Tracker
               </h3>
               <p className="text-xs text-zinc-300 leading-relaxed">
                 Portaldot V3.0 executes Substrate ink! WASM and EVM Solidity in parallel. DotNexus probes both WebSocket (:9944) and JSON-RPC (:8545), segregates mempools, and raises alarms before state desync hurts consensus.
               </p>
 
-              <div className="p-3 rounded bg-[#0B0813] border border-[#261B42] text-xs font-mono space-y-1 text-zinc-400">
+              <div className="p-3.5 rounded-lg bg-[#0B0813] border border-[#261B42] text-xs font-mono space-y-1.5 text-zinc-400">
                 <div className="flex justify-between">
-                  <span>WASM WS Ping:</span>
-                  <span className="text-emerald-400 font-semibold">14.2 ms</span>
+                  <span>WASM WS Latency:</span>
+                  <span className="text-emerald-400 font-bold">14.2 ms (:9944)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>EVM RPC Ping:</span>
-                  <span className="text-emerald-400 font-semibold">18.7 ms</span>
+                  <span>EVM RPC Latency:</span>
+                  <span className="text-emerald-400 font-bold">18.7 ms (:8545)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Mempool Segregation:</span>
-                  <span className="text-[#E6007A] font-semibold">42.9% WASM</span>
-                  <span className="text-[#818CF8] font-semibold">57.1% EVM</span>
+                  <span className="text-[#E6007A] font-bold">42.9% WASM</span>
+                  <span className="text-[#818CF8] font-bold">57.1% EVM</span>
                 </div>
               </div>
             </div>
 
             {/* Pillar 2 */}
-            <div className="p-6 rounded-xl border border-[#261B42] bg-[#130E26] hover:border-[#8B5CF6]/60 transition-all space-y-4">
+            <div className="p-6 rounded-xl border border-[#2D1F52] bg-[#130E26]/90 backdrop-blur-md hover:border-[#8B5CF6]/60 transition-all space-y-4 shadow-xl relative overflow-hidden group">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-lg bg-[#8B5CF6]/15 border border-[#8B5CF6]/40 flex items-center justify-center text-[#8B5CF6]">
+                <div className="w-11 h-11 rounded-lg bg-[#8B5CF6]/15 border border-[#8B5CF6]/40 flex items-center justify-center text-[#8B5CF6] shadow-lg shadow-[#8B5CF6]/20">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1A1333] text-zinc-400 border border-[#261B42]">
@@ -204,33 +324,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 </span>
               </div>
 
-              <h3 className="text-lg font-bold text-white font-mono">
+              <h3 className="text-lg font-bold text-white font-mono flex items-center gap-2">
                 Automated Key Rotation & Slashing Guard
               </h3>
               <p className="text-xs text-zinc-300 leading-relaxed">
                 Slashing is a validator operator’s worst nightmare. DotNexus provides atomic anti-equivocation locking, automated <code className="text-[#C084FC]">author_rotateKeys</code>, and a heartbeat daemon with automated 2-block failover to standby servers.
               </p>
 
-              <div className="p-3 rounded bg-[#0B0813] border border-[#261B42] text-xs font-mono space-y-1 text-zinc-400">
+              <div className="p-3.5 rounded-lg bg-[#0B0813] border border-[#261B42] text-xs font-mono space-y-1.5 text-zinc-400">
                 <div className="flex justify-between">
                   <span>Double-Signing Protection:</span>
-                  <span className="text-[#10B981] font-semibold">Active Strict Mutex</span>
+                  <span className="text-[#10B981] font-bold">Strict Mutex Lease</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Session Key Rotation:</span>
-                  <span className="text-[#C084FC] font-semibold">Automated 1-Click</span>
+                  <span className="text-[#C084FC] font-bold">Automated 1-Click</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Failover Trigger Threshold:</span>
-                  <span className="text-white font-semibold">2 Consecutive Missed Blocks</span>
+                  <span>Failover Threshold:</span>
+                  <span className="text-white font-bold">2 Consecutive Missed Blocks</span>
                 </div>
               </div>
             </div>
 
             {/* Pillar 3 */}
-            <div className="p-6 rounded-xl border border-[#261B42] bg-[#130E26] hover:border-[#8B5CF6]/60 transition-all space-y-4">
+            <div className="p-6 rounded-xl border border-[#2D1F52] bg-[#130E26]/90 backdrop-blur-md hover:border-[#C084FC]/60 transition-all space-y-4 shadow-xl relative overflow-hidden group">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-lg bg-[#C084FC]/15 border border-[#C084FC]/40 flex items-center justify-center text-[#C084FC]">
+                <div className="w-11 h-11 rounded-lg bg-[#C084FC]/15 border border-[#C084FC]/40 flex items-center justify-center text-[#C084FC] shadow-lg shadow-[#C084FC]/20">
                   <TrendingUp className="w-5 h-5" />
                 </div>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1A1333] text-zinc-400 border border-[#261B42]">
@@ -238,33 +358,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 </span>
               </div>
 
-              <h3 className="text-lg font-bold text-white font-mono">
+              <h3 className="text-lg font-bold text-white font-mono flex items-center gap-2">
                 NPoS Dynamic Re-Nomination Engine
               </h3>
               <p className="text-xs text-zinc-300 leading-relaxed">
                 Eliminates nominator yield loss by scanning validator uptime, commission rates, and oversubscription limits. Algorithmically picks the optimal Top 16 validator set and auto-compounds POT token returns each era.
               </p>
 
-              <div className="p-3 rounded bg-[#0B0813] border border-[#261B42] text-xs font-mono space-y-1 text-zinc-400">
+              <div className="p-3.5 rounded-lg bg-[#0B0813] border border-[#261B42] text-xs font-mono space-y-1.5 text-zinc-400">
                 <div className="flex justify-between">
-                  <span>Scoring Metrics:</span>
-                  <span className="text-white font-semibold">Uptime + Commission + Capacity</span>
+                  <span>Scoring Factors:</span>
+                  <span className="text-white font-bold">Uptime + Commission + Capacity</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Greedy/Oversubscribed Pools:</span>
-                  <span className="text-[#EF4444] font-semibold">Filtered (Zero Yield Loss)</span>
+                  <span className="text-[#EF4444] font-bold">Filtered (Zero Loss)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Compounding Yield Boost:</span>
-                  <span className="text-emerald-400 font-semibold">+1.16% APY Gain</span>
+                  <span className="text-emerald-400 font-bold">+1.16% APY Gain</span>
                 </div>
               </div>
             </div>
 
             {/* Pillar 4 */}
-            <div className="p-6 rounded-xl border border-[#261B42] bg-[#130E26] hover:border-[#8B5CF6]/60 transition-all space-y-4">
+            <div className="p-6 rounded-xl border border-[#2D1F52] bg-[#130E26]/90 backdrop-blur-md hover:border-[#38BDF8]/60 transition-all space-y-4 shadow-xl relative overflow-hidden group">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-lg bg-[#38BDF8]/15 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8]">
+                <div className="w-11 h-11 rounded-lg bg-[#38BDF8]/15 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8] shadow-lg shadow-[#38BDF8]/20">
                   <Shield className="w-5 h-5" />
                 </div>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1A1333] text-zinc-400 border border-[#261B42]">
@@ -272,25 +392,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 </span>
               </div>
 
-              <h3 className="text-lg font-bold text-white font-mono">
+              <h3 className="text-lg font-bold text-white font-mono flex items-center gap-2">
                 RPC Anti-Spam Shield & P2P Topology
               </h3>
               <p className="text-xs text-zinc-300 leading-relaxed">
                 Protects RPC endpoints against OOM crashes caused by heavy archival queries (<code className="text-[#38BDF8]">eth_getLogs</code> span &gt; 2000 blocks). Enforces dynamic IP rate-limiting while prioritizing consensus peer traffic over public bot queries.
               </p>
 
-              <div className="p-3 rounded bg-[#0B0813] border border-[#261B42] text-xs font-mono space-y-1 text-zinc-400">
+              <div className="p-3.5 rounded-lg bg-[#0B0813] border border-[#261B42] text-xs font-mono space-y-1.5 text-zinc-400">
                 <div className="flex justify-between">
                   <span>Query Packet Filter:</span>
-                  <span className="text-[#10B981] font-semibold">Blocks Range Spans &gt; 2000</span>
+                  <span className="text-[#10B981] font-bold">Blocks Range Spans &gt; 2000</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Adaptive Rate-Limiting:</span>
-                  <span className="text-white font-semibold">60 Req / Minute / IP</span>
+                  <span className="text-white font-bold">60 Req / Minute / IP</span>
                 </div>
                 <div className="flex justify-between">
                   <span>P2P Peer Topology:</span>
-                  <span className="text-zinc-200 font-semibold">Active Mesh Anomaly Detection</span>
+                  <span className="text-zinc-200 font-bold">Mesh Anomaly Detection</span>
                 </div>
               </div>
             </div>
@@ -299,13 +419,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
       </section>
 
       {/* Section: Visual DAG Runbook Canvas */}
-      <section id="dag-canvas" className="py-20 px-6 border-t border-[#261B42] bg-[#0B0813]">
-        <div className="max-w-6xl mx-auto space-y-10">
+      <section id="dag-canvas" className="py-24 px-6 border-t border-[#261B42] bg-[#0E0A1A]/80 relative z-10">
+        <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3">
-            <div className="inline-block px-2.5 py-1 rounded border border-[#4C2889] bg-[#1A1333] text-[11px] font-mono text-[#C084FC]">
+            <div className="inline-block px-3 py-1 rounded border border-[#4C2889] bg-[#1A1333] text-[11px] font-mono text-[#C084FC] font-bold">
               INNOVATION HIGHLIGHT
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
               Interactive DAG Automation Canvas
             </h2>
             <p className="text-zinc-400 text-sm max-w-2xl mx-auto">
@@ -314,18 +434,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           </div>
 
           {/* Interactive Visual Circuit Board Preview */}
-          <div className="p-6 rounded-xl border border-[#2D1F52] bg-[#0E0A1A] space-y-6 shadow-2xl">
+          <div className="p-8 rounded-2xl border border-[#2D1F52] bg-[#130E26]/90 backdrop-blur-md space-y-8 shadow-2xl relative overflow-hidden">
             <div className="flex items-center justify-between text-xs font-mono border-b border-[#261B42] pb-3">
-              <span className="text-[#C084FC] font-semibold">SAMPLE RUNBOOK: AUTOMATED SLASHING GUARD FAILOVER</span>
-              <span className="text-emerald-400 flex items-center gap-1.5">
+              <span className="text-[#C084FC] font-bold">RUNBOOK PREVIEW: AUTOMATED SLASHING GUARD FAILOVER</span>
+              <span className="text-emerald-400 flex items-center gap-1.5 font-bold">
                 <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping" />
-                Pipeline Armed & Active
+                Pipeline Armed & Ready
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
               {/* Step 1 */}
-              <div className="p-4 rounded-lg border border-[#E6007A]/40 bg-[#1A0E26] space-y-2">
+              <div className="p-5 rounded-xl border border-[#E6007A]/50 bg-[#1A0E26] space-y-2.5 shadow-lg">
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#E6007A]/20 text-[#E6007A] font-bold">
                   WATCHER NODE
                 </span>
@@ -336,7 +456,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               </div>
 
               {/* Step 2 */}
-              <div className="p-4 rounded-lg border border-[#8B5CF6]/50 bg-[#1E1238] space-y-2">
+              <div className="p-5 rounded-xl border border-[#8B5CF6]/50 bg-[#1E1238] space-y-2.5 shadow-lg">
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#8B5CF6]/20 text-[#C084FC] font-bold">
                   SECURITY MUTEX
                 </span>
@@ -347,7 +467,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               </div>
 
               {/* Step 3 */}
-              <div className="p-4 rounded-lg border border-[#10B981]/40 bg-[#0E261E] space-y-2">
+              <div className="p-5 rounded-xl border border-[#10B981]/50 bg-[#0E261E] space-y-2.5 shadow-lg">
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/20 text-[#10B981] font-bold">
                   ACTION NODE
                 </span>
@@ -361,10 +481,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             <div className="flex justify-center pt-2">
               <button
                 onClick={onLaunchApp}
-                className="flex items-center gap-2 px-5 py-2.5 text-xs font-mono rounded bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-lg shadow-[#8B5CF6]/30"
+                className="flex items-center gap-2 px-6 py-3 text-xs font-mono rounded bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/35 cursor-pointer hover:scale-[1.02]"
               >
                 <Workflow className="w-4 h-4" />
-                <span>Open Interactive Canvas in Control Center</span>
+                <span>Open Full Interactive Canvas in Control Center</span>
               </button>
             </div>
           </div>
@@ -372,10 +492,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
       </section>
 
       {/* Section: Comparison Matrix */}
-      <section id="comparison" className="py-20 px-6 border-t border-[#261B42] bg-[#0E0A1A]">
-        <div className="max-w-5xl mx-auto space-y-10">
+      <section id="comparison" className="py-24 px-6 border-t border-[#261B42] bg-[#0B0813] relative z-10">
+        <div className="max-w-5xl mx-auto space-y-12">
           <div className="text-center space-y-3">
-            <h2 className="text-3xl font-extrabold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
               Why DotNexus Stands Apart
             </h2>
             <p className="text-zinc-400 text-sm max-w-xl mx-auto">
@@ -383,7 +503,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             </p>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-[#261B42] bg-[#130E26]">
+          <div className="overflow-x-auto rounded-xl border border-[#261B42] bg-[#130E26]/90 backdrop-blur-md shadow-2xl">
             <table className="w-full text-left text-xs font-mono">
               <thead>
                 <tr className="border-b border-[#261B42] bg-[#1A1333] text-zinc-400">
@@ -431,19 +551,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
       </section>
 
       {/* Section: Hackathon Roadmap */}
-      <section id="roadmap" className="py-20 px-6 border-t border-[#261B42] bg-[#0B0813]">
-        <div className="max-w-4xl mx-auto space-y-10">
+      <section id="roadmap" className="py-24 px-6 border-t border-[#261B42] bg-[#0E0A1A] relative z-10">
+        <div className="max-w-4xl mx-auto space-y-12">
           <div className="text-center space-y-3">
-            <div className="inline-block px-2.5 py-1 rounded border border-[#4C2889] bg-[#1A1333] text-[11px] font-mono text-[#C084FC]">
+            <div className="inline-block px-3 py-1 rounded border border-[#4C2889] bg-[#1A1333] text-[11px] font-mono text-[#C084FC] font-bold">
               DELIVERY SCHEDULE
             </div>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
               Portaldot Hacker House 2026 Timeline
             </h2>
           </div>
 
           <div className="space-y-4 font-mono text-xs">
-            <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] flex items-center justify-between">
+            <div className="p-4 rounded-xl border border-[#261B42] bg-[#130E26] flex items-center justify-between">
               <div>
                 <span className="text-[#C084FC] font-bold">Oct 14, 2026</span> — Official Kick-off Meeting & Workshop
                 <div className="text-[11px] text-zinc-400 mt-0.5">Architecture finalized, Dual-VM Engine baseline created.</div>
@@ -451,7 +571,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               <span className="px-2 py-0.5 rounded bg-[#10B981]/20 text-[#10B981] font-bold">READY</span>
             </div>
 
-            <div className="p-4 rounded-lg border border-[#8B5CF6]/50 bg-[#1A1333] flex items-center justify-between">
+            <div className="p-4 rounded-xl border border-[#8B5CF6]/50 bg-[#1A1333] flex items-center justify-between shadow-lg shadow-[#8B5CF6]/15">
               <div>
                 <span className="text-[#C084FC] font-bold">Oct 24, 2026 (12:00 UTC)</span> — DoraHacks Check-in Deadline
                 <div className="text-[11px] text-zinc-300 mt-0.5">Dual-Engine Tracker, Slashing Guard & Working Prototype demo.</div>
@@ -459,7 +579,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               <span className="px-2 py-0.5 rounded bg-[#8B5CF6]/30 text-[#C084FC] font-bold">CHECK-IN TARGET</span>
             </div>
 
-            <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] flex items-center justify-between">
+            <div className="p-4 rounded-xl border border-[#261B42] bg-[#130E26] flex items-center justify-between">
               <div>
                 <span className="text-zinc-400 font-bold">Nov 06, 2026 (04:00 UTC)</span> — Code Freeze & Final Submission
                 <div className="text-[11px] text-zinc-500 mt-0.5">Complete code package, pitch deck & judge verification.</div>
@@ -467,7 +587,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">UPCOMING</span>
             </div>
 
-            <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] flex items-center justify-between">
+            <div className="p-4 rounded-xl border border-[#261B42] bg-[#130E26] flex items-center justify-between">
               <div>
                 <span className="text-zinc-400 font-bold">Nov 07 – 08, 2026</span> — Live Demo Day & Foundation Review
                 <div className="text-[11px] text-zinc-500 mt-0.5">Live demonstration with Portaldot Network judges.</div>
@@ -479,9 +599,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-[#261B42] bg-[#090610] text-center text-xs font-mono text-zinc-500 space-y-2">
+      <footer className="py-10 px-6 border-t border-[#261B42] bg-[#090610] text-center text-xs font-mono text-zinc-500 space-y-2 relative z-10">
         <div>
-          DotNexus — Built with passion for <span className="text-[#C084FC]">Portaldot Network V3.0</span>
+          DotNexus — Built with passion for <span className="text-[#C084FC] font-bold">Portaldot Network V3.0</span>
         </div>
         <div className="text-[11px] text-zinc-600">
           Node Operations & Tooling Track • Portaldot Hacker House 2026

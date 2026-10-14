@@ -16,6 +16,7 @@ import { SecurityGuardView } from './views/SecurityGuardView';
 import { StakingYieldView } from './views/StakingYieldView';
 import { TopologyRadarView } from './views/TopologyRadarView';
 import { CanvasBoard } from './views/CanvasBoard';
+import { SplineLandingPage } from './views/SplineLandingPage';
 import { LandingPage } from './views/LandingPage';
 import { 
   api, 
@@ -25,11 +26,12 @@ import {
   ShieldStatus 
 } from './services/api';
 
-type ViewMode = 'landing' | 'console';
+type ViewMode = 'spline' | 'classic-landing' | 'console';
 type TabType = 'dual-vm' | 'slashing' | 'staking' | 'shield' | 'canvas';
 
 export const App: React.FC = () => {
-  const [viewMode, setViewMode] = useState<ViewMode>('landing');
+  // Default to 100% native Spline 3D Landing Page
+  const [viewMode, setViewMode] = useState<ViewMode>('spline');
   const [activeTab, setActiveTab] = useState<TabType>('dual-vm');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -75,10 +77,17 @@ export const App: React.FC = () => {
     { id: 'canvas' as TabType, label: 'Automation Canvas', icon: Workflow }
   ];
 
-  if (viewMode === 'landing') {
+  // 100% Spline Design Landing Page
+  if (viewMode === 'spline') {
+    return <SplineLandingPage onLaunchApp={() => setViewMode('console')} />;
+  }
+
+  // Classic Technical Landing Page
+  if (viewMode === 'classic-landing') {
     return <LandingPage onLaunchApp={() => setViewMode('console')} />;
   }
 
+  // Control Center Console
   return (
     <div className="min-h-screen flex flex-col bg-[#0B0813] text-[#E2E8F0]">
       {/* Global Cluster Header */}
@@ -89,7 +98,7 @@ export const App: React.FC = () => {
         delta={dualData?.sync?.delta_blocks || 1}
         syncStatus={dualData?.sync?.status || 'SYNCED'}
         activeNode={secData?.active_node || 'PRIMARY'}
-        onNavigateHome={() => setViewMode('landing')}
+        onNavigateHome={() => setViewMode('spline')}
       />
 
       {/* Main Control Center Body */}

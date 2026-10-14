@@ -1,6 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
+/**
+ * ThreeCanvas: High-Performance Custom 3D Interactive Cyber Grid
+ * Complies with UI_UX_DESIGN_SPEC.md (Giai đoạn 1 - 5)
+ * - 3D Matrix of Cyber Cubes (Substrate WASM / EVM Dual-VM nodes)
+ * - Mouse Raycaster & Spring Physics Ripple Waves
+ * - Chamfered edges with glowing neon cyber lines
+ * - Dynamic Dual-VM colored lights & cursor follower
+ */
 export const ThreeCanvas: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
 
@@ -8,253 +16,416 @@ export const ThreeCanvas: React.FC = () => {
     const mount = mountRef.current;
     if (!mount) return;
 
-    // Scene & Camera
+    // 1. Scene & Camera Setup
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0b0813, 0.0012);
+    scene.fog = new THREE.FogExp2(0x0b0813, 0.0016);
 
-    const width = mount.clientWidth;
-    const height = mount.clientHeight;
-    const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-    camera.position.z = 260;
+    let width = mount.clientWidth || window.innerWidth;
+    let height = mount.clientHeight || window.innerHeight;
 
-    // WebGL Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+    camera.position.set(0, -28, 195);
+    camera.lookAt(0, 4, 0);
+
+    // 2. WebGL Renderer
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance'
+    });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
     mount.appendChild(renderer.domElement);
 
-    // Group for entire interactive network
-    const networkGroup = new THREE.Group();
-    scene.add(networkGroup);
-
-    // Dynamic Cyber Lights
-    const pointLightWasm = new THREE.PointLight(0xe6007a, 3, 300);
-    pointLightWasm.position.set(-120, 50, 80);
-    scene.add(pointLightWasm);
-
-    const pointLightEvm = new THREE.PointLight(0x6366f1, 3, 300);
-    pointLightEvm.position.set(120, -50, 80);
-    scene.add(pointLightEvm);
-
-    const ambientLight = new THREE.AmbientLight(0x2a164d, 1.5);
+    // 3. Lighting Setup
+    const ambientLight = new THREE.AmbientLight(0x19102c, 1.8);
     scene.add(ambientLight);
 
-    // 1. Central Core: DotNexus Neural Icosahedron
-    const coreGeo = new THREE.IcosahedronGeometry(48, 2);
-    const coreMat = new THREE.MeshBasicMaterial({
-      color: 0x8b5cf6,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.45,
-    });
-    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-    networkGroup.add(coreMesh);
+    // Dynamic Mouse Light (follows pointer on the grid)
+    const mouseLight = new THREE.PointLight(0xa855f7, 4.5, 90, 1.5);
+    mouseLight.position.set(0, 0, 30);
+    scene.add(mouseLight);
 
-    // Inner Glowing Core
-    const innerGeo = new THREE.SphereGeometry(28, 16, 16);
-    const innerMat = new THREE.MeshBasicMaterial({
-      color: 0xc084fc,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.6,
-    });
-    const innerMesh = new THREE.Mesh(innerGeo, innerMat);
-    networkGroup.add(innerMesh);
+    // Left VM Light (Substrate WASM / Polkadot Magenta)
+    const wasmLight = new THREE.PointLight(0xe6007a, 3.2, 180, 1.2);
+    wasmLight.position.set(-80, 40, 45);
+    scene.add(wasmLight);
 
-    // 2. Dual-VM Constellation Nodes (WASM Magenta vs EVM Indigo)
-    const nodeCount = 220;
-    const positions = new Float32Array(nodeCount * 3);
-    const colors = new Float32Array(nodeCount * 3);
+    // Right VM Light (EVM JSON-RPC / Cyan-Indigo)
+    const evmLight = new THREE.PointLight(0x38bdf8, 3.2, 180, 1.2);
+    evmLight.position.set(80, -30, 45);
+    scene.add(evmLight);
 
-    const wasmColor = new THREE.Color(0xe6007a);
-    const evmColor = new THREE.Color(0x6366f1);
+    // Center Core Light (Electric Violet)
+    const centerLight = new THREE.PointLight(0x8b5cf6, 2.5, 140, 1.2);
+    centerLight.position.set(0, 15, 50);
+    scene.add(centerLight);
 
-    const nodeVectors: THREE.Vector3[] = [];
+    // 4. Matrix of Cyber Cubes (Grid Geometry)
+    const COLS = 11;
+    const ROWS = 7;
+    const SPACING_X = 18;
+    const SPACING_Y = 16;
+    const BOX_WIDTH = 13.5;
+    const BOX_HEIGHT = 12;
+    const BOX_DEPTH = 11;
 
-    for (let i = 0; i < nodeCount; i++) {
-      const isWasm = i % 2 === 0;
-      const angle = (i / nodeCount) * Math.PI * 2 * 3;
-      const radius = 65 + Math.random() * 95;
-      const yOffset = (Math.random() - 0.5) * 110;
+    const gridGroup = new THREE.Group();
+    // Tilt the entire grid slightly back for a command deck perspective
+    gridGroup.rotation.x = 0.28;
+    scene.add(gridGroup);
 
-      // Position WASM biased towards left (-x), EVM towards right (+x)
-      const xSpread = isWasm ? -Math.abs(Math.cos(angle) * radius) : Math.abs(Math.cos(angle) * radius);
-      const zSpread = Math.sin(angle) * radius;
+    // Shared geometry for performance
+    const boxGeometry = new THREE.BoxGeometry(BOX_WIDTH, BOX_HEIGHT, BOX_DEPTH);
+    const edgesGeometry = new THREE.EdgesGeometry(boxGeometry);
 
-      const vec = new THREE.Vector3(xSpread, yOffset, zSpread);
-      nodeVectors.push(vec);
+    // Top cap indicator geometry
+    const capGeometry = new THREE.PlaneGeometry(BOX_WIDTH * 0.72, BOX_HEIGHT * 0.72);
 
-      positions[i * 3] = vec.x;
-      positions[i * 3 + 1] = vec.y;
-      positions[i * 3 + 2] = vec.z;
-
-      const c = isWasm ? wasmColor : evmColor;
-      colors[i * 3] = c.r;
-      colors[i * 3 + 1] = c.g;
-      colors[i * 3 + 2] = c.b;
+    interface CubeInstance {
+      mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshStandardMaterial>;
+      edgeMesh: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>;
+      capMesh: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+      baseX: number;
+      baseY: number;
+      baseZ: number;
+      currentZ: number;
+      targetZ: number;
+      rotX: number;
+      rotY: number;
+      targetRotX: number;
+      targetRotY: number;
+      glowIntensity: number;
+      vmType: 'wasm' | 'core' | 'evm';
+      baseColor: THREE.Color;
+      activeColor: THREE.Color;
     }
 
-    const nodeGeometry = new THREE.BufferGeometry();
-    nodeGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    nodeGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const cubes: CubeInstance[] = [];
 
-    const nodeMaterial = new THREE.PointsMaterial({
-      size: 4.8,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.9,
-      blending: THREE.AdditiveBlending,
-    });
-    const nodePoints = new THREE.Points(nodeGeometry, nodeMaterial);
-    networkGroup.add(nodePoints);
+    const startX = -((COLS - 1) * SPACING_X) / 2;
+    const startY = -((ROWS - 1) * SPACING_Y) / 2;
 
-    // 3. Dynamic Neural Synapse Lines
-    const lineMaterial = new THREE.LineBasicMaterial({
-      color: 0x582c9e,
-      transparent: true,
-      opacity: 0.3,
-      blending: THREE.AdditiveBlending,
-    });
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const x = startX + c * SPACING_X;
+        const y = startY + r * SPACING_Y;
+        const z = 0;
 
-    const linePositions: number[] = [];
-    for (let i = 0; i < nodeCount; i++) {
-      for (let j = i + 1; j < nodeCount; j++) {
-        const dist = nodeVectors[i].distanceTo(nodeVectors[j]);
-        if (dist < 48) {
-          linePositions.push(nodeVectors[i].x, nodeVectors[i].y, nodeVectors[i].z);
-          linePositions.push(nodeVectors[j].x, nodeVectors[j].y, nodeVectors[j].z);
+        // Classify VM domain
+        let vmType: 'wasm' | 'core' | 'evm' = 'core';
+        let baseColor = new THREE.Color(0x130e26);
+        let activeColor = new THREE.Color(0xc084fc);
+        let edgeColor = new THREE.Color(0x4c2889);
+        let capColor = new THREE.Color(0x8b5cf6);
+
+        if (c < 4) {
+          // Substrate WASM Domain (Left)
+          vmType = 'wasm';
+          activeColor = new THREE.Color(0xff2d95);
+          edgeColor = new THREE.Color(0x6e1248);
+          capColor = new THREE.Color(0xe6007a);
+        } else if (c > 6) {
+          // EVM Domain (Right)
+          vmType = 'evm';
+          activeColor = new THREE.Color(0x38bdf8);
+          edgeColor = new THREE.Color(0x1e3a8a);
+          capColor = new THREE.Color(0x6366f1);
+        } else {
+          // Dual-VM Synthesis Core (Center)
+          vmType = 'core';
+          activeColor = new THREE.Color(0xd8b4fe);
+          edgeColor = new THREE.Color(0x582c9e);
+          capColor = new THREE.Color(0xa855f7);
         }
+
+        // Body Material (Dark obsidian chassis with high metalness)
+        const mat = new THREE.MeshStandardMaterial({
+          color: baseColor,
+          roughness: 0.22,
+          metalness: 0.88,
+          emissive: baseColor,
+          emissiveIntensity: 0.1,
+          transparent: true,
+          opacity: 0.94,
+        });
+
+        const mesh = new THREE.Mesh(boxGeometry, mat);
+        mesh.position.set(x, y, z);
+        gridGroup.add(mesh);
+
+        // Edge Wireframe (Crisp cyber borders)
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: edgeColor,
+          transparent: true,
+          opacity: 0.55,
+          blending: THREE.AdditiveBlending,
+        });
+        const edgeMesh = new THREE.LineSegments(edgesGeometry, edgeMat);
+        mesh.add(edgeMesh);
+
+        // Top Microchip Cap
+        const capMat = new THREE.MeshBasicMaterial({
+          color: capColor,
+          transparent: true,
+          opacity: 0.45,
+          blending: THREE.AdditiveBlending,
+        });
+        const capMesh = new THREE.Mesh(capGeometry, capMat);
+        capMesh.position.set(0, 0, BOX_DEPTH / 2 + 0.05);
+        mesh.add(capMesh);
+
+        cubes.push({
+          mesh,
+          edgeMesh,
+          capMesh,
+          baseX: x,
+          baseY: y,
+          baseZ: z,
+          currentZ: z,
+          targetZ: z,
+          rotX: 0,
+          rotY: 0,
+          targetRotX: 0,
+          targetRotY: 0,
+          glowIntensity: 0,
+          vmType,
+          baseColor,
+          activeColor,
+        });
       }
     }
 
-    const lineGeometry = new THREE.BufferGeometry();
-    lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-    const lineMesh = new THREE.LineSegments(lineGeometry, lineMaterial);
-    networkGroup.add(lineMesh);
-
-    // 4. Floating Holographic Data Rings
-    const ringGeo1 = new THREE.RingGeometry(115, 117, 64);
-    const ringMat1 = new THREE.MeshBasicMaterial({
-      color: 0xe6007a,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.35,
-    });
-    const ringMesh1 = new THREE.Mesh(ringGeo1, ringMat1);
-    ringMesh1.rotation.x = Math.PI / 3;
-    networkGroup.add(ringMesh1);
-
-    const ringGeo2 = new THREE.RingGeometry(140, 142, 64);
-    const ringMat2 = new THREE.MeshBasicMaterial({
-      color: 0x6366f1,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.35,
-    });
-    const ringMesh2 = new THREE.Mesh(ringGeo2, ringMat2);
-    ringMesh2.rotation.x = -Math.PI / 4;
-    networkGroup.add(ringMesh2);
-
-    // 5. Background Cybernetic Star Dust (Floating Embers)
-    const dustCount = 400;
+    // 5. Floating Background Cyber Dust (Embers)
+    const dustCount = 280;
     const dustPositions = new Float32Array(dustCount * 3);
+    const dustColors = new Float32Array(dustCount * 3);
+
+    const c1 = new THREE.Color(0x8b5cf6);
+    const c2 = new THREE.Color(0x38bdf8);
+    const c3 = new THREE.Color(0xe6007a);
+
     for (let i = 0; i < dustCount; i++) {
-      dustPositions[i * 3] = (Math.random() - 0.5) * 800;
-      dustPositions[i * 3 + 1] = (Math.random() - 0.5) * 600;
-      dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 600;
+      dustPositions[i * 3] = (Math.random() - 0.5) * 600;
+      dustPositions[i * 3 + 1] = (Math.random() - 0.5) * 450;
+      dustPositions[i * 3 + 2] = -50 + (Math.random() - 0.5) * 350;
+
+      const pick = Math.random();
+      const col = pick < 0.33 ? c1 : pick < 0.66 ? c2 : c3;
+      dustColors[i * 3] = col.r;
+      dustColors[i * 3 + 1] = col.g;
+      dustColors[i * 3 + 2] = col.b;
     }
-    const dustGeo = new THREE.BufferGeometry();
-    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
-    const dustMat = new THREE.PointsMaterial({
-      color: 0x8b5cf6,
-      size: 2.5,
+
+    const dustGeometry = new THREE.BufferGeometry();
+    dustGeometry.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+    dustGeometry.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
+
+    const dustMaterial = new THREE.PointsMaterial({
+      size: 2.2,
+      vertexColors: true,
       transparent: true,
       opacity: 0.45,
       blending: THREE.AdditiveBlending,
     });
-    const dustPoints = new THREE.Points(dustGeo, dustMat);
+    const dustPoints = new THREE.Points(dustGeometry, dustMaterial);
     scene.add(dustPoints);
 
-    // Mouse Interaction Parallax
-    let mouseX = 0;
-    let mouseY = 0;
-    let targetRotationX = 0;
-    let targetRotationY = 0;
+    // 6. Mouse Raycasting & Target World Coordinates
+    const raycaster = new THREE.Raycaster();
+    const mouseNorm = new THREE.Vector2(-999, -999);
+    const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const planeIntersect = new THREE.Vector3(0, 0, 0);
 
-    const handleMouseMove = (event: MouseEvent) => {
+    let clientMouseX = 0;
+    let clientMouseY = 0;
+    let isMouseOver = false;
+
+    const handlePointerMove = (e: MouseEvent) => {
       const rect = mount.getBoundingClientRect();
-      const x = event.clientX - rect.left - rect.width / 2;
-      const y = event.clientY - rect.top - rect.height / 2;
-      mouseX = x / 350;
-      mouseY = y / 350;
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+
+      mouseNorm.x = (px / rect.width) * 2 - 1;
+      mouseNorm.y = -(py / rect.height) * 2 + 1;
+
+      clientMouseX = mouseNorm.x;
+      clientMouseY = mouseNorm.y;
+      isMouseOver = true;
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    const handlePointerLeave = () => {
+      mouseNorm.set(-999, -999);
+      isMouseOver = false;
+    };
+
+    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseleave', handlePointerLeave);
 
     const handleResize = () => {
       if (!mount) return;
-      const w = mount.clientWidth;
-      const h = mount.clientHeight;
-      camera.aspect = w / h;
+      width = mount.clientWidth;
+      height = mount.clientHeight;
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(width, height);
     };
 
     window.addEventListener('resize', handleResize);
 
-    // Animation Loop
+    // 7. Animation Loop with Spring Physics & Dynamic Ripple Waves
     let animId: number;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
+
+    let gridDampedRotX = 0.28;
+    let gridDampedRotY = 0;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
 
-      // Smooth damped rotation with mouse tilt
-      targetRotationY += (mouseX - targetRotationY) * 0.05;
-      targetRotationX += (mouseY - targetRotationX) * 0.05;
+      // Intersect ray with ground plane to get exact mouse position in 3D world space
+      raycaster.setFromCamera(mouseNorm, camera);
+      raycaster.ray.intersectPlane(planeZ, planeIntersect);
 
-      networkGroup.rotation.y = elapsed * 0.18 + targetRotationY;
-      networkGroup.rotation.x = Math.sin(elapsed * 0.12) * 0.1 + targetRotationX * 0.4;
+      // Smooth camera & grid parallax tilt from mouse
+      const targetGridRotY = isMouseOver ? clientMouseX * 0.16 : 0;
+      const targetGridRotX = 0.28 - (isMouseOver ? clientMouseY * 0.12 : 0);
 
-      // Pulse core
-      const scale = 1 + Math.sin(elapsed * 2.2) * 0.06;
-      coreMesh.scale.set(scale, scale, scale);
-      innerMesh.rotation.y = -elapsed * 0.4;
-      innerMesh.rotation.z = elapsed * 0.25;
+      gridDampedRotY += (targetGridRotY - gridDampedRotY) * 0.05;
+      gridDampedRotX += (targetGridRotX - gridDampedRotX) * 0.05;
 
-      // Rotate data rings
-      ringMesh1.rotation.z = elapsed * 0.22;
-      ringMesh2.rotation.z = -elapsed * 0.28;
+      gridGroup.rotation.y = gridDampedRotY;
+      gridGroup.rotation.x = gridDampedRotX;
 
-      // Slowly rotate star dust
-      dustPoints.rotation.y = elapsed * 0.02;
+      // Position mouse point light smoothly above cursor
+      if (isMouseOver && mouseNorm.x > -2) {
+        mouseLight.position.x += (planeIntersect.x - mouseLight.position.x) * 0.18;
+        mouseLight.position.y += (planeIntersect.y - mouseLight.position.y) * 0.18;
+        mouseLight.position.z = 24 + Math.sin(elapsed * 4) * 3;
+        mouseLight.intensity = 4.2;
+      } else {
+        mouseLight.intensity += (0 - mouseLight.intensity) * 0.08;
+      }
+
+      // Orbital sway for Dual-VM lights
+      wasmLight.position.x = -85 + Math.sin(elapsed * 0.8) * 15;
+      wasmLight.position.y = 40 + Math.cos(elapsed * 0.7) * 12;
+
+      evmLight.position.x = 85 + Math.cos(elapsed * 0.8) * 15;
+      evmLight.position.y = -30 + Math.sin(elapsed * 0.7) * 12;
+
+      // Influence radius for mouse ripple wave
+      const WAVE_RADIUS = 55;
+      const MAX_ELEVATION = 26;
+
+      // Update each cube with Spring Physics & Wave Dynamics
+      for (let i = 0; i < cubes.length; i++) {
+        const c = cubes[i];
+
+        // 1. Ambient breathing wave (diagonally sweeping across matrix)
+        const colIndex = i % COLS;
+        const rowIndex = Math.floor(i / COLS);
+        const ambientWave = Math.sin(elapsed * 1.8 + colIndex * 0.42 + rowIndex * 0.32) * 2.8;
+
+        // 2. Mouse distance calculation
+        let mouseLift = 0;
+        let tiltFactorX = 0;
+        let tiltFactorY = 0;
+
+        if (isMouseOver && mouseNorm.x > -2) {
+          const dx = planeIntersect.x - c.baseX;
+          const dy = planeIntersect.y - c.baseY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < WAVE_RADIUS) {
+            // Cosine smooth wave falloff
+            const normDist = dist / WAVE_RADIUS;
+            const factor = Math.cos(normDist * (Math.PI / 2));
+            mouseLift = factor * MAX_ELEVATION;
+
+            // Tilt toward/away from cursor for tactile 3D responsiveness
+            tiltFactorX = -(dy / WAVE_RADIUS) * factor * 0.45;
+            tiltFactorY = (dx / WAVE_RADIUS) * factor * 0.45;
+
+            // Glow intensity flare
+            c.glowIntensity += (factor - c.glowIntensity) * 0.22;
+          } else {
+            c.glowIntensity += (0 - c.glowIntensity) * 0.08;
+          }
+        } else {
+          c.glowIntensity += (0 - c.glowIntensity) * 0.08;
+        }
+
+        // 3. Spring physics: update position & rotation
+        c.targetZ = c.baseZ + ambientWave + mouseLift;
+        c.currentZ += (c.targetZ - c.currentZ) * 0.12;
+        c.mesh.position.z = c.currentZ;
+
+        c.targetRotX = tiltFactorX;
+        c.targetRotY = tiltFactorY;
+        c.rotX += (c.targetRotX - c.rotX) * 0.12;
+        c.rotY += (c.targetRotY - c.rotY) * 0.12;
+
+        c.mesh.rotation.x = c.rotX;
+        c.mesh.rotation.y = c.rotY;
+
+        // 4. Dynamic Emissive Glow & Edge Brightness
+        const mat = c.mesh.material;
+        const edgeMat = c.edgeMesh.material;
+        const capMat = c.capMesh.material;
+
+        if (c.glowIntensity > 0.01) {
+          // Interpolate emissive color toward active neon
+          mat.emissive.lerpColors(c.baseColor, c.activeColor, c.glowIntensity * 0.7);
+          mat.emissiveIntensity = 0.1 + c.glowIntensity * 1.6;
+
+          // Brighten edges
+          edgeMat.opacity = 0.55 + c.glowIntensity * 0.45;
+          capMat.opacity = 0.45 + c.glowIntensity * 0.55;
+
+          // Micro scale pop
+          const s = 1 + c.glowIntensity * 0.06;
+          c.mesh.scale.set(s, s, s);
+        } else {
+          mat.emissive.copy(c.baseColor);
+          mat.emissiveIntensity = 0.1;
+          edgeMat.opacity = 0.45;
+          capMat.opacity = 0.35;
+          c.mesh.scale.set(1, 1, 1);
+        }
+      }
+
+      // Slowly drift cyber dust
+      dustPoints.rotation.y = elapsed * 0.025;
+      dustPoints.rotation.x = Math.sin(elapsed * 0.015) * 0.04;
 
       renderer.render(scene, camera);
     };
 
     animate();
 
+    // 8. Cleanup & Resource Disposal
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousemove', handlePointerMove);
+      window.removeEventListener('mouseleave', handlePointerLeave);
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animId);
 
       renderer.dispose();
-      coreGeo.dispose();
-      coreMat.dispose();
-      innerGeo.dispose();
-      innerMat.dispose();
-      nodeGeometry.dispose();
-      nodeMaterial.dispose();
-      lineGeometry.dispose();
-      lineMaterial.dispose();
-      ringGeo1.dispose();
-      ringMat1.dispose();
-      ringGeo2.dispose();
-      ringMat2.dispose();
-      dustGeo.dispose();
-      dustMat.dispose();
+      boxGeometry.dispose();
+      edgesGeometry.dispose();
+      capGeometry.dispose();
+      dustGeometry.dispose();
+      dustMaterial.dispose();
+
+      cubes.forEach((c) => {
+        c.mesh.material.dispose();
+        c.edgeMesh.material.dispose();
+        c.capMesh.material.dispose();
+      });
 
       if (mount.contains(renderer.domElement)) {
         mount.removeChild(renderer.domElement);
@@ -269,3 +440,4 @@ export const ThreeCanvas: React.FC = () => {
     />
   );
 };
+

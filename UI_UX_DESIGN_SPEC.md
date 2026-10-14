@@ -135,3 +135,38 @@ flowchart LR
 | **Mật độ thông tin** | Thưa thớt, card to đùng chứa được 2 dòng chữ. | **Dày dặn, khoa học, tối ưu từng pixel hiển thị.** |
 | **Trải nghiệm thao tác** | Chỉ nhìn được biểu đồ tĩnh (Grafana style). | **Vừa quan sát vừa kéo-thả điều khiển luồng (Actionable Canvas).** |
 | **Cảm giác mang lại** | Giống bài tập lớn sinh viên làm vội bằng AI. | **Giống sản phẩm DevOps cấp Enterprise trị giá triệu đô.** |
+
+
+
+
+Để xây dựng một **3D UI Component tùy chỉnh (Custom 3D UI)** sử dụng Three.js / React Three Fiber (R3F) thay vì dùng thẻ Canvas thô cứng của Spline, bạn cần kiểm soát hoàn toàn từng khối hộp, ánh sáng, vật liệu và sự kiện tương tác chuột (Raycaster).
+
+Dưới đây là **bảng kế hoạch chi tiết các giai đoạn triển khai** để biến ý tưởng lưới 3D Boxes thành một giao diện UI hoàn chỉnh, mượt mà và tối ưu hiệu suất cho web của bạn:
+
+---
+
+### Bảng Kế Hoạch Triển Khai Custom 3D UI (Three.js / R3F)
+
+| Giai đoạn | Nhiệm vụ chính | Chi tiết công việc & Kỹ thuật áp dụng | Mục tiêu đạt được |
+| --- | --- | --- | --- |
+| **Giai đoạn 1: Chuẩn bị & Kiến trúc** | **Setup môi trường R3F & Quản lý State** | • Khởi tạo project Next.js + Three.js (`@react-three/fiber`, `@react-three/drei`).<br>
+
+<br>• Xây dựng khung cảnh cơ bản (`<Canvas>`, `<Camera>`, `<AmbientLight>`, `<DirectionalLight>`). | Sẵn sàng không gian 3D render ổn định trên trình duyệt. |
+| **Giai đoạn 2: Dựng Lưới (Grid Geometry)** | **Tạo hệ thống Mesh các khối hộp 3D** | • Viết vòng lặp tính toán tọa độ $(x, y, z)$ để tạo ma trận lưới các khối Cube (Ví dụ: lưới $6 \times 4$).<br>
+
+<br>• Tối ưu bằng **InstancedMesh** (hoặc Group) để đảm bảo hiệu suất (FPS cao, không giật lag khi render hàng chục khối). | Hiển thị toàn bộ các khối hộp 3D theo đúng thiết kế ban đầu. |
+| **Giai đoạn 3: Tương tác & Hiệu ứng** | **Xử lý sự kiện Mouse Hover & Spring Physics** | • Bắt sự kiện `onPointerOver` / `onPointerOut` trên từng khối.<br>
+
+<br>• Tích hợp thư viện **React Spring / Framer Motion** để tạo hiệu ứng chuyển động mượt mà khi khối hộp nhô lên (Translate Z) hoặc đổi màu.<br>
+
+<br>• Đảm bảo không bị hiện tượng "giật cục" khi di chuyển chuột nhanh. | Các khối hộp phản hồi linh hoạt theo vị trí con trỏ chuột. |
+| **Giai đoạn 4: Tích hợp HTML UI** | **Gắn chữ, nút bấm và tối ưu trải nghiệm** | • Dùng component `<Html>` từ thư viện `@react-three/drei` để neo các thẻ tiêu đề HTML chuẩn SEO, nút bấm hoặc tooltip đè lên không gian 3D chính xác.<br>
+
+<br>• Xử lý responsive trên màn hình mobile (thu nhỏ lưới hoặc ẩn bớt chi tiết). | Giao diện vừa có chiều sâu 3D vừa giữ nguyên tính năng tương tác UI web truyền thống. |
+| **Giai đoạn 5: Tối ưu & Hoàn thiện** | **Kiểm tra hiệu suất & Build sản phẩm** | • Tối ưu hóa vật liệu (`MeshStandardMaterial` hoặc `MeshPhysicalMaterial` với độ bóng Glassmorphism).<br>
+
+<br>• Kiểm tra FPS, cấu hình ánh sáng đổ bóng nhẹ (`shadowMap`) để không làm nặng GPU người dùng.<br>
+
+<br>• Deploy lên Vercel. | Bản hoàn thiện sẵn sàng đưa vào Production. |
+
+---

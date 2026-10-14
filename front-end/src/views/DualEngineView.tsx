@@ -36,7 +36,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
         <button
           onClick={onRefresh}
           disabled={isLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded bg-[#1A1333] hover:bg-[#261B42] border border-[#4C2889] text-[#C084FC] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-none bg-[#180E30] hover:bg-[#261B42] border border-[#4C2889] text-[#C084FC] transition-colors"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh Sync
@@ -44,7 +44,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
       </div>
 
       {/* Sync Status Banner */}
-      <div className={`p-4 rounded-lg border flex items-start justify-between ${
+      <div className={`p-4 rounded-none border flex items-start justify-between ${
         isHealthy ? 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]' : 'bg-[#EF4444]/10 border-[#EF4444]/30 text-[#EF4444]'
       }`}>
         <div className="flex items-start gap-3">
@@ -68,35 +68,35 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
       {/* Dual Column Layout: WASM vs EVM */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Substrate WASM Card */}
-        <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] space-y-4">
+        <div className="tech-corner-accent p-4 rounded-none border border-[#261B42] bg-[#110A24] space-y-4">
           <div className="flex items-center justify-between border-b border-[#261B42] pb-3">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#E6007A]" />
+              <span className="w-2.5 h-2.5 rounded-none bg-[#E6007A]" />
               <span className="font-semibold text-xs tracking-wider text-white">SUBSTRATE WASM CORE</span>
             </div>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#1F143D] text-[#E6007A] border border-[#E6007A]/30">
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-none bg-[#1F143D] text-[#E6007A] border border-[#E6007A]/30">
               PORT :9944
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-            <div className="p-2.5 rounded bg-[#0B0813] border border-[#261B42]">
-              <span className="text-zinc-500 text-[10px] block">BEST BLOCK HEIGHT</span>
+            <div className="p-2.5 rounded-none bg-[#080512] border border-[#261B42]">
+              <span className="text-zinc-500 text-[10px] block font-bold">BEST BLOCK HEIGHT</span>
               <span className="text-lg font-bold text-white tabular-nums">#{substrate.best_block.toLocaleString()}</span>
             </div>
 
-            <div className="p-2.5 rounded bg-[#0B0813] border border-[#261B42]">
-              <span className="text-zinc-500 text-[10px] block">FINALIZED BLOCK</span>
+            <div className="p-2.5 rounded-none bg-[#080512] border border-[#261B42]">
+              <span className="text-zinc-500 text-[10px] block font-bold">FINALIZED BLOCK</span>
               <span className="text-lg font-bold text-[#E6007A] tabular-nums">#{substrate.finalized_block.toLocaleString()}</span>
             </div>
 
-            <div className="p-2.5 rounded bg-[#0B0813] border border-[#261B42]">
-              <span className="text-zinc-500 text-[10px] block">WS PING LATENCY</span>
+            <div className="p-2.5 rounded-none bg-[#080512] border border-[#261B42]">
+              <span className="text-zinc-500 text-[10px] block font-bold">WS PING LATENCY</span>
               <span className="text-sm font-semibold text-emerald-400 tabular-nums">{substrate.latency_ms} ms</span>
             </div>
 
-            <div className="p-2.5 rounded bg-[#0B0813] border border-[#261B42]">
-              <span className="text-zinc-500 text-[10px] block">PENDING EXTRINSICS</span>
+            <div className="p-2.5 rounded-none bg-[#080512] border border-[#261B42]">
+              <span className="text-zinc-500 text-[10px] block font-bold">PENDING EXTRINSICS</span>
               <span className="text-sm font-semibold text-zinc-200 tabular-nums">{substrate.pending_extrinsics} txs</span>
             </div>
           </div>
@@ -118,35 +118,35 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
         </div>
 
         {/* EVM JSON-RPC Card */}
-        <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] space-y-4">
+        <div className="tech-corner-accent p-4 rounded-none border border-[#261B42] bg-[#110A24] space-y-4">
           <div className="flex items-center justify-between border-b border-[#261B42] pb-3">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#6366F1]" />
+              <span className="w-2.5 h-2.5 rounded-none bg-[#6366F1]" />
               <span className="font-semibold text-xs tracking-wider text-white">EVM EXECUTION LAYER</span>
             </div>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#181C3D] text-[#818CF8] border border-[#6366F1]/30">
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-none bg-[#181C3D] text-[#818CF8] border border-[#6366F1]/30">
               PORT :8545
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-            <div className="p-2.5 rounded bg-[#0B0813] border border-[#261B42]">
-              <span className="text-zinc-500 text-[10px] block">EVM BLOCK NUMBER</span>
+            <div className="p-2.5 rounded-none bg-[#080512] border border-[#261B42]">
+              <span className="text-zinc-500 text-[10px] block font-bold">EVM BLOCK NUMBER</span>
               <span className="text-lg font-bold text-white tabular-nums">#{evm.block_number.toLocaleString()}</span>
             </div>
 
-            <div className="p-2.5 rounded bg-[#0B0813] border border-[#261B42]">
-              <span className="text-zinc-500 text-[10px] block">CHAIN ID</span>
+            <div className="p-2.5 rounded-none bg-[#080512] border border-[#261B42]">
+              <span className="text-zinc-500 text-[10px] block font-bold">CHAIN ID</span>
               <span className="text-lg font-bold text-[#818CF8] tabular-nums">{evm.chain_id}</span>
             </div>
 
-            <div className="p-2.5 rounded bg-[#0B0813] border border-[#261B42]">
-              <span className="text-zinc-500 text-[10px] block">HTTP RPC LATENCY</span>
+            <div className="p-2.5 rounded-none bg-[#080512] border border-[#261B42]">
+              <span className="text-zinc-500 text-[10px] block font-bold">HTTP RPC LATENCY</span>
               <span className="text-sm font-semibold text-emerald-400 tabular-nums">{evm.latency_ms} ms</span>
             </div>
 
-            <div className="p-2.5 rounded bg-[#0B0813] border border-[#261B42]">
-              <span className="text-zinc-500 text-[10px] block">GAS PRICE</span>
+            <div className="p-2.5 rounded-none bg-[#080512] border border-[#261B42]">
+              <span className="text-zinc-500 text-[10px] block font-bold">GAS PRICE</span>
               <span className="text-sm font-semibold text-zinc-200 tabular-nums">{evm.gas_price_gwei} Gwei</span>
             </div>
           </div>
@@ -169,13 +169,13 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
       </div>
 
       {/* Mempool Segregation Bar */}
-      <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] space-y-3">
+      <div className="tech-corner-accent p-4 rounded-none border border-[#261B42] bg-[#110A24] space-y-3">
         <div className="flex items-center justify-between text-xs font-mono">
           <span className="text-zinc-400 font-semibold">MEMPOOL SEGREGATION STREAM</span>
           <span className="text-zinc-300">Total Pending: {mempool.total_pending} transactions</span>
         </div>
 
-        <div className="h-4 w-full bg-[#0B0813] rounded-full overflow-hidden flex border border-[#261B42]">
+        <div className="h-4 w-full bg-[#080512] rounded-none overflow-hidden flex border border-[#261B42]">
           <div 
             style={{ width: `${mempool.wasm_ratio_pct}%` }} 
             className="h-full bg-[#E6007A] flex items-center justify-center text-[10px] font-mono text-white font-bold"
@@ -190,11 +190,11 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
 
         <div className="flex justify-between text-[11px] font-mono">
           <div className="flex items-center gap-1.5 text-[#E6007A]">
-            <span className="w-2 h-2 rounded-full bg-[#E6007A]" />
+            <span className="w-2 h-2 rounded-none bg-[#E6007A]" />
             <span>WASM Extrinsics ({mempool.wasm_extrinsics} txs — {mempool.wasm_ratio_pct}%)</span>
           </div>
           <div className="flex items-center gap-1.5 text-[#818CF8]">
-            <span className="w-2 h-2 rounded-full bg-[#6366F1]" />
+            <span className="w-2 h-2 rounded-none bg-[#6366F1]" />
             <span>EVM Solidity ({mempool.evm_transactions} txs — {mempool.evm_ratio_pct}%)</span>
           </div>
         </div>

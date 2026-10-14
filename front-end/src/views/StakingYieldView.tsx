@@ -45,29 +45,29 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
 
       {/* APY Boost Callout Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26]">
-          <span className="text-zinc-500 font-mono text-[11px] block">NOMINAL AVERAGE APY</span>
+        <div className="tech-corner-accent p-4 rounded-none border border-[#261B42] bg-[#110A24]">
+          <span className="text-zinc-500 font-mono text-[11px] block font-bold">NOMINAL AVERAGE APY</span>
           <span className="text-2xl font-bold font-mono text-zinc-200 tabular-nums">
             {data.average_nominal_apy}%
           </span>
           <span className="text-[11px] text-zinc-500 block mt-1">Standard simple staking payout</span>
         </div>
 
-        <div className="p-4 rounded-lg border border-[#8B5CF6]/40 bg-[#1A1333]">
-          <span className="text-[#C084FC] font-mono text-[11px] block flex items-center gap-1">
+        <div className="tech-corner-accent p-4 rounded-none border border-[#8B5CF6]/50 bg-[#180E30]">
+          <span className="text-[#C084FC] font-mono text-[11px] block flex items-center gap-1 font-bold">
             <Sparkles className="w-3.5 h-3.5" />
             AUTO-COMPOUNDED APY
           </span>
           <span className="text-2xl font-bold font-mono text-[#C084FC] tabular-nums">
             {data.auto_compounded_apy}%
           </span>
-          <span className="text-[11px] text-emerald-400 block mt-1 font-mono">
+          <span className="text-[11px] text-emerald-400 block mt-1 font-mono font-bold">
             +{data.apy_boost_pct}% Yield Boost (Reinvested each Era)
           </span>
         </div>
 
-        <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26]">
-          <span className="text-zinc-500 font-mono text-[11px] block">OPTIMAL ACTIVE SET</span>
+        <div className="tech-corner-accent p-4 rounded-none border border-[#261B42] bg-[#110A24]">
+          <span className="text-zinc-500 font-mono text-[11px] block font-bold">OPTIMAL ACTIVE SET</span>
           <span className="text-2xl font-bold font-mono text-white tabular-nums">
             {data.top_validators_count} / {data.target_count} Nodes
           </span>
@@ -76,13 +76,13 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
       </div>
 
       {/* Stake Rebalance Action Card */}
-      <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] space-y-4">
+      <div className="tech-corner-accent p-4 rounded-none border border-[#261B42] bg-[#110A24] space-y-4">
         <div className="text-xs font-mono font-semibold text-white">
           DYNAMIC STAKE ALLOCATION SIMULATOR
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-[#0B0813] border border-[#261B42] rounded px-3 py-1.5">
+          <div className="flex items-center gap-2 bg-[#080512] border border-[#261B42] rounded-none px-3 py-1.5">
             <span className="text-xs font-mono text-zinc-400">Stake Amount:</span>
             <input
               type="number"
@@ -96,7 +96,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           <button
             onClick={handleRebalance}
             disabled={isCalculating}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-mono rounded bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-colors cursor-pointer"
           >
             <Send className="w-3.5 h-3.5" />
             {isCalculating ? 'Computing Allocation...' : 'Generate Nomination Plan'}
@@ -104,7 +104,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
         </div>
 
         {rebalanceResult && (
-          <div className="p-3 rounded bg-[#0B0813] border border-[#4C2889] text-xs font-mono space-y-2">
+          <div className="p-3 rounded-none bg-[#080512] border border-[#4C2889] text-xs font-mono space-y-2">
             <div className="text-[#C084FC] font-bold">
               Generated Rebalance Payload ({rebalanceResult.selected_validators_count} Validators):
             </div>
@@ -119,7 +119,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
       </div>
 
       {/* Top 16 Validators Table */}
-      <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] space-y-3">
+      <div className="tech-corner-accent p-4 rounded-none border border-[#261B42] bg-[#110A24] space-y-3">
         <div className="text-xs font-mono font-semibold text-zinc-300 flex items-center justify-between">
           <span>RECOMMENDED ACTIVE VALIDATOR SET</span>
           <span className="text-zinc-500 text-[11px]">Ranked by Multifactor Health Score</span>

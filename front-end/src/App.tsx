@@ -98,7 +98,7 @@ export const App: React.FC = () => {
       {/* Main Control Center Body */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar Hotkey Rail */}
-        <aside className="w-16 md:w-56 border-r border-[#261B42] bg-[#0F0A1F] flex flex-col justify-between py-4 select-none shrink-0">
+        <aside className="w-16 md:w-56 border-r border-[#261B42] bg-[#0A0515] flex flex-col justify-between py-4 select-none shrink-0">
           <div className="space-y-1 px-2">
             <div className="text-[10px] uppercase font-mono text-zinc-500 px-3 py-1 hidden md:block">
               Operations Navigation
@@ -110,10 +110,10 @@ export const App: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded text-xs font-mono transition-all text-left ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-none text-xs font-mono transition-all text-left ${
                     isActive
-                      ? 'bg-[#1A1333] border-l-2 border-[#8B5CF6] text-white font-semibold'
-                      : 'text-zinc-400 hover:bg-[#130E26] hover:text-zinc-200'
+                      ? 'bg-[#180E30] border-l-2 border-[#8B5CF6] text-white font-semibold'
+                      : 'text-zinc-400 hover:bg-[#110A24] hover:text-zinc-200'
                   }`}
                 >
                   <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#8B5CF6]' : 'text-zinc-400'}`} />
@@ -126,7 +126,7 @@ export const App: React.FC = () => {
           {/* Sidebar Footer info */}
           <div className="px-3 text-[11px] font-mono text-zinc-500 hidden md:block">
             <div className="flex items-center gap-1.5 text-zinc-400">
-              <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+              <span className="w-2 h-2 rounded-none bg-[#10B981]" />
               <span>Engine Status: Online</span>
             </div>
             <div className="text-[10px] text-zinc-600 mt-1">Portaldot Network V3.0</div>
@@ -134,7 +134,7 @@ export const App: React.FC = () => {
         </aside>
 
         {/* Center Workspace */}
-        <main className="flex-1 overflow-y-auto p-6 bg-[#0B0813]">
+        <main className="flex-1 overflow-y-auto p-6 bg-[#080512]">
           {activeTab === 'dual-vm' && (
             <DualEngineView data={dualData} onRefresh={fetchAllData} isLoading={isLoading} />
           )}

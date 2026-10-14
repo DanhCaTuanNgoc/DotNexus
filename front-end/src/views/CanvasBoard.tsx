@@ -74,7 +74,7 @@ export const CanvasBoard: React.FC = () => {
               setSelectedRunbookId(e.target.value);
               setExecResult(null);
             }}
-            className="bg-[#130E26] border border-[#261B42] text-xs font-mono text-[#C084FC] px-3 py-1.5 rounded focus:outline-none focus:border-[#8B5CF6]"
+            className="bg-[#110A24] border border-[#261B42] text-xs font-mono text-[#C084FC] px-3 py-1.5 rounded-none focus:outline-none focus:border-[#8B5CF6]"
           >
             {runbooks.map((r) => (
               <option key={r.id} value={r.id}>
@@ -87,7 +87,7 @@ export const CanvasBoard: React.FC = () => {
           <button
             onClick={handleExecute}
             disabled={executing}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium transition-colors shadow-lg shadow-[#8B5CF6]/20"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-colors shadow-lg shadow-[#8B5CF6]/20 cursor-pointer"
           >
             <Play className={`w-3.5 h-3.5 fill-current ${executing ? 'animate-pulse' : ''}`} />
             {executing ? 'Executing Runbook...' : 'Execute Runbook'}
@@ -97,10 +97,10 @@ export const CanvasBoard: React.FC = () => {
 
       {/* Canvas Workspace Viewport */}
       {activeRunbook && (
-        <div className="relative min-h-[380px] p-6 rounded-lg border border-[#261B42] bg-[#090610] overflow-x-auto shadow-inner">
+        <div className="tech-corner-accent relative min-h-[380px] p-6 rounded-none border border-[#261B42] bg-[#06030D] overflow-x-auto shadow-inner">
           <div className="text-[11px] font-mono text-zinc-500 mb-6 flex items-center justify-between">
-            <span>PIPELINE TOPOLOGY: {activeRunbook.name}</span>
-            <span className="text-zinc-600">Pure Tech Microchip Board Layout</span>
+            <span className="font-bold text-[#C084FC]">PIPELINE TOPOLOGY: {activeRunbook.name}</span>
+            <span className="text-zinc-500">Pure Tech Microchip Board Layout</span>
           </div>
 
           {/* Interactive DAG Nodes Row */}
@@ -108,19 +108,19 @@ export const CanvasBoard: React.FC = () => {
             {activeRunbook.nodes.map((node, idx) => (
               <React.Fragment key={node.id}>
                 {/* Node Box */}
-                <div className="w-64 p-4 rounded border border-[#2D1F52] bg-[#130E26] hover:border-[#8B5CF6] transition-all shadow-md group">
+                <div className="tech-corner-accent w-64 p-4 rounded-none border border-[#2D1F52] bg-[#110A24] hover:border-[#8B5CF6] transition-all shadow-md group">
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`text-[9px] uppercase font-mono px-1.5 py-0.5 rounded border ${getNodeBadgeColor(node.type)}`}>
+                    <span className={`text-[9px] uppercase font-mono px-2 py-0.5 rounded-none border font-bold ${getNodeBadgeColor(node.type)}`}>
                       {node.type}
                     </span>
-                    <span className="w-2 h-2 rounded-full bg-[#8B5CF6] group-hover:animate-ping" />
+                    <span className="w-2 h-2 rounded-none bg-[#8B5CF6] group-hover:animate-ping" />
                   </div>
 
                   <div className="text-xs font-mono font-bold text-white mb-2">
                     {node.label}
                   </div>
 
-                  <div className="p-2 rounded bg-[#0B0813] border border-[#261B42]/50 text-[10px] font-mono text-zinc-400 space-y-1">
+                  <div className="p-2.5 rounded-none bg-[#080512] border border-[#261B42]/50 text-[10px] font-mono text-zinc-400 space-y-1">
                     {Object.entries(node.data).map(([k, v]) => (
                       <div key={k} className="flex justify-between">
                         <span className="text-zinc-500 capitalize">{k}:</span>
@@ -134,7 +134,7 @@ export const CanvasBoard: React.FC = () => {
                 {idx < activeRunbook.nodes.length - 1 && (
                   <div className="flex flex-col items-center justify-center shrink-0">
                     <div className="w-12 h-[2px] bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] relative">
-                      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#C084FC] rounded-full animate-ping" />
+                      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#C084FC] rounded-none animate-ping" />
                     </div>
                     {activeRunbook.edges[idx]?.label && (
                       <span className="text-[9px] font-mono text-zinc-500 mt-1 whitespace-nowrap">
@@ -147,7 +147,7 @@ export const CanvasBoard: React.FC = () => {
             ))}
           </div>
 
-          <div className="text-xs text-zinc-400 font-mono mt-8 p-3 rounded bg-[#130E26] border border-[#261B42]">
+          <div className="text-xs text-zinc-400 font-mono mt-8 p-3 rounded-none bg-[#110A24] border border-[#261B42]">
             <span className="text-[#C084FC] font-semibold">Runbook Rationale: </span>
             {activeRunbook.description}
           </div>
@@ -156,7 +156,7 @@ export const CanvasBoard: React.FC = () => {
 
       {/* Execution Results Summary */}
       {execResult && (
-        <div className="p-4 rounded-lg border border-[#10B981]/40 bg-[#130E26] space-y-3">
+        <div className="tech-corner-accent p-4 rounded-none border border-[#10B981]/40 bg-[#110A24] space-y-3">
           <div className="flex items-center justify-between text-xs font-mono">
             <span className="text-[#10B981] font-bold flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4" />
@@ -167,8 +167,8 @@ export const CanvasBoard: React.FC = () => {
 
           <div className="space-y-1.5">
             {execResult.steps.map((st: any, idx: number) => (
-              <div key={idx} className="flex items-center gap-2 text-xs font-mono p-2 rounded bg-[#0B0813] border border-[#261B42]">
-                <span className="px-1.5 py-0.5 rounded bg-[#10B981]/20 text-[#10B981] text-[10px] font-bold">
+              <div key={idx} className="flex items-center gap-2 text-xs font-mono p-2 rounded-none bg-[#080512] border border-[#261B42]">
+                <span className="px-2 py-0.5 rounded-none bg-[#10B981]/20 text-[#10B981] text-[10px] font-bold">
                   {st.status}
                 </span>
                 <span className="text-white font-semibold">{st.step}:</span>

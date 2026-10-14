@@ -45,29 +45,29 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
 
       {/* Metrics Counter Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-3 rounded-lg border border-[#261B42] bg-[#130E26]">
-          <span className="text-zinc-500 font-mono text-[10px] block">TOTAL INSPECTED</span>
+        <div className="tech-corner-accent p-3.5 rounded-none border border-[#261B42] bg-[#110A24]">
+          <span className="text-zinc-500 font-mono text-[10px] block font-bold">TOTAL INSPECTED</span>
           <span className="text-xl font-bold font-mono text-white tabular-nums">{data.total_inspected}</span>
         </div>
 
-        <div className="p-3 rounded-lg border border-[#261B42] bg-[#130E26]">
-          <span className="text-zinc-500 font-mono text-[10px] block">ALLOWED REQUESTS</span>
+        <div className="tech-corner-accent p-3.5 rounded-none border border-[#261B42] bg-[#110A24]">
+          <span className="text-zinc-500 font-mono text-[10px] block font-bold">ALLOWED REQUESTS</span>
           <span className="text-xl font-bold font-mono text-emerald-400 tabular-nums">{data.total_allowed}</span>
         </div>
 
-        <div className="p-3 rounded-lg border border-[#EF4444]/30 bg-[#130E26]">
-          <span className="text-[#EF4444] font-mono text-[10px] block">BLOCKED ATTACKS</span>
+        <div className="tech-corner-accent p-3.5 rounded-none border border-[#EF4444]/40 bg-[#17091B]">
+          <span className="text-[#EF4444] font-mono text-[10px] block font-bold">BLOCKED ATTACKS</span>
           <span className="text-xl font-bold font-mono text-[#EF4444] tabular-nums">{data.total_blocked}</span>
         </div>
 
-        <div className="p-3 rounded-lg border border-[#F59E0B]/30 bg-[#130E26]">
-          <span className="text-[#F59E0B] font-mono text-[10px] block">THROTTLED (429)</span>
+        <div className="tech-corner-accent p-3.5 rounded-none border border-[#F59E0B]/40 bg-[#17110E]">
+          <span className="text-[#F59E0B] font-mono text-[10px] block font-bold">THROTTLED (429)</span>
           <span className="text-xl font-bold font-mono text-[#F59E0B] tabular-nums">{data.total_throttled}</span>
         </div>
       </div>
 
       {/* Attack Simulator Testing Suite */}
-      <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] space-y-3">
+      <div className="tech-corner-accent p-4 rounded-none border border-[#261B42] bg-[#110A24] space-y-3">
         <div className="text-xs font-mono font-semibold text-white flex items-center gap-2">
           <Zap className="w-3.5 h-3.5 text-[#8B5CF6]" />
           RPC SHIELD DEFENSE SIMULATOR
@@ -80,7 +80,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
           <button
             onClick={() => handleSimulateAttack('HEAVY_GETLOGS')}
             disabled={simulating}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-mono rounded bg-[#EF4444]/15 hover:bg-[#EF4444]/25 border border-[#EF4444]/40 text-[#EF4444] transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-none bg-[#EF4444]/15 hover:bg-[#EF4444]/25 border border-[#EF4444]/40 text-[#EF4444] transition-colors cursor-pointer font-bold"
           >
             <ShieldAlert className="w-3.5 h-3.5" />
             Test Heavy eth_getLogs (500,000 blocks span)
@@ -89,7 +89,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
           <button
             onClick={() => handleSimulateAttack('RATE_LIMIT_BURST')}
             disabled={simulating}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-mono rounded bg-[#F59E0B]/15 hover:bg-[#F59E0B]/25 border border-[#F59E0B]/40 text-[#F59E0B] transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-none bg-[#F59E0B]/15 hover:bg-[#F59E0B]/25 border border-[#F59E0B]/40 text-[#F59E0B] transition-colors cursor-pointer font-bold"
           >
             <AlertTriangle className="w-3.5 h-3.5" />
             Test IP Rate-Limit Burst (65 reqs in short span)
@@ -97,9 +97,9 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
         </div>
 
         {simulationResult && (
-          <div className="p-3 rounded bg-[#0B0813] border border-[#261B42] text-xs font-mono space-y-1">
+          <div className="p-3 rounded-none bg-[#080512] border border-[#261B42] text-xs font-mono space-y-1">
             <div className="text-[#10B981] font-bold">Shield Response:</div>
-            <pre className="text-zinc-300 text-[11px] overflow-x-auto bg-[#130E26] p-2 rounded">
+            <pre className="text-zinc-300 text-[11px] overflow-x-auto bg-[#110A24] p-2 rounded-none border border-[#261B42]">
               {JSON.stringify(simulationResult, null, 2)}
             </pre>
           </div>
@@ -107,7 +107,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
       </div>
 
       {/* P2P Network Topology Peer Map */}
-      <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] space-y-3">
+      <div className="tech-corner-accent p-4 rounded-none border border-[#261B42] bg-[#110A24] space-y-3">
         <div className="text-xs font-mono font-semibold text-zinc-300 flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Globe className="w-3.5 h-3.5 text-[#8B5CF6]" />

@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --bg-void: #0B0813;
-  --bg-surface: #130E26;
-  --bg-surface-hover: #1A1333;
+  --bg-void: #080512;
+  --bg-surface: #110A24;
+  --bg-surface-hover: #190F33;
   --border-dim: #261B42;
   --border-violet: #4C2889;
   --violet-primary: #8B5CF6;
@@ -13,7 +13,7 @@
 
 body {
   margin: 0;
-  background-color: #0B0813;
+  background-color: #080512;
   color: #E2E8F0;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
@@ -27,23 +27,23 @@ body {
 
 /* High-tech Cyber Grid */
 .cyber-grid {
-  background-size: 40px 40px;
+  background-size: 36px 36px;
   background-image: 
-    linear-gradient(to right, rgba(139, 92, 246, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(139, 92, 246, 0.07) 1px, transparent 1px);
+    linear-gradient(to right, rgba(139, 92, 246, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(139, 92, 246, 0.08) 1px, transparent 1px);
 }
 
 /* Cyber Matrix Dots */
 .cyber-dots {
-  background-image: radial-gradient(rgba(168, 85, 247, 0.15) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(rgba(168, 85, 247, 0.16) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
 /* Scanline Overlay */
 .scanline-overlay {
   background: linear-gradient(
-    rgba(18, 16, 38, 0) 50%, 
-    rgba(0, 0, 0, 0.25) 50%
+    rgba(14, 10, 30, 0) 50%, 
+    rgba(0, 0, 0, 0.28) 50%
   );
   background-size: 100% 4px;
   pointer-events: none;
@@ -52,15 +52,13 @@ body {
 /* Glowing Neon Radial Ambient Orbs */
 .glow-orb-violet {
   position: absolute;
-  border-radius: 9999px;
   filter: blur(120px);
   pointer-events: none;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.22) 0%, rgba(139, 92, 246, 0) 70%);
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.24) 0%, rgba(139, 92, 246, 0) 70%);
 }
 
 .glow-orb-magenta {
   position: absolute;
-  border-radius: 9999px;
   filter: blur(130px);
   pointer-events: none;
   background: radial-gradient(circle, rgba(230, 0, 122, 0.18) 0%, rgba(230, 0, 122, 0) 70%);
@@ -68,10 +66,47 @@ body {
 
 .glow-orb-cyan {
   position: absolute;
-  border-radius: 9999px;
   filter: blur(130px);
   pointer-events: none;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(99, 102, 241, 0) 70%);
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.16) 0%, rgba(56, 189, 248, 0) 70%);
+}
+
+/* Angular Tech Components */
+.tech-box {
+  border-radius: 0px !important;
+  border: 1px solid #261B42;
+  background: #110A24;
+}
+
+.tech-box:hover {
+  border-color: #4C2889;
+}
+
+/* Angular Chamfer Corner Accents */
+.tech-corner-accent {
+  position: relative;
+}
+.tech-corner-accent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid #8B5CF6;
+  border-left: 2px solid #8B5CF6;
+  pointer-events: none;
+}
+.tech-corner-accent::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  border-bottom: 2px solid #8B5CF6;
+  border-right: 2px solid #8B5CF6;
+  pointer-events: none;
 }
 
 /* Keyframe animations */
@@ -90,12 +125,12 @@ body {
 
 @keyframes pulseGlow {
   0%, 100% {
-    opacity: 0.4;
+    opacity: 0.45;
     transform: scale(1);
   }
   50% {
-    opacity: 0.8;
-    transform: scale(1.08);
+    opacity: 0.85;
+    transform: scale(1.06);
   }
 }
 
@@ -103,17 +138,17 @@ body {
   animation: pulseGlow 6s ease-in-out infinite;
 }
 
-/* Custom crisp scrollbar */
+/* Custom crisp angular scrollbar (No rounded corners) */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B0813;
+  background: #080512;
 }
 ::-webkit-scrollbar-thumb {
   background: #261B42;
-  border-radius: 3px;
+  border-radius: 0px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #4C2889;

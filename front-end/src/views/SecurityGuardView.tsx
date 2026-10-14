@@ -70,15 +70,15 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
       {/* Primary vs Standby Server Architecture */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Node A (Primary) */}
-        <div className={`p-4 rounded-lg border transition-all ${
-          isPrimary ? 'border-[#8B5CF6] bg-[#1A1333]' : 'border-[#261B42] bg-[#130E26] opacity-75'
+        <div className={`tech-corner-accent p-4 rounded-none border transition-all ${
+          isPrimary ? 'border-[#8B5CF6] bg-[#180E30]' : 'border-[#261B42] bg-[#110A24] opacity-75'
         }`}>
           <div className="flex items-center justify-between border-b border-[#261B42] pb-2 mb-3">
             <span className="font-mono text-xs font-bold text-white flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${isPrimary ? 'bg-[#10B981] animate-ping' : 'bg-zinc-500'}`} />
+              <span className={`w-2 h-2 rounded-none ${isPrimary ? 'bg-[#10B981] animate-ping' : 'bg-zinc-500'}`} />
               PRIMARY VALIDATOR NODE
             </span>
-            <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-none font-bold ${
               isPrimary ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40' : 'bg-zinc-800 text-zinc-400'
             }`}>
               {isPrimary ? 'ACTIVE SIGNER' : 'STANDBY IDLE'}
@@ -93,15 +93,15 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
         </div>
 
         {/* Node B (Standby) */}
-        <div className={`p-4 rounded-lg border transition-all ${
-          !isPrimary ? 'border-[#8B5CF6] bg-[#1A1333]' : 'border-[#261B42] bg-[#130E26] opacity-75'
+        <div className={`tech-corner-accent p-4 rounded-none border transition-all ${
+          !isPrimary ? 'border-[#8B5CF6] bg-[#180E30]' : 'border-[#261B42] bg-[#110A24] opacity-75'
         }`}>
           <div className="flex items-center justify-between border-b border-[#261B42] pb-2 mb-3">
             <span className="font-mono text-xs font-bold text-white flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${!isPrimary ? 'bg-[#10B981] animate-ping' : 'bg-zinc-500'}`} />
+              <span className={`w-2 h-2 rounded-none ${!isPrimary ? 'bg-[#10B981] animate-ping' : 'bg-zinc-500'}`} />
               STANDBY FAILOVER NODE
             </span>
-            <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-none font-bold ${
               !isPrimary ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40' : 'bg-zinc-800 text-zinc-400'
             }`}>
               {!isPrimary ? 'ACTIVE SIGNER' : 'STANDBY READY'}
@@ -117,7 +117,7 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
       </div>
 
       {/* Action Controls & Slashing Guard Triggers */}
-      <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] space-y-4">
+      <div className="tech-corner-accent p-4 rounded-none border border-[#261B42] bg-[#110A24] space-y-4">
         <div className="text-xs font-mono font-semibold text-white flex items-center gap-2">
           <Lock className="w-3.5 h-3.5 text-[#8B5CF6]" />
           CRITICAL OPERATOR ACTIONS
@@ -128,7 +128,7 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
           <button
             onClick={handleRotateKeys}
             disabled={rotating}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-mono rounded bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-colors cursor-pointer"
           >
             <Key className="w-3.5 h-3.5" />
             {rotating ? 'Calling author_rotateKeys...' : 'Rotate Session Keys'}
@@ -138,7 +138,7 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
           <button
             onClick={handleFailover}
             disabled={switching}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-mono rounded bg-[#1A1333] hover:bg-[#261B42] border border-[#4C2889] text-[#C084FC] transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-none bg-[#180E30] hover:bg-[#261B42] border border-[#4C2889] text-[#C084FC] transition-colors cursor-pointer font-bold"
           >
             <ArrowRightLeft className="w-3.5 h-3.5" />
             {switching ? 'Transferring Lease...' : 'Execute Failover Switch'}
@@ -148,7 +148,7 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
           <button
             onClick={handleSimulateMiss}
             disabled={simulatingMiss}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-mono rounded bg-[#EF4444]/10 hover:bg-[#EF4444]/20 border border-[#EF4444]/30 text-[#EF4444] transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-none bg-[#EF4444]/15 hover:bg-[#EF4444]/25 border border-[#EF4444]/40 text-[#EF4444] transition-colors cursor-pointer font-bold"
           >
             <AlertOctagon className="w-3.5 h-3.5" />
             {simulatingMiss ? 'Simulating...' : 'Simulate 1 Missed Heartbeat'}
@@ -156,12 +156,12 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
         </div>
 
         {lastGeneratedKey && (
-          <div className="p-3 rounded bg-[#0B0813] border border-[#10B981]/40 text-xs font-mono space-y-1">
+          <div className="p-3 rounded-none bg-[#080512] border border-[#10B981]/40 text-xs font-mono space-y-1">
             <div className="text-[#10B981] font-bold flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
               New Session Keys Generated Successfully (Ready for session.setKeys):
             </div>
-            <div className="text-zinc-300 break-all bg-[#130E26] p-2 rounded border border-[#261B42]">
+            <div className="text-zinc-300 break-all bg-[#110A24] p-2 rounded-none border border-[#261B42]">
               {lastGeneratedKey}
             </div>
           </div>
@@ -169,7 +169,7 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
       </div>
 
       {/* Recent Rotations & Security Audit Stream */}
-      <div className="p-4 rounded-lg border border-[#261B42] bg-[#130E26] space-y-3">
+      <div className="tech-corner-accent p-4 rounded-none border border-[#261B42] bg-[#110A24] space-y-3">
         <div className="text-xs font-mono font-semibold text-zinc-300">
           SESSION KEY ROTATION HISTORY
         </div>

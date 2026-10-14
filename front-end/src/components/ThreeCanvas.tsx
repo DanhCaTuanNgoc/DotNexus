@@ -18,13 +18,14 @@ export const ThreeCanvas: React.FC = () => {
 
     // 1. Scene & Camera Setup
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0b0813, 0.0016);
+    scene.fog = new THREE.FogExp2(0x080512, 0.0016);
 
     let width = mount.clientWidth || window.innerWidth;
     let height = mount.clientHeight || window.innerHeight;
 
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-    camera.position.set(0, -16, 175);
+    // Fixed flat plane: position camera directly centered on Z axis with no pitch angle
+    camera.position.set(0, 0, 180);
     camera.lookAt(0, 0, 0);
 
     // 2. WebGL Renderer
@@ -78,8 +79,8 @@ export const ThreeCanvas: React.FC = () => {
     const BOX_DEPTH = 13.5;
 
     const gridGroup = new THREE.Group();
-    // Tilt the entire grid slightly back for a command deck perspective
-    gridGroup.rotation.x = 0.32;
+    // Fixed flat plane: completely parallel to the screen without rotational tilt
+    gridGroup.rotation.set(0, 0, 0);
     scene.add(gridGroup);
 
     // Shared geometry for performance
@@ -257,12 +258,32 @@ export const ThreeCanvas: React.FC = () => {
       const px = e.clientX - rect.left;
       const py = e.clientY - rect.top;
 
-      mouseNorm.x = (px / rect.width) * 2 - 1;
-      mouseNorm.y = -(py / rect.height) * 2 + 1;
+      // Only activate 3D interaction if the cursor is strictly inside the hero canvas bounds
+      if (
+        px >= 0 &&
+        px <= rect.width &&
+        py >= 0 &&
+        py <= rect.height &&
+        rect.top < window.innerHeight &&
+        rect.bottom > 0
+      ) {
+        mouseNorm.x = (px / rect.width) * 2 - 1;
+        mouseNorm.y = -(py / rect.height) * 2 + 1;
+        clientMouseX = mouseNorm.x;
+        clientMouseY = mouseNorm.y;
+        isMouseOver = true;
+      } else {
+        isMouseOver = false;
+      }
+    };
 
-      clientMouseX = mouseNorm.x;
-      clientMouseY = mouseNorm.y;
-      isMouseOver = true;
+    const handleScroll = () => {
+      const rect = mount.getBoundingClientRect();
+      // If hero container is scrolled out of view, cleanly deactivate hover raycasting
+      if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
+        isMouseOver = false;
+        mouseNorm.set(-999, -999);
+      }
     };
 
     const handlePointerLeave = () => {
@@ -271,6 +292,7 @@ export const ThreeCanvas: React.FC = () => {
     };
 
     window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('mouseleave', handlePointerLeave);
 
     const handleResize = () => {
@@ -284,12 +306,9 @@ export const ThreeCanvas: React.FC = () => {
 
     window.addEventListener('resize', handleResize);
 
-    // 7. Animation Loop with Spring Physics & Dynamic Ripple Waves
+    // 7. Animation Loop with Fixed Flat Plane & Spring Elevation
     let animId: number;
     const clock = new THREE.Clock();
-
-    let gridDampedRotX = 0.28;
-    let gridDampedRotY = 0;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
@@ -299,15 +318,8 @@ export const ThreeCanvas: React.FC = () => {
       raycaster.setFromCamera(mouseNorm, camera);
       raycaster.ray.intersectPlane(planeZ, planeIntersect);
 
-      // Smooth camera & grid parallax tilt from mouse
-      const targetGridRotY = isMouseOver ? clientMouseX * 0.16 : 0;
-      const targetGridRotX = 0.28 - (isMouseOver ? clientMouseY * 0.12 : 0);
-
-      gridDampedRotY += (targetGridRotY - gridDampedRotY) * 0.05;
-      gridDampedRotX += (targetGridRotX - gridDampedRotX) * 0.05;
-
-      gridGroup.rotation.y = gridDampedRotY;
-      gridGroup.rotation.x = gridDampedRotX;
+      // Fixed Flat Plane: grid orientation is strictly locked with zero tilt or roll
+      gridGroup.rotation.set(0, 0, 0);
 
       // Position mouse point light smoothly above cursor
       if (isMouseOver && mouseNorm.x > -2) {
@@ -330,7 +342,7 @@ export const ThreeCanvas: React.FC = () => {
       const WAVE_RADIUS = 55;
       const MAX_ELEVATION = 26;
 
-      // Update each cube with Spring Physics & Wave Dynamics
+      // Update each cube with Spring Physics (perpendicular elevation strictly on flat plane)
       for (let i = 0; i < cubes.length; i++) {
         const c = cubes[i];
 
@@ -339,10 +351,8 @@ export const ThreeCanvas: React.FC = () => {
         const rowIndex = Math.floor(i / COLS);
         const ambientWave = Math.sin(elapsed * 1.8 + colIndex * 0.42 + rowIndex * 0.32) * 2.8;
 
-        // 2. Mouse distance calculation
+        // 2. Mouse distance calculation (pure perpendicular elevation, zero tilt)
         let mouseLift = 0;
-        let tiltFactorX = 0;
-        let tiltFactorY = 0;
 
         if (isMouseOver && mouseNorm.x > -2) {
           const dx = planeIntersect.x - c.baseX;
@@ -355,10 +365,6 @@ export const ThreeCanvas: React.FC = () => {
             const factor = Math.cos(normDist * (Math.PI / 2));
             mouseLift = factor * MAX_ELEVATION;
 
-            // Tilt toward/away from cursor for tactile 3D responsiveness
-            tiltFactorX = -(dy / WAVE_RADIUS) * factor * 0.45;
-            tiltFactorY = (dx / WAVE_RADIUS) * factor * 0.45;
-
             // Glow intensity flare
             c.glowIntensity += (factor - c.glowIntensity) * 0.22;
           } else {
@@ -368,18 +374,13 @@ export const ThreeCanvas: React.FC = () => {
           c.glowIntensity += (0 - c.glowIntensity) * 0.08;
         }
 
-        // 3. Spring physics: update position & rotation
+        // 3. Spring physics: update perpendicular Z displacement
         c.targetZ = c.baseZ + ambientWave + mouseLift;
         c.currentZ += (c.targetZ - c.currentZ) * 0.12;
         c.mesh.position.z = c.currentZ;
 
-        c.targetRotX = tiltFactorX;
-        c.targetRotY = tiltFactorY;
-        c.rotX += (c.targetRotX - c.rotX) * 0.12;
-        c.rotY += (c.targetRotY - c.rotY) * 0.12;
-
-        c.mesh.rotation.x = c.rotX;
-        c.mesh.rotation.y = c.rotY;
+        // Fixed flat plane: strictly lock cube rotations to 0 (no tilt on scroll or hover)
+        c.mesh.rotation.set(0, 0, 0);
 
         // 4. Dynamic Emissive Glow & Edge Brightness
         const mat = c.mesh.material;
@@ -419,6 +420,7 @@ export const ThreeCanvas: React.FC = () => {
     // 8. Cleanup & Resource Disposal
     return () => {
       window.removeEventListener('mousemove', handlePointerMove);
+      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mouseleave', handlePointerLeave);
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animId);

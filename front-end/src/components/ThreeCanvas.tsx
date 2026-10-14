@@ -24,8 +24,8 @@ export const ThreeCanvas: React.FC = () => {
     let height = mount.clientHeight || window.innerHeight;
 
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-    camera.position.set(0, -28, 195);
-    camera.lookAt(0, 4, 0);
+    camera.position.set(0, -16, 175);
+    camera.lookAt(0, 0, 0);
 
     // 2. WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
@@ -36,45 +36,50 @@ export const ThreeCanvas: React.FC = () => {
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.35;
     mount.appendChild(renderer.domElement);
 
     // 3. Lighting Setup
-    const ambientLight = new THREE.AmbientLight(0x19102c, 1.8);
+    const ambientLight = new THREE.AmbientLight(0x22153d, 2.2);
     scene.add(ambientLight);
 
+    // High Directional Rim Light for glossy cube bevels
+    const dirLight = new THREE.DirectionalLight(0xc4b5fd, 3.5);
+    dirLight.position.set(0, 90, 110);
+    scene.add(dirLight);
+
     // Dynamic Mouse Light (follows pointer on the grid)
-    const mouseLight = new THREE.PointLight(0xa855f7, 4.5, 90, 1.5);
+    const mouseLight = new THREE.PointLight(0xc084fc, 6.0, 130, 1.4);
     mouseLight.position.set(0, 0, 30);
     scene.add(mouseLight);
 
     // Left VM Light (Substrate WASM / Polkadot Magenta)
-    const wasmLight = new THREE.PointLight(0xe6007a, 3.2, 180, 1.2);
-    wasmLight.position.set(-80, 40, 45);
+    const wasmLight = new THREE.PointLight(0xe6007a, 4.5, 240, 1.2);
+    wasmLight.position.set(-100, 40, 55);
     scene.add(wasmLight);
 
     // Right VM Light (EVM JSON-RPC / Cyan-Indigo)
-    const evmLight = new THREE.PointLight(0x38bdf8, 3.2, 180, 1.2);
-    evmLight.position.set(80, -30, 45);
+    const evmLight = new THREE.PointLight(0x38bdf8, 4.5, 240, 1.2);
+    evmLight.position.set(100, -30, 55);
     scene.add(evmLight);
 
     // Center Core Light (Electric Violet)
-    const centerLight = new THREE.PointLight(0x8b5cf6, 2.5, 140, 1.2);
-    centerLight.position.set(0, 15, 50);
+    const centerLight = new THREE.PointLight(0x8b5cf6, 3.8, 180, 1.2);
+    centerLight.position.set(0, 15, 60);
     scene.add(centerLight);
 
     // 4. Matrix of Cyber Cubes (Grid Geometry)
-    const COLS = 11;
-    const ROWS = 7;
-    const SPACING_X = 18;
-    const SPACING_Y = 16;
-    const BOX_WIDTH = 13.5;
-    const BOX_HEIGHT = 12;
-    const BOX_DEPTH = 11;
+    const COLS = 13;
+    const ROWS = 8;
+    const SPACING_X = 22;
+    const SPACING_Y = 19;
+    const BOX_WIDTH = 17;
+    const BOX_HEIGHT = 14.5;
+    const BOX_DEPTH = 13.5;
 
     const gridGroup = new THREE.Group();
     // Tilt the entire grid slightly back for a command deck perspective
-    gridGroup.rotation.x = 0.28;
+    gridGroup.rotation.x = 0.32;
     scene.add(gridGroup);
 
     // Shared geometry for performance
@@ -121,35 +126,38 @@ export const ThreeCanvas: React.FC = () => {
         let edgeColor = new THREE.Color(0x4c2889);
         let capColor = new THREE.Color(0x8b5cf6);
 
-        if (c < 4) {
+        if (c < 5) {
           // Substrate WASM Domain (Left)
           vmType = 'wasm';
+          baseColor = new THREE.Color(0x1a0d28);
           activeColor = new THREE.Color(0xff2d95);
-          edgeColor = new THREE.Color(0x6e1248);
-          capColor = new THREE.Color(0xe6007a);
-        } else if (c > 6) {
+          edgeColor = new THREE.Color(0xe6007a);
+          capColor = new THREE.Color(0xff3399);
+        } else if (c > 7) {
           // EVM Domain (Right)
           vmType = 'evm';
+          baseColor = new THREE.Color(0x0e1b36);
           activeColor = new THREE.Color(0x38bdf8);
-          edgeColor = new THREE.Color(0x1e3a8a);
-          capColor = new THREE.Color(0x6366f1);
+          edgeColor = new THREE.Color(0x38bdf8);
+          capColor = new THREE.Color(0x60a5fa);
         } else {
           // Dual-VM Synthesis Core (Center)
           vmType = 'core';
+          baseColor = new THREE.Color(0x181033);
           activeColor = new THREE.Color(0xd8b4fe);
-          edgeColor = new THREE.Color(0x582c9e);
-          capColor = new THREE.Color(0xa855f7);
+          edgeColor = new THREE.Color(0xa855f7);
+          capColor = new THREE.Color(0xc084fc);
         }
 
         // Body Material (Dark obsidian chassis with high metalness)
         const mat = new THREE.MeshStandardMaterial({
           color: baseColor,
-          roughness: 0.22,
-          metalness: 0.88,
+          roughness: 0.16,
+          metalness: 0.82,
           emissive: baseColor,
-          emissiveIntensity: 0.1,
+          emissiveIntensity: 0.25,
           transparent: true,
-          opacity: 0.94,
+          opacity: 0.95,
         });
 
         const mesh = new THREE.Mesh(boxGeometry, mat);
@@ -160,7 +168,7 @@ export const ThreeCanvas: React.FC = () => {
         const edgeMat = new THREE.LineBasicMaterial({
           color: edgeColor,
           transparent: true,
-          opacity: 0.55,
+          opacity: 0.82,
           blending: THREE.AdditiveBlending,
         });
         const edgeMesh = new THREE.LineSegments(edgesGeometry, edgeMat);
@@ -170,7 +178,7 @@ export const ThreeCanvas: React.FC = () => {
         const capMat = new THREE.MeshBasicMaterial({
           color: capColor,
           transparent: true,
-          opacity: 0.45,
+          opacity: 0.65,
           blending: THREE.AdditiveBlending,
         });
         const capMesh = new THREE.Mesh(capGeometry, capMat);

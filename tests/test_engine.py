@@ -4,7 +4,7 @@ Covers Dual-Tracker, Slashing Guard, NPoS Optimizer, RPC Shield, and DAG Engine.
 """
 
 import unittest
-from engine.config import CONFIG
+from engine.config import CONFIG, LOCK_FILE
 from engine.dual_tracker import DualEngineTracker
 from engine.slash_guard import SlashingGuard
 from engine.npos_optimizer import NPoSOptimizer
@@ -14,6 +14,12 @@ from engine.dag_engine import DAGCanvasEngine
 
 class TestDotNexusEngine(unittest.TestCase):
     def setUp(self):
+        if LOCK_FILE.exists():
+            try:
+                import os
+                os.remove(LOCK_FILE)
+            except Exception:
+                pass
         self.dual_tracker = DualEngineTracker()
         self.slash_guard = SlashingGuard()
         self.npos_optimizer = NPoSOptimizer()

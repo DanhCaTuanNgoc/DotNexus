@@ -27,7 +27,7 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
-  const [threeMode, setThreeMode] = useState<'spline' | 'three'>('spline');
+  const [threeMode, setThreeMode] = useState<'spline' | 'three'>('three');
   return (
     <div className="relative min-h-screen bg-[#0B0813] text-[#E2E8F0] selection:bg-[#8B5CF6] selection:text-white overflow-x-hidden font-sans">
       {/* Background Cybernetic Grid & Ambient Lighting Orbs */}
@@ -117,8 +117,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           </button>
         </div>
 
-        {/* Foreground Hero Content with pointer-events-none to let Spline mouse hover pass through */}
-        <div className="relative z-20 max-w-5xl mx-auto text-center space-y-8 pointer-events-none">
+        {/* Foreground Hero Content */}
+        <div className="relative z-20 max-w-5xl mx-auto text-center space-y-8">
           {/* Track Chip */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#4C2889] bg-[#130E26]/90 backdrop-blur-md text-xs font-mono text-[#C084FC] shadow-lg shadow-[#8B5CF6]/20 pointer-events-auto">
             <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping" />

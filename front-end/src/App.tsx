@@ -26,12 +26,12 @@ import {
   ShieldStatus 
 } from './services/api';
 
-type ViewMode = 'spline' | 'classic-landing' | 'console';
+type ViewMode = 'landing' | 'console';
 type TabType = 'dual-vm' | 'slashing' | 'staking' | 'shield' | 'canvas';
 
 export const App: React.FC = () => {
-  // Default to 100% native Spline 3D Landing Page
-  const [viewMode, setViewMode] = useState<ViewMode>('spline');
+  // Default to our semantic React + Three.js Landing Page
+  const [viewMode, setViewMode] = useState<ViewMode>('landing');
   const [activeTab, setActiveTab] = useState<TabType>('dual-vm');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -77,13 +77,8 @@ export const App: React.FC = () => {
     { id: 'canvas' as TabType, label: 'Automation Canvas', icon: Workflow }
   ];
 
-  // 100% Spline Design Landing Page
-  if (viewMode === 'spline') {
-    return <SplineLandingPage onLaunchApp={() => setViewMode('console')} />;
-  }
-
-  // Classic Technical Landing Page
-  if (viewMode === 'classic-landing') {
+  // Semantic HTML/React Landing Page with Three.js Background
+  if (viewMode === 'landing') {
     return <LandingPage onLaunchApp={() => setViewMode('console')} />;
   }
 
@@ -98,7 +93,7 @@ export const App: React.FC = () => {
         delta={dualData?.sync?.delta_blocks || 1}
         syncStatus={dualData?.sync?.status || 'SYNCED'}
         activeNode={secData?.active_node || 'PRIMARY'}
-        onNavigateHome={() => setViewMode('spline')}
+        onNavigateHome={() => setViewMode('landing')}
       />
 
       {/* Main Control Center Body */}

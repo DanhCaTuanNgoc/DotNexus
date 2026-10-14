@@ -16,7 +16,6 @@ import { SecurityGuardView } from './views/SecurityGuardView';
 import { StakingYieldView } from './views/StakingYieldView';
 import { TopologyRadarView } from './views/TopologyRadarView';
 import { CanvasBoard } from './views/CanvasBoard';
-import { SplineLandingPage } from './views/SplineLandingPage';
 import { LandingPage } from './views/LandingPage';
 import { 
   api, 

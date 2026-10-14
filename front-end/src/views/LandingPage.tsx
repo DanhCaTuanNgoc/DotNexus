@@ -16,18 +16,15 @@ import {
   Terminal,
   Globe,
   Gauge,
-  Box,
   CornerDownRight
 } from 'lucide-react';
 import { ThreeCanvas } from '../components/ThreeCanvas';
-import { SplineScene } from '../components/SplineScene';
 
 interface LandingPageProps {
   onLaunchApp: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
-  const [threeMode, setThreeMode] = useState<'spline' | 'three'>('three');
   return (
     <div className="relative min-h-screen bg-[#0B0813] text-[#E2E8F0] selection:bg-[#8B5CF6] selection:text-white overflow-x-hidden font-sans">
       {/* Background Cybernetic Grid & Ambient Lighting Orbs */}
@@ -83,39 +80,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
 
       {/* Hero Section */}
       <section className="relative min-h-[100vh] pt-28 pb-16 flex items-center justify-center px-6 overflow-hidden z-10">
-        {/* 3D Background: Spline Boxes Hover OR Three.js Cyber Mesh */}
-        {threeMode === 'spline' ? (
-          <SplineScene sceneUrl="https://prod.spline.design/uQMYP7ZQJi659Wch/scene.splinecode" />
-        ) : (
-          <ThreeCanvas />
-        )}
-
-        {/* 3D Engine Mode Switcher Bar */}
-        <div className="absolute top-20 right-6 z-30 flex items-center gap-2 p-1 rounded-lg border border-[#2D1F52] bg-[#130E26]/85 backdrop-blur-md font-mono text-[11px] shadow-lg">
-          <span className="text-zinc-500 text-[10px] px-2 hidden sm:inline">3D ENGINE:</span>
-          <button
-            onClick={() => setThreeMode('spline')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-all cursor-pointer ${
-              threeMode === 'spline'
-                ? 'bg-[#8B5CF6] text-white font-bold shadow'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            <Box className="w-3.5 h-3.5" />
-            <span>Spline 3D (Hover)</span>
-          </button>
-          <button
-            onClick={() => setThreeMode('three')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-all cursor-pointer ${
-              threeMode === 'three'
-                ? 'bg-[#8B5CF6] text-white font-bold shadow'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Three.js Mesh</span>
-          </button>
-        </div>
+        {/* 3D Background: Three.js Dual-VM Cyber Mesh */}
+        <ThreeCanvas />
 
         {/* Foreground Hero Content */}
         <div className="relative z-20 max-w-5xl mx-auto text-center space-y-8">

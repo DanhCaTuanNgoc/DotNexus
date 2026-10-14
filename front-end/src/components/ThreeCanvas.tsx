@@ -18,14 +18,14 @@ export const ThreeCanvas: React.FC = () => {
 
     // 1. Scene & Camera Setup
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x080512, 0.0016);
+    scene.fog = new THREE.FogExp2(0x080512, 0.0011);
 
     let width = mount.clientWidth || window.innerWidth;
     let height = mount.clientHeight || window.innerHeight;
 
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-    // Fixed flat plane: position camera directly centered on Z axis with no pitch angle
-    camera.position.set(0, 0, 180);
+    // Position camera closer at Z=160 for high visual presence on flat plane
+    camera.position.set(0, 0, 160);
     camera.lookAt(0, 0, 0);
 
     // 2. WebGL Renderer
@@ -40,38 +40,38 @@ export const ThreeCanvas: React.FC = () => {
     renderer.toneMappingExposure = 1.35;
     mount.appendChild(renderer.domElement);
 
-    // 3. Lighting Setup
-    const ambientLight = new THREE.AmbientLight(0x22153d, 2.2);
+    // 3. Lighting Setup (Wider span for full-width coverage)
+    const ambientLight = new THREE.AmbientLight(0x22153d, 2.3);
     scene.add(ambientLight);
 
     // High Directional Rim Light for glossy cube bevels
-    const dirLight = new THREE.DirectionalLight(0xc4b5fd, 3.5);
-    dirLight.position.set(0, 90, 110);
+    const dirLight = new THREE.DirectionalLight(0xc4b5fd, 3.8);
+    dirLight.position.set(0, 100, 120);
     scene.add(dirLight);
 
     // Dynamic Mouse Light (follows pointer on the grid)
-    const mouseLight = new THREE.PointLight(0xd8b4fe, 6.8, 140, 1.4);
+    const mouseLight = new THREE.PointLight(0xd8b4fe, 6.8, 160, 1.4);
     mouseLight.position.set(0, 0, 30);
     scene.add(mouseLight);
 
-    // Left Domain Light (Deep Electric Amethyst)
-    const wasmLight = new THREE.PointLight(0xa855f7, 5.2, 260, 1.2);
-    wasmLight.position.set(-100, 40, 55);
+    // Left Domain Light (Deep Electric Amethyst - wide wingspan)
+    const wasmLight = new THREE.PointLight(0xa855f7, 5.6, 360, 1.2);
+    wasmLight.position.set(-140, 40, 55);
     scene.add(wasmLight);
 
-    // Right Domain Light (Royal Neon Violet)
-    const evmLight = new THREE.PointLight(0x7c3aed, 5.2, 260, 1.2);
-    evmLight.position.set(100, -30, 55);
+    // Right Domain Light (Royal Neon Violet - wide wingspan)
+    const evmLight = new THREE.PointLight(0x7c3aed, 5.6, 360, 1.2);
+    evmLight.position.set(140, -30, 55);
     scene.add(evmLight);
 
     // Center Core Light (High Radiant Violet)
-    const centerLight = new THREE.PointLight(0xc084fc, 4.5, 200, 1.2);
+    const centerLight = new THREE.PointLight(0xc084fc, 4.8, 260, 1.2);
     centerLight.position.set(0, 15, 60);
     scene.add(centerLight);
 
-    // 4. Matrix of Cyber Cubes (Grid Geometry)
-    const COLS = 13;
-    const ROWS = 8;
+    // 4. Matrix of Cyber Cubes (Expanded Grid Geometry for 100% full-width coverage)
+    const COLS = 25;
+    const ROWS = 12;
     const SPACING_X = 22;
     const SPACING_Y = 19;
     const BOX_WIDTH = 17;
@@ -114,6 +114,9 @@ export const ThreeCanvas: React.FC = () => {
     const startX = -((COLS - 1) * SPACING_X) / 2;
     const startY = -((ROWS - 1) * SPACING_Y) / 2;
 
+    const wasmCutoff = Math.floor(COLS * 0.42);
+    const evmCutoff = Math.ceil(COLS * 0.58);
+
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         const x = startX + c * SPACING_X;
@@ -127,14 +130,14 @@ export const ThreeCanvas: React.FC = () => {
         let edgeColor = new THREE.Color(0x8b5cf6);
         let capColor = new THREE.Color(0xa855f7);
 
-        if (c < 5) {
+        if (c < wasmCutoff) {
           // Substrate WASM Domain (Deep Amethyst Violet)
           vmType = 'wasm';
           baseColor = new THREE.Color(0x16082e);
           activeColor = new THREE.Color(0xe879f9);
           edgeColor = new THREE.Color(0xa855f7);
           capColor = new THREE.Color(0xc084fc);
-        } else if (c > 7) {
+        } else if (c >= evmCutoff) {
           // EVM Domain (Royal Electric Violet)
           vmType = 'evm';
           baseColor = new THREE.Color(0x0f0724);
@@ -218,8 +221,8 @@ export const ThreeCanvas: React.FC = () => {
     const c4 = new THREE.Color(0xd8b4fe); // Neon Lilac
 
     for (let i = 0; i < dustCount; i++) {
-      dustPositions[i * 3] = (Math.random() - 0.5) * 600;
-      dustPositions[i * 3 + 1] = (Math.random() - 0.5) * 450;
+      dustPositions[i * 3] = (Math.random() - 0.5) * 900;
+      dustPositions[i * 3 + 1] = (Math.random() - 0.5) * 600;
       dustPositions[i * 3 + 2] = -50 + (Math.random() - 0.5) * 350;
 
       const pick = Math.random();
@@ -331,15 +334,15 @@ export const ThreeCanvas: React.FC = () => {
         mouseLight.intensity += (0 - mouseLight.intensity) * 0.08;
       }
 
-      // Orbital sway for Dual-VM lights
-      wasmLight.position.x = -85 + Math.sin(elapsed * 0.8) * 15;
-      wasmLight.position.y = 40 + Math.cos(elapsed * 0.7) * 12;
+      // Orbital sway for Dual-VM lights (wider reach for 25 columns)
+      wasmLight.position.x = -135 + Math.sin(elapsed * 0.8) * 20;
+      wasmLight.position.y = 40 + Math.cos(elapsed * 0.7) * 15;
 
-      evmLight.position.x = 85 + Math.cos(elapsed * 0.8) * 15;
-      evmLight.position.y = -30 + Math.sin(elapsed * 0.7) * 12;
+      evmLight.position.x = 135 + Math.cos(elapsed * 0.8) * 20;
+      evmLight.position.y = -30 + Math.sin(elapsed * 0.7) * 15;
 
       // Influence radius for mouse ripple wave
-      const WAVE_RADIUS = 55;
+      const WAVE_RADIUS = 65;
       const MAX_ELEVATION = 26;
 
       // Update each cube with Spring Physics (perpendicular elevation strictly on flat plane)

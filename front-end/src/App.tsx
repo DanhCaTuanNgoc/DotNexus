@@ -78,7 +78,15 @@ export const App: React.FC = () => {
 
   // Semantic HTML/React Landing Page with Three.js Background
   if (viewMode === 'landing') {
-    return <LandingPage onLaunchApp={() => setViewMode('console')} />;
+    return (
+      <LandingPage
+        onLaunchApp={() => setViewMode('console')}
+        dualData={dualData}
+        secData={secData}
+        nposData={nposData}
+        shieldData={shieldData}
+      />
+    );
   }
 
   // Control Center Console

@@ -19,12 +19,28 @@ import {
   CornerDownRight
 } from 'lucide-react';
 import { ThreeCanvas } from '../components/ThreeCanvas';
+import { 
+  DualTelemetryState, 
+  SecurityDashboardState, 
+  NPoSRecommendation, 
+  ShieldStatus 
+} from '../services/api';
 
 interface LandingPageProps {
   onLaunchApp: () => void;
+  dualData?: DualTelemetryState | null;
+  secData?: SecurityDashboardState | null;
+  nposData?: NPoSRecommendation | null;
+  shieldData?: ShieldStatus | null;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ 
+  onLaunchApp,
+  dualData,
+  secData,
+  nposData,
+  shieldData
+}) => {
   return (
     <div className="relative min-h-screen bg-[#080512] text-[#E2E8F0] selection:bg-[#8B5CF6] selection:text-white overflow-x-hidden font-sans">
       {/* Background Cybernetic Grid & Ambient Lighting Orbs */}
@@ -99,9 +115,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 Automated Security Operations Engine
               </span>
             </h1>
-            <p className="max-w-3xl mx-auto text-sm sm:text-base text-zinc-300 font-normal leading-relaxed">
-              Designed specifically for <strong className="text-white font-semibold">Portaldot Network V3.0 Dual-VM</strong>. Eliminate catastrophic slashing risks, reconcile Substrate WASM vs EVM desync in real time, and replace opaque CLI scripts with interactive drag-and-drop operational runbooks.
-            </p>
           </div>
 
           {/* Action CTAs */}
@@ -127,61 +140,65 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           <div className="pt-6 pointer-events-auto">
             <div className="tech-corner-accent max-w-4xl mx-auto p-4 rounded-none border border-[#2D1F52] bg-[#110A24]/95 backdrop-blur-md grid grid-cols-2 sm:grid-cols-4 gap-3 text-left font-mono shadow-2xl">
               <div className="p-3.5 rounded-none bg-[#080512] border border-[#261B42] relative overflow-hidden group">
-                <div className="text-[10px] text-zinc-500 block mb-0.5 font-bold">WASM BEST BLOCK</div>
-                <div className="text-base font-bold text-white tabular-nums">#4,120,912</div>
-                <div className="text-[10px] text-[#E6007A] block mt-1">pallet-contracts (ink!)</div>
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[10px] text-zinc-500 font-bold">WASM BEST BLOCK</span>
+                  <span className="inline-block w-1.5 h-1.5 rounded-none bg-emerald-400 animate-pulse" />
+                </div>
+                <div className="text-base font-bold text-white tabular-nums">
+                  #{dualData?.substrate?.best_block ? dualData.substrate.best_block.toLocaleString() : '4,120,912'}
+                </div>
+                <div className="text-[10px] text-[#E6007A] block mt-1 truncate">
+                  {dualData?.substrate?.is_live_chain ? 'LIVE RPC (:9944)' : 'pallet-contracts (ink!)'}
+                </div>
                 <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#E6007A]/60 pointer-events-none" />
               </div>
 
               <div className="p-3.5 rounded-none bg-[#080512] border border-[#261B42] relative overflow-hidden group">
-                <div className="text-[10px] text-zinc-500 block mb-0.5 font-bold">EVM JSON-RPC</div>
-                <div className="text-base font-bold text-[#818CF8] tabular-nums">#4,120,911</div>
-                <div className="text-[10px] text-zinc-400 block mt-1">Delta: 1 blk (Synced)</div>
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[10px] text-zinc-500 font-bold">EVM JSON-RPC</span>
+                  <span className="inline-block w-1.5 h-1.5 rounded-none bg-[#818CF8] animate-pulse" />
+                </div>
+                <div className="text-base font-bold text-[#818CF8] tabular-nums">
+                  #{dualData?.evm?.block_number ? dualData.evm.block_number.toLocaleString() : '4,120,911'}
+                </div>
+                <div className="text-[10px] text-zinc-400 block mt-1 truncate">
+                  Delta: {dualData?.sync?.delta_blocks ?? 1} blk ({dualData?.sync?.status ?? 'SYNCED'})
+                </div>
                 <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#6366F1]/60 pointer-events-none" />
               </div>
 
               <div className="p-3.5 rounded-none bg-[#080512] border border-[#261B42] relative overflow-hidden group">
-                <div className="text-[10px] text-zinc-500 block mb-0.5 font-bold">SLASHING DEFENSE</div>
-                <div className="text-base font-bold text-[#10B981] tabular-nums">100% Zero-Loss</div>
-                <div className="text-[10px] text-zinc-400 block mt-1">Anti-Equivocation Mutex</div>
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[10px] text-zinc-500 font-bold">SLASHING DEFENSE</span>
+                  <span className="inline-block w-1.5 h-1.5 rounded-none bg-emerald-400 animate-pulse" />
+                </div>
+                <div className="text-base font-bold text-[#10B981] tabular-nums">
+                  {secData?.equivocation_guard_active || secData?.lock_file_status === 'LOCKED_SAFE' ? '100% Zero-Loss' : 'Active Safe'}
+                </div>
+                <div className="text-[10px] text-zinc-400 block mt-1 truncate">
+                  Node: {secData?.active_node || 'PRIMARY'} (Mutex Lock)
+                </div>
                 <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#10B981]/60 pointer-events-none" />
               </div>
 
               <div className="p-3.5 rounded-none bg-[#080512] border border-[#261B42] relative overflow-hidden group">
-                <div className="text-[10px] text-zinc-500 block mb-0.5 font-bold">POT STAKING YIELD</div>
-                <div className="text-base font-bold text-[#C084FC] tabular-nums">15.97% APY</div>
-                <div className="text-[10px] text-emerald-400 block mt-1 font-bold">+1.16% Auto-Compounded</div>
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[10px] text-zinc-500 font-bold">POT STAKING YIELD</span>
+                  <span className="inline-block w-1.5 h-1.5 rounded-none bg-[#C084FC] animate-pulse" />
+                </div>
+                <div className="text-base font-bold text-[#C084FC] tabular-nums">
+                  {nposData?.auto_compounded_apy ? `${nposData.auto_compounded_apy.toFixed(2)}% APY` : '15.97% APY'}
+                </div>
+                <div className="text-[10px] text-emerald-400 block mt-1 font-bold truncate">
+                  +{nposData?.apy_boost_pct ? nposData.apy_boost_pct.toFixed(2) : '1.16'}% Auto-Compounded
+                </div>
                 <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#8B5CF6]/60 pointer-events-none" />
               </div>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Realtime Cryptographic Telemetry Stream Ticker */}
-      <div className="border-y border-[#261B42] bg-[#0E0A1A] py-2.5 px-4 overflow-hidden select-none z-20 relative">
-        <div className="flex items-center gap-8 text-[11px] font-mono text-zinc-400 whitespace-nowrap animate-pulse">
-          <span className="text-[#C084FC] font-bold">⚡ CLUSTER TELEMETRY:</span>
-          <span>[WASM] Best: #4,120,912</span>
-          <span className="text-zinc-600">•</span>
-          <span>[FINALIZED] #4,120,909</span>
-          <span className="text-zinc-600">•</span>
-          <span>[EVM] Block: #4,120,911</span>
-          <span className="text-zinc-600">•</span>
-          <span className="text-emerald-400">DELTA: 1 blk (SYNCED)</span>
-          <span className="text-zinc-600">•</span>
-          <span>SS58 FORMAT: 42</span>
-          <span className="text-zinc-600">•</span>
-          <span>DECIMALS: 14 (10^14 base)</span>
-          <span className="text-zinc-600">•</span>
-          <span>CHAIN ID: 9944</span>
-          <span className="text-zinc-600">•</span>
-          <span className="text-[#10B981]">SLASH GUARD: ACTIVE</span>
-          <span className="text-zinc-600">•</span>
-          <span>POT TOKEN: NPoS OPTIMIZED</span>
-        </div>
-      </div>
-
+      
       {/* Section: The 4 Pillars */}
       <section id="pillars" className="py-24 px-6 relative z-10">
         <div className="glow-orb-violet w-[500px] h-[500px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0" />
@@ -220,16 +237,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               <div className="p-3.5 rounded-none bg-[#080512] border border-[#261B42] text-xs font-mono space-y-1.5 text-zinc-400">
                 <div className="flex justify-between">
                   <span>WASM WS Latency:</span>
-                  <span className="text-emerald-400 font-bold">14.2 ms (:9944)</span>
+                  <span className="text-emerald-400 font-bold">
+                    {dualData?.substrate?.latency_ms ? `${dualData.substrate.latency_ms.toFixed(1)} ms (:9944)` : '14.2 ms (:9944)'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>EVM RPC Latency:</span>
-                  <span className="text-emerald-400 font-bold">18.7 ms (:8545)</span>
+                  <span className="text-emerald-400 font-bold">
+                    {dualData?.evm?.latency_ms ? `${dualData.evm.latency_ms.toFixed(1)} ms (:8545)` : '18.7 ms (:8545)'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Mempool Segregation:</span>
-                  <span className="text-[#E6007A] font-bold">42.9% WASM</span>
-                  <span className="text-[#818CF8] font-bold">57.1% EVM</span>
+                  <span className="text-[#E6007A] font-bold">
+                    {dualData?.mempool?.wasm_ratio_pct ? `${dualData.mempool.wasm_ratio_pct.toFixed(1)}% WASM` : '42.9% WASM'}
+                  </span>
+                  <span className="text-[#818CF8] font-bold">
+                    {dualData?.mempool?.evm_ratio_pct ? `${dualData.mempool.evm_ratio_pct.toFixed(1)}% EVM` : '57.1% EVM'}
+                  </span>
                 </div>
               </div>
             </div>

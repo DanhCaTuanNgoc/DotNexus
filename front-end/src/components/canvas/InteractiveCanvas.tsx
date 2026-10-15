@@ -32,6 +32,8 @@ interface InteractiveCanvasProps {
   onDeleteSelectedNode?: () => void;
   onClearBoard?: () => void;
   isExecuting?: boolean;
+  activeEdgeId?: string | null;
+  completedEdgeIds?: string[];
 }
 
 export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
@@ -51,6 +53,8 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
   onDeleteSelectedNode,
   onClearBoard,
   isExecuting = false,
+  activeEdgeId = null,
+  completedEdgeIds = [],
 }) => {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const [viewport, setViewport] = useState<CanvasViewport>(
@@ -490,37 +494,35 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
             const pathD = calculateBezierPath(sPos, tPos, edge.sourceHandle, edge.targetHandle);
             const isSelected = selectedEdgeId === edge.id;
 
-            // Flow state logic:
-            // - isWireActive: wire leading to/from the currently executing node
-            // - isWireCompleted: both source and target have succeeded
-            // - isFlowRunning: wire is part of the actively running pipeline
-            const isWireActive = isExecuting && (sourceNode.data.status === 'running' || targetNode.data.status === 'running');
-            const isWireCompleted = sourceNode.data.status === 'success' && targetNode.data.status === 'success';
-            const isFlowRunning = isExecuting && !isWireCompleted;
+            // Strictly sequential wire flow logic:
+            // 1. isWireActive: THIS wire is actively transmitting data right now (activeEdgeId matches!)
+            const isWireActive = edge.id === activeEdgeId;
+            // 2. isWireCompleted: THIS wire has completed its transmission
+            const isWireCompleted = completedEdgeIds.includes(edge.id) || (!isExecuting && sourceNode.data.status === 'success' && targetNode.data.status === 'success');
 
-            // Restrained dominant purple stroke styling (No green)
+            // Restrained stroke styling:
+            // - Selected: Gold (#FACC15)
+            // - Active transmitting wire: Glowing Cyan Laser (#38BDF8)
+            // - Completed wire: Crisp Dominant Purple (#A855F7)
+            // - Idle/pending wire: Stationary Deep Purple (#7C3AED)
             const strokeColor = isSelected
               ? '#FACC15'
               : isWireActive
               ? '#38BDF8'
-              : isFlowRunning
-              ? '#C084FC'
               : isWireCompleted
               ? '#A855F7'
               : '#7C3AED';
 
             const strokeWidth = isSelected ? '2.5' : isWireActive ? '2.5' : '2';
 
-            // Dashed ONLY when pipeline is executing; solid when idle or completed
-            const isDashed = isWireActive || isFlowRunning;
+            // Dashed and moving ONLY on the wire that is actively transmitting right now!
+            const isDashed = isWireActive;
             const strokeDasharray = isDashed ? '8 6' : undefined;
             const className = isDashed ? 'animate-flow-dash' : 'wire-idle';
 
-            // Subtle glowing light along the path (Dominant purple / active cyan)
+            // Glowing light ONLY on the actively transmitting wire (or subtle ambient on completed)
             const filterStyle = isWireActive
-              ? 'drop-shadow(0 0 6px rgba(56, 189, 248, 0.85)) drop-shadow(0 0 12px rgba(56, 189, 248, 0.4))'
-              : isFlowRunning
-              ? 'drop-shadow(0 0 5px rgba(192, 132, 252, 0.6))'
+              ? 'drop-shadow(0 0 6px rgba(56, 189, 248, 0.9)) drop-shadow(0 0 12px rgba(56, 189, 248, 0.45))'
               : isWireCompleted
               ? 'drop-shadow(0 0 3px rgba(168, 85, 247, 0.4))'
               : undefined;
@@ -529,8 +531,6 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
               ? 'url(#flow-arrow-selected)'
               : isWireActive
               ? 'url(#flow-arrow-active)'
-              : isFlowRunning
-              ? 'url(#flow-arrow-running)'
               : isWireCompleted
               ? 'url(#flow-arrow-completed)'
               : 'url(#flow-arrow)';

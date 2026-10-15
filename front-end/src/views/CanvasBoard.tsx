@@ -21,6 +21,69 @@ import { NodeInspector } from '../components/canvas/NodeInspector';
 import { validateCanvasSafety, autoFixEquivocation } from '../components/canvas/safetyLinter';
 import { storage } from '../services/storage';
 
+/**
+ * Topologically sorts DAG nodes according to directed edges (Source -> Target).
+ * Entry / Root nodes (inDegree === 0) always execute first!
+ * Ties and unvisited nodes are sorted by position.x (left-to-right deterministic flow).
+ */
+export function getTopologicalSortedNodes(nodes: CanvasNode[], edges: CanvasEdge[]): CanvasNode[] {
+  if (nodes.length <= 1) return nodes;
+
+  const nodeMap = new Map<string, CanvasNode>(nodes.map((n) => [n.id, n]));
+  const inDegree = new Map<string, number>();
+  const adj = new Map<string, string[]>();
+
+  nodes.forEach((n) => {
+    inDegree.set(n.id, 0);
+    adj.set(n.id, []);
+  });
+
+  edges.forEach((e) => {
+    if (nodeMap.has(e.source) && nodeMap.has(e.target)) {
+      adj.get(e.source)!.push(e.target);
+      inDegree.set(e.target, (inDegree.get(e.target) || 0) + 1);
+    }
+  });
+
+  // Root nodes have no incoming edges (inDegree === 0).
+  // Sắp xếp các root node từ trái qua phải theo trục X
+  const queue: string[] = nodes
+    .filter((n) => (inDegree.get(n.id) || 0) === 0)
+    .sort((a, b) => a.position.x - b.position.x)
+    .map((n) => n.id);
+
+  const order: CanvasNode[] = [];
+  const visited = new Set<string>();
+
+  while (queue.length > 0) {
+    const u = queue.shift()!;
+    if (visited.has(u)) continue;
+    visited.add(u);
+    const nodeObj = nodeMap.get(u);
+    if (nodeObj) order.push(nodeObj);
+
+    const neighbors = adj.get(u) || [];
+    // Sort neighbors by X position for consistent left-to-right traversal
+    neighbors.sort((a, b) => {
+      const na = nodeMap.get(a);
+      const nb = nodeMap.get(b);
+      return (na?.position.x || 0) - (nb?.position.x || 0);
+    });
+
+    for (const v of neighbors) {
+      const curDeg = (inDegree.get(v) || 1) - 1;
+      inDegree.set(v, curDeg);
+      if (curDeg === 0 && !visited.has(v)) {
+        queue.push(v);
+      }
+    }
+  }
+
+  // Any remaining nodes (e.g. disconnected or cycles) sorted left to right
+  const remaining = nodes.filter((n) => !visited.has(n.id)).sort((a, b) => a.position.x - b.position.x);
+  return [...order, ...remaining];
+}
+
 export interface CanvasBoardProps {
   onLog?: (log: LogItem) => void;
   selectedNodeId?: string | null;
@@ -84,6 +147,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     setEdges([]);
     setSelectedNodeId(null);
     setExecResult(null);
+    setActiveEdgeId(null);
+    setCompletedEdgeIds([]);
     storage.setCanvasState({
       nodes: [],
       edges: [],
@@ -96,6 +161,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   // Execution State
   const [executing, setExecuting] = useState(false);
   const [execResult, setExecResult] = useState<any | null>(null);
+  const [activeEdgeId, setActiveEdgeId] = useState<string | null>(null);
+  const [completedEdgeIds, setCompletedEdgeIds] = useState<string[]>([]);
 
   // Load initial runbooks from API (with automatic fallback to DEFAULT_RUNBOOKS)
   useEffect(() => {
@@ -223,10 +290,14 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     setEdges(convertedEdges);
     setSelectedNodeId(null);
     setExecResult(null);
+    setActiveEdgeId(null);
+    setCompletedEdgeIds([]);
   };
 
   const handleSelectRunbook = (rbId: string) => {
     setSelectedRunbookId(rbId);
+    setActiveEdgeId(null);
+    setCompletedEdgeIds([]);
     if (rbId === 'custom-blank') {
       setNodes([]);
       setEdges([]);
@@ -248,6 +319,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   };
 
   const handleResetCanvas = () => {
+    setActiveEdgeId(null);
+    setCompletedEdgeIds([]);
     if (selectedRunbookId === 'custom-blank') {
       setNodes([]);
       setEdges([]);
@@ -376,21 +449,27 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   // Helper delay for sequential animations
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  // Execute Pipeline (with sequential flow step transitions and real-time terminal streaming)
+  // Execute Pipeline (with strictly sequential topological flow step transitions and real-time terminal streaming)
   const handleExecute = async () => {
     if (hasCritical || executing) return;
     setExecuting(true);
     setExecResult(null);
+    setActiveEdgeId(null);
+    setCompletedEdgeIds([]);
 
     // Open terminal automatically to stream live activity
     onRequestOpenTerminal?.();
+
+    // Topologically sort nodes starting from entry/root nodes (in-degree === 0)
+    const sortedNodes = getTopologicalSortedNodes(nodes, edges);
+    const rootNode = sortedNodes[0];
 
     const timestamp = Date.now() / 1000;
     onLog?.({
       source: 'DAG_ENGINE',
       level: 'INFO',
       time: timestamp,
-      text: `▶ Initiating pipeline execution: "${activeRunbook?.name || 'Custom DAG Topology'}"...`,
+      text: `▶ Initiating pipeline: "${activeRunbook?.name || 'Custom DAG Topology'}" (Root Entry: [${rootNode?.data.label || 'None'}], ${sortedNodes.length} nodes, ${edges.length} wires)...`,
     });
 
     // Reset all nodes to idle
@@ -406,8 +485,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
           success: true,
           data: {
             execution_id: `custom-exec-${Date.now().toString(36)}`,
-            duration_ms: nodes.length * 280,
-            steps: nodes.map((n) => ({
+            duration_ms: sortedNodes.length * 480,
+            steps: sortedNodes.map((n) => ({
               step: n.data.label,
               status: 'SUCCESS',
               detail: `Executed custom node with params: ${JSON.stringify(n.data.config)}`,
@@ -419,16 +498,38 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
       if (res?.success && res.data) {
         const steps: Array<{ step: string; status: string; detail: string }> = res.data.steps || [];
 
-        // Sequentially execute visual state for each node along the flow
-        for (let i = 0; i < nodes.length; i++) {
-          const currentNode = nodes[i];
+        // Strictly sequential execution: Node -> Wire -> Next Node -> Next Wire...
+        for (let i = 0; i < sortedNodes.length; i++) {
+          const currentNode = sortedNodes[i];
           const matchedStep = steps[i] || {
             step: currentNode.data.label,
             status: 'SUCCESS',
             detail: `Processed by Portaldot runtime (Engine: ${currentNode.type || currentNode.data.category})`,
           };
 
-          // 1. Mark current node as 'running'
+          // Step A: If this is NOT the root node, first animate the connecting wire into currentNode!
+          if (i > 0) {
+            // Find edge connecting from predecessor to currentNode
+            const prevNode = sortedNodes[i - 1];
+            const incomingEdge = edges.find((e) => e.source === prevNode.id && e.target === currentNode.id)
+              || edges.find((e) => e.target === currentNode.id && sortedNodes.slice(0, i).some((p) => p.id === e.source));
+
+            if (incomingEdge) {
+              setActiveEdgeId(incomingEdge.id);
+              onLog?.({
+                source: 'DAG_ENGINE',
+                level: 'RUNNING',
+                time: Date.now() / 1000,
+                text: `⚡ Flow transmitting along wire -> [${currentNode.data.label}]...`,
+              });
+              // Wire laser dash animation plays sequentially on this wire alone
+              await sleep(480);
+              setCompletedEdgeIds((prev) => [...prev, incomingEdge.id]);
+              setActiveEdgeId(null);
+            }
+          }
+
+          // Step B: Mark current node as 'running'
           setNodes((prev) =>
             prev.map((n) => (n.id === currentNode.id ? { ...n, data: { ...n.data, status: 'running' } } : n))
           );
@@ -441,10 +542,10 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
             text: `[${currentNode.data.label}] Executing step: ${matchedStep.step}...`,
           });
 
-          // Wait a natural step interval for visual animation flow
-          await sleep(420);
+          // Wait natural step interval for node processing
+          await sleep(400);
 
-          // 2. Mark current node as 'success'
+          // Step C: Mark current node as 'success'
           setNodes((prev) =>
             prev.map((n) => (n.id === currentNode.id ? { ...n, data: { ...n.data, status: 'success' } } : n))
           );
@@ -460,16 +561,19 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
           await sleep(150);
         }
 
+        // All steps completed: finalize all edges as completed
+        setCompletedEdgeIds(edges.map((e) => e.id));
         setExecResult(res.data);
         onLog?.({
           source: 'DAG_ENGINE',
           level: 'SUCCESS',
           time: Date.now() / 1000,
-          text: `✔ Pipeline completed successfully in ${res.data.duration_ms || 420}ms (${nodes.length} nodes processed).`,
+          text: `✔ Pipeline completed successfully in ${res.data.duration_ms || 420}ms (${sortedNodes.length} nodes processed).`,
         });
       }
     } catch (err: any) {
       console.error(err);
+      setActiveEdgeId(null);
       setNodes((prev) => prev.map((n) => ({ ...n, data: { ...n.data, status: 'error' } })));
       onLog?.({
         source: 'DAG_ENGINE',
@@ -479,6 +583,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
       });
     } finally {
       setExecuting(false);
+      setActiveEdgeId(null);
     }
   };
 
@@ -680,6 +785,8 @@ if __name__ == "__main__":
               }}
               onClearBoard={handleClearBoard}
               isExecuting={executing}
+              activeEdgeId={activeEdgeId}
+              completedEdgeIds={completedEdgeIds}
             />
 
             {/* Floating Execution Results Summary HUD (Shifted above dock) */}

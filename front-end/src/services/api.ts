@@ -54,6 +54,23 @@ export interface DualTelemetryState {
     wasm_ratio_pct: number;
     evm_ratio_pct: number;
   };
+  root_cause_diagnosis?: {
+    tier: number;
+    root_cause_code: string;
+    severity: string;
+    message: string;
+    recommended_action: string;
+  };
+  decimal_normalization?: {
+    substrate_balance_planck: string;
+    evm_balance_wei: string;
+    evm_balance_normalized_planck: string;
+    is_parity_clean: boolean;
+    token_decimals_substrate: number;
+    token_decimals_evm: number;
+    scale_factor: number;
+    pot_readable: number;
+  };
 }
 
 export interface SecurityDashboardState {
@@ -63,6 +80,13 @@ export interface SecurityDashboardState {
   primary_ip: string;
   standby_ip: string;
   missed_heartbeats: number;
+  fencing_epoch?: number;
+  dead_mans_switch?: {
+    self_fence_timeout_s: number;
+    lease_ttl_s: number;
+    takeover_delay_s: number;
+    invariant_satisfied: boolean;
+  };
   equivocation_guard_active: boolean;
   lock_file_status: string;
   heartbeat: {
@@ -79,6 +103,13 @@ export interface SecurityDashboardState {
     rotation_id: string;
     timestamp: number;
     session_keys_hex: string;
+    keys_struct_v14?: {
+      babe: string;
+      grandpa: string;
+      im_online: string;
+      authority_discovery: string;
+    };
+    effective_session?: string;
     status: string;
     extrinsic_call: string;
   }>;
@@ -98,6 +129,7 @@ export interface NPoSRecommendation {
   auto_compounded_apy: number;
   apy_boost_pct: number;
   targets: string[];
+  election_algorithm?: string;
   validators: Array<{
     stash_address: string;
     identity: string;
@@ -119,8 +151,10 @@ export interface ShieldStatus {
   total_allowed: number;
   total_blocked: number;
   total_throttled: number;
+  average_overhead_ms?: number;
   active_banned_ips_count: number;
   max_block_range_setting: number;
+  max_batch_size_setting?: number;
   rate_limit_per_minute_setting: number;
   recent_events: Array<{
     id: string;

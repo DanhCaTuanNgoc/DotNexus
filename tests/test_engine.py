@@ -370,6 +370,53 @@ class TestDotNexusEngine(unittest.TestCase):
         self.assertIn("operator", last_event)
         self.assertIn("timestamp", last_event)
 
+    def test_21_npos_live_onchain_storage_query(self):
+        """Test live on-chain Substrate storage query decoding and graceful fallback"""
+        # 1. Test fallback when node is offline / disconnected
+        optimizer = NPoSOptimizer(substrate_url="ws://127.0.0.1:99999")
+        vals = optimizer.scan_validators(force_refresh=True)
+        self.assertGreaterEqual(len(vals), 16, "Must fallback to deterministic candidate pool")
+        self.assertIn("health_score", vals[0])
+
+        # 2. Test mock live Substrate client decoding
+        class MockQueryResult:
+            def __init__(self, value):
+                self.value = value
+
+        class MockLiveSubstrateClient:
+            def query(self, module, storage_function, params=None, block_hash=None):
+                if module == "Staking" and storage_function == "ActiveEra":
+                    return MockQueryResult({"index": 50})
+                elif module == "Session" and storage_function == "Validators":
+                    return MockQueryResult([
+                        "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+                        "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
+                    ])
+                elif module == "Staking" and storage_function == "Validators":
+                    return MockQueryResult({"commission": 25000000, "blocked": False})  # 2.5%
+                elif module == "Staking" and storage_function == "ErasStakersOverview":
+                    return MockQueryResult({
+                        "total": 1250000 * (10 ** 14),
+                        "own": 250000 * (10 ** 14),
+                        "nominator_count": 99
+                    })
+                elif module == "Staking" and storage_function == "ErasRewardPoints":
+                    return MockQueryResult({"individual": {"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY": 19500}})
+                return None
+
+        mock_client = MockLiveSubstrateClient()
+        live_vals = optimizer._fetch_live_validators_from_chain(mock_client, "0xabcd1234")
+        self.assertEqual(len(live_vals), 2, "Must decode exactly 2 active validators from Session.Validators")
+        
+        # Verify first validator decoded attributes
+        v0 = live_vals[0]
+        self.assertEqual(v0["stash_address"], "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
+        self.assertEqual(v0["commission_pct"], 2.5, "Commission Perbill 25,000,000 must convert to 2.5%")
+        self.assertEqual(v0["nominator_count"], 99)
+        self.assertEqual(v0["total_stake_pot"], 1250000.0)
+        self.assertEqual(v0["era_points"], 19500)
+
 
 if __name__ == "__main__":
     unittest.main()
+

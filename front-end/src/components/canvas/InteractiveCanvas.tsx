@@ -557,13 +557,6 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
         >
           <Link2 className={`w-3.5 h-3.5 ${flowConnectMode ? 'text-white' : 'text-[#8B5CF6]'}`} />
           <span>Flow connect</span>
-          <span className={`text-[8px] font-bold px-1 py-0.2 rounded-none border ${
-            flowConnectMode 
-              ? 'bg-[#581C87] border-[#C084FC] text-white' 
-              : 'bg-[#180E30] border-[#3B2564] text-zinc-400'
-          }`}>
-            {flowConnectMode ? 'ON' : 'OFF'}
-          </span>
         </button>
 
         {/* 2. Delete Focused Node / Edge */}

@@ -81,7 +81,7 @@ export const NodeCard = memo(function NodeCard({
         hasViolation
           ? 'border-rose-500 bg-[#1F0712] shadow-lg shadow-rose-950/80 animate-pulse'
           : node.data.status === 'running'
-          ? 'border-[#38BDF8] bg-[#0A192F] shadow-xl shadow-[#38BDF8]/40 ring-2 ring-[#38BDF8] ring-offset-1 ring-offset-[#06030D] animate-pulse'
+          ? 'border-[#38BDF8] bg-[#0A192F] shadow-xl shadow-[#38BDF8]/40 ring-2 ring-[#38BDF8] ring-offset-1 ring-offset-[#06030D]'
           : selected
           ? 'border-[#C084FC] bg-[#160D33] shadow-lg shadow-[#8B5CF6]/30 ring-1 ring-[#C084FC]'
           : `${theme.border} ${theme.bg} hover:border-[#8B5CF6] hover:shadow-md`

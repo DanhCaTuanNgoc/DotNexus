@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { 
   Workflow, 
   Play, 
@@ -108,9 +108,12 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   // Interactive DAG State: load saved nodes/edges if available
   const [nodes, setNodes] = useState<CanvasNode[]>(() => savedCanvas?.nodes || []);
   const [edges, setEdges] = useState<CanvasEdge[]>(() => savedCanvas?.edges || []);
-  const [viewport, setViewport] = useState<CanvasViewport>(
-    () => savedCanvas?.viewport || { x: 30, y: 30, zoom: 0.88 }
+  const viewportRef = useRef<CanvasViewport>(
+    savedCanvas?.viewport || { x: 30, y: 30, zoom: 0.88 }
   );
+  const handleViewportChange = useCallback((vp: CanvasViewport) => {
+    viewportRef.current = vp;
+  }, []);
   const [internalSelectedNodeId, setInternalSelectedNodeId] = useState<string | null>(null);
 
   const selectedNodeId = externalSelectedNodeId !== undefined ? externalSelectedNodeId : internalSelectedNodeId;
@@ -153,10 +156,10 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
       nodes: [],
       edges: [],
       selectedRunbookId: 'custom-blank',
-      viewport,
+      viewport: viewportRef.current,
       lastSavedAt: Date.now(),
     });
-  }, [viewport]);
+  }, []);
 
   // Execution State
   const [executing, setExecuting] = useState(false);
@@ -205,14 +208,14 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
         nodes,
         edges,
         selectedRunbookId,
-        viewport,
+        viewport: viewportRef.current,
         lastSavedAt: Date.now(),
       });
       setIsHydrated(true);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [nodes, edges, selectedRunbookId, viewport, isHydrated]);
+  }, [nodes, edges, selectedRunbookId, isHydrated]);
 
   // Synchronous flush on page unload / refresh
   useEffect(() => {
@@ -222,14 +225,14 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
           nodes,
           edges,
           selectedRunbookId,
-          viewport,
+          viewport: viewportRef.current,
           lastSavedAt: Date.now(),
         });
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [nodes, edges, selectedRunbookId, viewport]);
+  }, [nodes, edges, selectedRunbookId]);
 
   // Convert a preset Runbook into Canvas Nodes and Edges
   const initRunbookGraph = (rb: RunbookDAG) => {
@@ -307,7 +310,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
         nodes: [],
         edges: [],
         selectedRunbookId: 'custom-blank',
-        viewport,
+        viewport: viewportRef.current,
         lastSavedAt: Date.now(),
       });
     } else {
@@ -330,7 +333,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
         nodes: [],
         edges: [],
         selectedRunbookId: 'custom-blank',
-        viewport,
+        viewport: viewportRef.current,
         lastSavedAt: Date.now(),
       });
       return;
@@ -774,8 +777,8 @@ if __name__ == "__main__":
               onEdgesChange={setEdges}
               onSelectNode={setSelectedNodeId}
               onDropTemplate={handleAddNodeFromTemplate}
-              initialViewport={viewport}
-              onViewportChange={setViewport}
+              initialViewport={viewportRef.current}
+              onViewportChange={handleViewportChange}
               flowConnectMode={flowConnectMode}
               onToggleFlowConnect={handleToggleFlowConnect}
               onDeleteSelectedNode={() => {

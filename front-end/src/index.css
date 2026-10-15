@@ -179,6 +179,9 @@ body {
   height: 2000px;
   transform-origin: 0 0;
   will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout style;
 }
 
 .flow-board__node {
@@ -191,6 +194,8 @@ body {
   user-select: none;
   will-change: transform;
   touch-action: none;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .flow-board__node:active {

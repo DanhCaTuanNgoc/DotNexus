@@ -36,7 +36,7 @@ interface InteractiveCanvasProps {
   completedEdgeIds?: string[];
 }
 
-export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
+export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   nodes,
   edges,
   selectedNodeId,
@@ -55,16 +55,21 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
   isExecuting = false,
   activeEdgeId = null,
   completedEdgeIds = [],
-}) => {
+}: InteractiveCanvasProps) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const [viewport, setViewport] = useState<CanvasViewport>(
     initialViewport || { x: 30, y: 30, zoom: 0.88 }
   );
+  const viewportRef = useRef<CanvasViewport>(viewport);
+  viewportRef.current = viewport;
+
   const [connecting, setConnecting] = useState<ConnectingState | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
 
+  // Throttled notification to parent so parent doesn't re-render 120 times/sec
   const lastNotifiedViewportRef = useRef(viewport);
+  const notifyRafRef = useRef<number | null>(null);
   useEffect(() => {
     if (
       viewport.x !== lastNotifiedViewportRef.current.x ||
@@ -72,22 +77,37 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
       viewport.zoom !== lastNotifiedViewportRef.current.zoom
     ) {
       lastNotifiedViewportRef.current = viewport;
-      onViewportChange?.(viewport);
+      if (notifyRafRef.current === null) {
+        notifyRafRef.current = window.requestAnimationFrame(() => {
+          notifyRafRef.current = null;
+          onViewportChange?.(viewport);
+        });
+      }
     }
+    return () => {
+      if (notifyRafRef.current !== null) {
+        window.cancelAnimationFrame(notifyRafRef.current);
+        notifyRafRef.current = null;
+      }
+    };
   }, [viewport, onViewportChange]);
 
+  // Synchronize initialViewport ONLY on external reset/preset change, NEVER during live interaction!
   const lastInitialViewportRef = useRef(initialViewport);
   useEffect(() => {
+    if (!initialViewport) return;
+    if (isPanning) return; // Never snap back while user is holding mouse / panning!
+
     if (
-      initialViewport &&
-      (initialViewport.x !== lastInitialViewportRef.current?.x ||
-        initialViewport.y !== lastInitialViewportRef.current?.y ||
-        initialViewport.zoom !== lastInitialViewportRef.current?.zoom)
+      initialViewport !== lastInitialViewportRef.current &&
+      (Math.abs(initialViewport.x - viewportRef.current.x) > 2 ||
+        Math.abs(initialViewport.y - viewportRef.current.y) > 2 ||
+        Math.abs(initialViewport.zoom - viewportRef.current.zoom) > 0.02)
     ) {
       lastInitialViewportRef.current = initialViewport;
       setViewport(initialViewport);
     }
-  }, [initialViewport]);
+  }, [initialViewport, isPanning]);
 
   // RAF Throttled Movement references (identical to proven PortalModeler engine)
   const pendingMoveRef = useRef<{ nodeIds: string[]; delta: { x: number; y: number } } | null>(null);
@@ -196,39 +216,68 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
     [flushMove]
   );
 
-  // Canvas Viewport Pan Handlers
-  const startPan = useCallback(
-    (event: PointerEvent<HTMLDivElement>) => {
-      if (event.button !== 0 && event.button !== 1) return;
-      panRef.current = {
-        pointerId: event.pointerId,
-        origin: { x: event.clientX, y: event.clientY },
-        viewport: { x: viewport.x, y: viewport.y },
-      };
+  // Canvas Viewport Pan Handlers (Butter-smooth RAF 120fps)
+  const panPendingRef = useRef<{ x: number; y: number } | null>(null);
+  const panRafRef = useRef<number | null>(null);
+
+  const startPan = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0 && event.button !== 1) return;
+    panRef.current = {
+      pointerId: event.pointerId,
+      origin: { x: event.clientX, y: event.clientY },
+      viewport: { x: viewportRef.current.x, y: viewportRef.current.y },
+    };
+    try {
       event.currentTarget.setPointerCapture(event.pointerId);
-      setIsPanning(true);
-    },
-    [viewport]
-  );
+    } catch (_) {}
+    setIsPanning(true);
+  }, []);
 
-  const movePan = useCallback(
-    (event: PointerEvent<HTMLDivElement>) => {
-      const pan = panRef.current;
-      if (!pan || pan.pointerId !== event.pointerId) return;
+  const movePan = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    const pan = panRef.current;
+    if (!pan || pan.pointerId !== event.pointerId) return;
 
-      setViewport((current) => ({
-        ...current,
-        x: pan.viewport.x + (event.clientX - pan.origin.x),
-        y: pan.viewport.y + (event.clientY - pan.origin.y),
-      }));
-    },
-    []
-  );
+    panPendingRef.current = {
+      x: pan.viewport.x + (event.clientX - pan.origin.x),
+      y: pan.viewport.y + (event.clientY - pan.origin.y),
+    };
+
+    if (panRafRef.current === null) {
+      panRafRef.current = window.requestAnimationFrame(() => {
+        panRafRef.current = null;
+        if (panPendingRef.current) {
+          setViewport((current) => ({
+            ...current,
+            x: panPendingRef.current!.x,
+            y: panPendingRef.current!.y,
+          }));
+        }
+      });
+    }
+  }, []);
 
   const stopPan = useCallback((event: PointerEvent<HTMLDivElement>) => {
     if (panRef.current?.pointerId === event.pointerId) {
+      if (panRafRef.current !== null) {
+        window.cancelAnimationFrame(panRafRef.current);
+        panRafRef.current = null;
+      }
+      if (panPendingRef.current) {
+        const finalPos = panPendingRef.current;
+        panPendingRef.current = null;
+        setViewport((current) => ({
+          ...current,
+          x: finalPos.x,
+          y: finalPos.y,
+        }));
+      }
       panRef.current = null;
       setIsPanning(false);
+      try {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+      } catch (_) {}
     }
   }, []);
 
@@ -270,8 +319,8 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
 
         return {
           zoom: Number(nextZoom.toFixed(3)),
-          x: Math.round(pointer.x - flow.x * nextZoom),
-          y: Math.round(pointer.y - flow.y * nextZoom),
+          x: Number((pointer.x - flow.x * nextZoom).toFixed(2)),
+          y: Number((pointer.y - flow.y * nextZoom).toFixed(2)),
         };
       });
     },
@@ -732,4 +781,4 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
       </div>
     </div>
   );
-};
+});

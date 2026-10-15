@@ -241,11 +241,34 @@ body {
 
 @keyframes flowDash {
   to {
-    stroke-dashoffset: -20;
+    stroke-dashoffset: -28;
   }
 }
 
-.animate-flow-dash {
-  animation: flowDash 800ms linear infinite;
+@keyframes pulseBeam {
+  0% {
+    stroke-dashoffset: 60;
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -60;
+    opacity: 0.2;
+  }
 }
 
+/* Default state: Standing still wire without moving animation */
+.wire-idle {
+  transition: stroke 0.3s ease, stroke-width 0.3s ease;
+}
+
+/* Active running state: High-energy moving laser beam and pulse */
+.animate-flow-dash {
+  animation: flowDash 600ms linear infinite;
+}
+
+.animate-pulse-beam {
+  animation: pulseBeam 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}

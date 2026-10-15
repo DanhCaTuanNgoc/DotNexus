@@ -679,6 +679,7 @@ if __name__ == "__main__":
                 }
               }}
               onClearBoard={handleClearBoard}
+              isExecuting={executing}
             />
 
             {/* Floating Execution Results Summary HUD (Shifted above dock) */}

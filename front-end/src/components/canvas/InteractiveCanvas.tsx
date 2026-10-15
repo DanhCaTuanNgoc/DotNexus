@@ -31,6 +31,7 @@ interface InteractiveCanvasProps {
   onToggleFlowConnect?: () => void;
   onDeleteSelectedNode?: () => void;
   onClearBoard?: () => void;
+  isExecuting?: boolean;
 }
 
 export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
@@ -49,6 +50,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
   onToggleFlowConnect,
   onDeleteSelectedNode,
   onClearBoard,
+  isExecuting = false,
 }) => {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const [viewport, setViewport] = useState<CanvasViewport>(
@@ -416,25 +418,52 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
           height="2000"
         >
           <defs>
+            {/* Standard Idle Arrow Marker (Crisp stationary purple) */}
             <marker
               id="flow-arrow"
-              markerWidth="10"
-              markerHeight="8"
-              refX="8"
-              refY="4"
+              markerWidth="12"
+              markerHeight="10"
+              refX="10"
+              refY="5"
               orient="auto"
             >
-              <polygon points="0 0, 10 4, 0 8" fill="#8B5CF6" />
+              <polygon points="0 1, 10 5, 0 9" fill="#8B5CF6" />
             </marker>
+
+            {/* Active Execution Arrow Marker (High-visibility pulsing cyan/neon purple) */}
+            <marker
+              id="flow-arrow-active"
+              markerWidth="14"
+              markerHeight="12"
+              refX="11"
+              refY="6"
+              orient="auto"
+            >
+              <polygon points="0 0, 12 6, 0 12" fill="#38BDF8" stroke="#0E071F" strokeWidth="1" />
+            </marker>
+
+            {/* Selected Arrow Marker (Gold / Yellow) */}
             <marker
               id="flow-arrow-selected"
-              markerWidth="10"
-              markerHeight="8"
-              refX="8"
-              refY="4"
+              markerWidth="12"
+              markerHeight="10"
+              refX="10"
+              refY="5"
               orient="auto"
             >
-              <polygon points="0 0, 10 4, 0 8" fill="#FACC15" />
+              <polygon points="0 1, 10 5, 0 9" fill="#FACC15" />
+            </marker>
+
+            {/* Completed Flow Arrow Marker (Clean emerald) */}
+            <marker
+              id="flow-arrow-completed"
+              markerWidth="12"
+              markerHeight="10"
+              refX="10"
+              refY="5"
+              orient="auto"
+            >
+              <polygon points="0 1, 10 5, 0 9" fill="#10B981" />
             </marker>
           </defs>
 
@@ -449,6 +478,10 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
             const pathD = calculateBezierPath(sPos, tPos, edge.sourceHandle, edge.targetHandle);
             const isSelected = selectedEdgeId === edge.id;
 
+            // Wire is actively streaming if whole pipeline is executing OR if source/target is running
+            const isWireActive = isExecuting && (sourceNode.data.status === 'running' || targetNode.data.status === 'running');
+            const isWireCompleted = sourceNode.data.status === 'success' && targetNode.data.status === 'success';
+
             return (
               <g
                 key={edge.id}
@@ -461,32 +494,79 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
                 }}
               >
                 {/* Thick invisible click hit target */}
-                <path d={pathD} fill="none" stroke="transparent" strokeWidth="18" />
+                <path d={pathD} fill="none" stroke="transparent" strokeWidth="20" />
 
-                {/* Visible glowing wire */}
+                {/* Base Wire: Solid, clean, stationary by default */}
                 <path
                   d={pathD}
                   fill="none"
-                  stroke={isSelected ? '#FACC15' : '#8B5CF6'}
-                  strokeWidth={isSelected ? '3' : '2'}
-                  strokeDasharray={edge.animated ? '8 6' : undefined}
-                  className={edge.animated ? 'animate-flow-dash' : undefined}
-                  markerEnd={isSelected ? 'url(#flow-arrow-selected)' : 'url(#flow-arrow)'}
+                  stroke={
+                    isSelected
+                      ? '#FACC15'
+                      : isWireActive
+                      ? '#38BDF8'
+                      : isWireCompleted
+                      ? '#10B981'
+                      : '#6D28D9'
+                  }
+                  strokeWidth={isSelected ? '3' : isWireActive ? '3' : isWireCompleted ? '2.5' : '2'}
+                  className="wire-idle"
+                  markerEnd={
+                    isSelected
+                      ? 'url(#flow-arrow-selected)'
+                      : isWireActive
+                      ? 'url(#flow-arrow-active)'
+                      : isWireCompleted
+                      ? 'url(#flow-arrow-completed)'
+                      : 'url(#flow-arrow)'
+                  }
                 />
+
+                {/* Prominent High-Energy Laser Beam + Traveling Photon (ONLY active while running pipeline) */}
+                {isWireActive && (
+                  <>
+                    <path
+                      d={pathD}
+                      fill="none"
+                      stroke="#38BDF8"
+                      strokeWidth="3.5"
+                      strokeDasharray="14 10"
+                      className="animate-flow-dash"
+                      style={{
+                        filter: 'drop-shadow(0 0 8px rgba(56, 189, 248, 0.95))',
+                      }}
+                    />
+                    <circle r="4" fill="#FFFFFF" stroke="#38BDF8" strokeWidth="2">
+                      <animateMotion path={pathD} dur="0.75s" repeatCount="indefinite" />
+                    </circle>
+                  </>
+                )}
 
                 {/* Optional Edge Label */}
                 {edge.label && (
-                  <text
-                    x={(sPos.x + tPos.x) / 2}
-                    y={(sPos.y + tPos.y) / 2 - 8}
-                    fill="#C084FC"
-                    fontSize="10"
-                    fontFamily="monospace"
-                    textAnchor="middle"
-                    className="select-none"
-                  >
-                    {edge.label}
-                  </text>
+                  <g>
+                    <rect
+                      x={(sPos.x + tPos.x) / 2 - (edge.label.length * 3.2 + 8)}
+                      y={(sPos.y + tPos.y) / 2 - 17}
+                      width={edge.label.length * 6.4 + 16}
+                      height="15"
+                      fill="#0A0516"
+                      stroke={isWireActive ? '#38BDF8' : '#261B42'}
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={(sPos.x + tPos.x) / 2}
+                      y={(sPos.y + tPos.y) / 2 - 6}
+                      fill={isWireActive ? '#38BDF8' : '#C084FC'}
+                      fontSize="9"
+                      fontFamily="monospace"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                      className="select-none"
+                    >
+                      {edge.label}
+                    </text>
+                  </g>
                 )}
               </g>
             );

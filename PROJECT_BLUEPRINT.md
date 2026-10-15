@@ -609,3 +609,253 @@ DotNexus/
 | **25/10 – 05/11** | **Sprint 3 (NPoS Optimizer & Shield)** | Hoàn thiện `npos_optimizer.py` và `rpc_shield.py`, tham gia Office Hours với Mentor. |
 | **06/11/2026** | **CODE FREEZE & FINAL SUBMISSION** | Chốt toàn bộ code, hoàn thiện `FOR_JUDGES.md`, nộp sản phẩm hoàn chỉnh trên DoraHacks. |
 | **07/11 – 08/11** | **LIVE DEMO DAY** | Thuyết trình trực tiếp với Ban Giám Khảo Portaldot Foundation. |
+
+---
+
+## 9. Phân Tích Thực Trạng Kỹ Thuật (MVP Shell vs. Production-Grade Engineering Gap Analysis)
+
+### 9.1. Đánh Giá Trung Thực Hiện Trạng Codebase (Self-Audit)
+Dù dự án đã hoàn thành nhanh chóng khung giao diện (UI/UX) và các luồng tương tác mô phỏng cơ bản đạt 95% theo danh mục gạch đầu dòng ban đầu, **độ sâu kỹ thuật ở tầng hệ thống (Systems Engineering) và tương tác Blockchain Substrate/EVM thực tế mới chỉ đạt mức PoC (Proof-of-Concept) mỏng**.
+
+Nếu ban giám khảo là các **Core Devs của Portaldot Network (như @Titus hoặc các kỹ sư Substrate Runtime)** soi vào source code, họ sẽ nhận ra ngay hệ thống đang phụ thuộc nhiều vào dữ liệu giả lập (Mock / Deterministic Fallback) và thiếu các tầng kết nối hạ tầng thực thụ (Production Plumbing).
+
+### 9.2. Ma Trận Đối Soát Độ Sâu Kỹ Thuật (Technical Depth Matrix)
+
+| Module / Tính Năng | Hiện Trạng Trong Code (MVP Shell) | Khoảng Cách Kỹ Thuật (The Technical Gap) | Cấp Độ Cần Đạt (Production-Grade Level) |
+|---|---|---|---|
+| **RPC Shield & Rate Limiter** | Class Python gọi hàm cục bộ `inspect_request()` trong unit test hoặc backend REST. | Chưa có Reverse Proxy thực sự. Client bên ngoài (MetaMask, DApps, curl) không có cổng để cắm vào; traffic chưa được hứng và lọc thực tế. | **High-Performance Asynchronous Reverse Proxy Gateway** đứng ở cổng `:8545` & `:9944`, can thiệp deep packet inspection, circuit breaker và stream forwarding. |
+| **NPoS Dynamic Optimizer** | Đang fallback về 4 validator hardcoded trong code (`sample_validators`), sort APY theo công thức toán học tĩnh. | Chưa kết nối vào Storage Map của Substrate Runtime; chưa phân bổ nomination theo thuật toán chuẩn của mạng. | **Deep Pallet-Staking Storage Reader & Sequential Phragmén Engine**: Đọc trực tiếp `Staking.Validators`, `Staking.ErasStakersClipped`, chạy thuật toán Phragmén phân bổ tỷ trọng 16 validator tối ưu. |
+| **Slashing Guard & Key Rotation** | Sinh chuỗi hex ngẫu nhiên khi node offline; lưu lock lease vào file JSON `.dotnexus_data/validator_session.lock`. | Chưa bóc tách cấu trúc 4 session keys thật; chưa tạo transaction ký extrinsic lên chuỗi; file lock dễ bị vỡ nếu rớt mạng bất đối xứng (Split-Brain). | **Real Substrate Session Keys Decomposer & Linux Keystore Fencing**: Bóc tách 4 key (BABE, GRANDPA, ImOnline, Audi), build extrinsic `session.setKeys`, cơ chế Fencing Token chống Split-Brain ở tầng hệ điều hành. |
+| **P2P Topology Radar** | Trả về 4 peer mẫu được gõ tay sẵn trong mảng `_init_p2p_topology()`. | Chưa gọi RPC `system_peers`; chưa phân giải định dạng Multiaddress libp2p; chưa định vị GeoIP thật. | **Live libp2p Multiaddr Parser & Geo-IP Resolver**: Lắng nghe `system_peers`, bóc tách `/ip4/.../tcp/30333/p2p/...`, truy vấn định vị địa lý độ trễ thấp và gắn cờ peer độc hại qua behavioral heuristics. |
+| **Visual DAG Canvas & Runbooks** | Chạy kịch bản thủ công khi user bấm nút trên Web UI; terminal hiển thị logs tĩnh mô phỏng. | Chưa có background worker daemon chạy ngầm 24/7; chưa gửi được cảnh báo thực tế ra môi trường ngoài (Discord/Telegram). | **Autonomous 24/7 Cron/Worker Daemon & Live Multi-Channel Webhook Dispatcher**: Lưu đồ thị Runbook vào database, worker độc lập chạy nền định kỳ, bắn notification thật đến Discord/Telegram. |
+
+---
+
+## 10. Kế Hoạch Nâng Cấp Kỹ Thuật Chuyên Sâu Từng Hạng Mục (Deepening Engineering Specifications)
+
+```mermaid
+flowchart TD
+    subgraph LiveTraffic["1. Live Inbound Traffic (DApps, MetaMask, Bots)"]
+        ReqHTTP["HTTP JSON-RPC :8545"]
+        ReqWS["WebSocket RPC :9944"]
+    end
+
+    subgraph DotNexusGateway["DotNexus Core Production Gateway (Port 5050 / Proxy)"]
+        ProxyEngine["Asynchronous Reverse Proxy Engine (aiohttp / asyncio)"]
+        DeepFilter["Deep Packet Parser (Query Range > 2000, Heavy Batch Detector)"]
+        SlidingLimiter["Sliding Window IP Rate Limiter (Token Bucket)"]
+        PromExporter["Prometheus Metrics Exporter (/metrics :9100)"]
+    end
+
+    subgraph DeepSubstrate["2. Substrate & EVM Runtime Integration"]
+        StorageReader["Storage Map Decoder (Staking.Validators, ErasStakersClipped)"]
+        PhragmenEngine["Sequential Phragmén Weighting Optimizer"]
+        KeyDecomposer["author_rotateKeys 4-Key Decomposer (BABE, GRANDPA, ImOnline, Audi)"]
+        ExtrinsicBuilder["session.setKeys Extrinsic Submitter"]
+    end
+
+    subgraph AutonomousDaemon["3. Background Automation & Alerting"]
+        CronDaemon["24/7 Background Scheduler Worker"]
+        WebhookDispatcher["Real Webhook Dispatcher (Discord & Telegram APIs)"]
+        StateDB["SQLite / JSON Persistent Runbook Storage"]
+    end
+
+    subgraph PortaldotNode["Portaldot Node Backend (:9944 / :8545)"]
+        SubstrateNode["Substrate WASM Core"]
+        EVMNode["Frontier / Pallet-EVM"]
+    end
+
+    LiveTraffic --> ProxyEngine
+    ProxyEngine --> DeepFilter
+    DeepFilter --> SlidingLimiter
+    SlidingLimiter -->|"Cho phép traffic sạch"| PortaldotNode
+    SlidingLimiter -->|"Chặn / Throttled (429)"| PromExporter
+
+    DeepSubstrate <--> SubstrateNode
+    CronDaemon --> DeepSubstrate
+    CronDaemon --> WebhookDispatcher
+    CronDaemon <--> StateDB
+```
+
+---
+
+### 10.1. Module 1: RPC Shield $\rightarrow$ High-Performance Asynchronous Reverse Proxy Gateway
+
+#### Mục Tiêu Kỹ Thuật
+Biến `rpc_shield.py` từ một hàm logic kiểm tra nội bộ thành một **Reverse Proxy Server bất đồng bộ (Asynchronous Reverse Proxy)** chạy độc lập, đứng trước cổng RPC của Portaldot node.
+
+#### Kiến Trúc & Chi Tiết Triển Khai
+1. **Lắng Nghe & Chuyển Tiếp Traffic (Transparent Reverse Proxy):**
+   * Proxy mở cổng lắng nghe (ví dụ port `8546` cho EVM và `9946` cho Substrate WS).
+   * Tiếp nhận toàn bộ raw HTTP POST request và WebSocket connections.
+   * Nếu request vượt qua lớp kiểm định an toàn, chuyển tiếp tức thì (`forward`) sang node Portaldot gốc (`http://127.0.0.1:8545` hoặc `ws://127.0.0.1:9944`).
+2. **Deep Packet Inspection (Xử Lý Cả Single Lẫn Batch Requests):**
+   * Phân tích cú pháp JSON-RPC: Hỗ trợ kiểm tra payload dạng đơn lẻ hoặc mảng batch `[{...}, {...}]`.
+   * Đối với phương thức `eth_getLogs`: Tính toán độ chênh lệch giữa `fromBlock` và `toBlock` (chuyển đổi từ Hex sang Dec). Nếu khoảng cách $\Delta > 2000$ blocks hoặc truy vấn `toBlock: "latest"` từ block nguyên thủy $\rightarrow$ Chặn ngay với mã lỗi `-32602 (Invalid params: Block range query exceeds safe limit)`.
+   * Đối với phương thức Debug/Admin nhạy cảm: Chặn đứng các call `debug_*`, `admin_*`, `author_insertKey` từ IP công cộng không nằm trong whitelist.
+3. **Dynamic Sliding-Window Rate Limiting:**
+   * Áp dụng thuật toán **Token Bucket** kết hợp **Sliding Window Log** trong bộ nhớ.
+   * Giới hạn tối đa 60 requests/phút cho mỗi IP client. Nếu vượt ngưỡng, trả về HTTP status `429 Too Many Requests` kèm header `Retry-After`.
+   * Tự động đưa IP vi phạm spam liên tục vào bảng `blacklisted_ips` trong thời gian phong tỏa động (60s $\rightarrow$ 300s $\rightarrow$ 3600s).
+4. **Prometheus Metrics Exporter (`/metrics`):**
+   * Tích hợp endpoint chuẩn `/metrics` xuất số liệu cho Prometheus/Grafana:
+     * `dotnexus_rpc_requests_total{method, status}`
+     * `dotnexus_rpc_blocked_queries_total{reason}`
+     * `dotnexus_rpc_active_connections`
+     * `dotnexus_rpc_latency_seconds`
+
+---
+
+### 10.2. Module 2: NPoS Dynamic Optimizer $\rightarrow$ Deep Pallet Staking Storage & Phragmén Engine
+
+#### Mục Tiêu Kỹ Thuật
+Thay thế dữ liệu giả lập `sample_validators` bằng module bóc tách bộ nhớ lưu trữ chuỗi (**Storage Map Reader**) từ `pallet_staking`, đồng thời triển khai thuật toán **Sequential Phragmén** để tối ưu hóa trọng số đề cử.
+
+#### Kiến Trúc & Chi Tiết Triển Khai
+1. **Truy Vấn Trực Tiếp Storage Map Của Substrate:**
+   * `Staking.CurrentEra()`: Lấy era hiện tại của chuỗi.
+   * `Staking.Validators(stash_account)`: Lấy cấu hình hoa hồng (`commission`) và cờ chặn đề cử (`blocked`).
+   * `Staking.ErasStakersClipped(current_era, validator_stash)`: Lấy thông tin chi tiết:
+     * `total`: Tổng số POT token đang stake vào validator.
+     * `own`: Số POT tự bảo chứng của validator.
+     * `others`: Danh sách các nominator được nhận thưởng (giới hạn tối đa, thường là 256/512 stakers).
+2. **Cơ Chế Lọc & Chấm Điểm Đa Nhân Tố (Multi-Factor Scoring Matrix):**
+   * **Ngưỡng Oversubscribed (Bảo Vệ Người Dùng):** Nếu số nominator của validator chạm trần `max_nominators`, loại ngay khỏi danh sách đề cử khuyến nghị để tránh trường hợp staker mới gửi tiền nhưng nhận 0 đồng tiền lãi.
+   * **Điểm Uptime & Điểm Thưởng Era (Era Points):** Đọc `Staking.ErasRewardPoints(current_era)` để tính tỷ lệ đóng góp sản xuất block thực tế của validator so với trung bình mạng lưới.
+   * **Lịch Sử Slashing:** Đọc `Staking.SlashingSpans` để phát hiện validator từng có tiền sử bị phạt.
+3. **Thuật Toán Phân Bổ Tỷ Trọng Sequential Phragmén:**
+   * Không chỉ đơn thuần chọn ra top 16 rồi chia đều vốn, thuật toán Phragmén giải bài toán tối ưu: Phân bổ lượng POT của người dùng sao cho cân bằng tối đa giữa 16 validator, kéo các validator uy tín có tổng stake thấp lên để tối ưu hóa tỷ lệ sinh lời (Equalizing Stake Weighting), nâng APY thực tế thêm 1.0% - 2.5%.
+4. **Dynamic Decimals & SS58 Formatting:**
+   * Toàn bộ giá trị token POT được tính toán chuẩn xác qua hàm chuyển đổi số nguyên lớn (BigInt) với `tokenDecimals = 14`.
+
+---
+
+### 10.3. Module 3: Slashing Guard $\rightarrow$ Real Session Keys Decomposer & Linux Keystore Fencing
+
+#### Mục Tiêu Kỹ Thuật
+Đưa quy trình quản lý khóa Session Keys và bảo vệ Equivocation đạt tiêu chuẩn cấp trung tâm dữ liệu (Enterprise Datacenter Grade).
+
+#### Kiến Trúc & Chi Tiết Triển Khai
+1. **Bóc Tách Cấu Trúc 4 Session Keys Từ `author_rotateKeys`:**
+   * Khi gọi RPC `author_rotateKeys`, Substrate node sinh ra một chuỗi nhị phân hex 128 bytes (256 hex chars).
+   * Module bóc tách chuỗi hex thành 4 public keys 32 bytes độc lập:
+     * Bytes 0–31: **BABE Key** (`babe` - Schnorrkel/Ristretto sr25519) dùng để sản xuất block theo slot.
+     * Bytes 32–63: **GRANDPA Key** (`gran` - Edwards ed25519) dùng để bỏ phiếu đồng thuận hoàn tất chuỗi (Finality gadget).
+     * Bytes 64–95: **ImOnline Key** (`imon` - sr25519) dùng để phát nhịp tim báo hiệu node còn sống (`pallet_im_online`).
+     * Bytes 96–127: **AuthorityDiscovery Key** (`audi` - sr25519) dùng cho giao thức định tuyến P2P giữa các validator.
+2. **Xây Dựng & Ký Giao Dịch `session.setKeys`:**
+   * Tạo payload extrinsic `session.setKeys(keys, proof=0x00)` chuẩn mã hóa SCALE codec.
+   * Hỗ trợ nạp khóa Stash/Controller account từ file keystore cục bộ hoặc file biến môi trường bảo mật để ký và submit extrinsic tự động lên chuỗi khi đến mốc chuyển giao era.
+3. **Cơ Chế Fencing Token Chống Lỗi Phân Liệt Não (Anti Split-Brain Lock):**
+   * Khi mất mạng cục bộ, node chính và node standby có thể mất liên lạc nhưng vẫn sống, dẫn đến nguy cơ cả hai cùng ký block (Equivocation Double-signing) $\rightarrow$ bị Slash 100% tài sản.
+   * Áp dụng cơ chế **Monotonic Fencing Token**: Mỗi khi lease được cấp, một token số nguyên tăng dần được tạo ra. Node nào có token cũ hơn sẽ bị hệ điều hành từ chối quyền truy cập socket ký block (`fcntl` / atomic OS lockfile).
+
+---
+
+### 10.4. Module 4: P2P Topology Radar $\rightarrow$ Live libp2p Peer Discovery & Multiaddr Geo-Resolver
+
+#### Mục Tiêu Kỹ Thuật
+Chuyển đổi màn hình Radar từ dữ liệu mô phỏng thành bản đồ topo mạng ngang hàng P2P trực tiếp kết nối với node Portaldot.
+
+#### Kiến Trúc & Chi Tiết Triển Khai
+1. **Phân Giải RPC `system_peers`:**
+   * Định kỳ (mỗi 5 giây) gọi RPC Substrate `system_peers`.
+   * Duyệt mảng peer trả về, bóc tách chuỗi định dạng `Multiaddress` chuẩn libp2p:
+     * Ví dụ: `/ip4/142.93.18.24/tcp/30333/p2p/12D3KooWDpJ7As7yhfrBpwt3xQv8v17jQxMvdJ8vXj34M7fL4qU`
+     * Trích xuất: Địa chỉ IP (`142.93.18.24`), cổng P2P (`30333`), và định danh PeerID (`12D3KooW...`).
+2. **Geo-IP Cục Bộ Độ Trễ Thấp:**
+   * Tích hợp thư viện giải mã IP cục bộ (MaxMind GeoLite2 City database hoặc fallback HTTP IP-API có cache) để xác định: Quốc gia, Thành phố, Kinh độ (Longitude), Vĩ độ (Latitude).
+   * Đẩy tọa độ lên bản đồ Radar trên Web UI để hiển thị trực quan các cụm node trên thế giới.
+3. **Bộ Phân Loại Hành Vi Peer (Peer Behavioral Heuristics):**
+   * Theo dõi các trường số liệu `peer.best_number`, `peer.best_hash`, `peer.latency`.
+   * Gắn cờ cảnh báo:
+     * **Peer tụt hậu (Lagging Peer):** Block height tụt xa > 100 blocks so với chuỗi chính.
+     * **Peer độc hại nghi ngờ (Suspicious Forker):** Liên tục gửi các proposal block bị từ chối hoặc spam handshake sai giao thức `/portaldot/sync/3.0`.
+
+---
+
+### 10.5. Module 5: DAG Engine & Canvas $\rightarrow$ Autonomous 24/7 Scheduler & Live Multi-Channel Webhook Dispatcher
+
+#### Mục Tiêu Kỹ Thuật
+Biến Visual Canvas từ một giao diện bấm chạy thủ công thành **Hệ thống tự động hóa vận hành tự quản (Autonomous Operations Engine)** chạy ngầm liên tục 24/7.
+
+#### Kiến Trúc & Chi Tiết Triển Khai
+1. **Background Scheduler Worker Daemon:**
+   * Một tiến trình nền (Background Worker) độc lập bằng Python chạy song song với Flask Gateway.
+   * Hỗ trợ 3 kiểu Trigger kích hoạt:
+     * **Cron/Interval Trigger:** Chạy định kỳ sau mỗi $N$ giây (ví dụ: mỗi 6 giây block time).
+     * **Event-Driven Trigger:** Kích hoạt ngay khi nhận sự kiện từ node (ví dụ: phát hiện lệch block Desync > 2 hoặc node chính miss ping).
+     * **Epoch/Era Trigger:** Kích hoạt trước khi kết thúc era 10 phút để tự động xoay key và tái cân bằng NPoS.
+2. **Bộ Điều Phối Webhook Thực Tế (Live Multi-Channel Webhook Dispatcher):**
+   * Hỗ trợ cấu hình URL Webhook trực tiếp từ giao diện Canvas:
+     * **Discord Webhook:** Gửi embed message màu sắc kèm chi tiết lỗi (đỏ cho Slash/Desync, xanh cho Key Rotation thành công).
+     * **Telegram Bot API:** Gửi tin nhắn khẩn cấp qua `sendMessage` kèm nút bấm hành động tương tác.
+   * Tích hợp cơ chế Rate-Limit Webhook (tránh spam flood làm khóa tài khoản bot).
+3. **Lưu Trữ Bền Vững Đồ Thị (Runbook Persistence):**
+   * Cho phép người dùng tùy biến kéo thả node trên Canvas và bấm **"Save Runbook"**.
+   * Toàn bộ cấu trúc đồ thị (Nodes, Edges, Configurations) được lưu bền vững vào file JSON/SQLite trong thư mục `.dotnexus_data/runbooks/` để worker daemon đọc và thực thi độc lập kể cả khi trình duyệt đóng.
+
+---
+
+## 11. Lộ Trình Triển Khai Chi Tiết Từng Ngày (Day-by-Day Tactical Execution Plan: 16/10 – 06/11)
+
+Dưới đây là kế hoạch hành động cụ thể cho từng ngày từ nay đến ngày chung kết:
+
+```mermaid
+timeline
+    title Lộ Trình Triển Khai Chi Tiết (16/10 - 06/11/2026)
+    section Giai Đoạn 1: Hạ Tầng Sống (Check-in Ready)
+        16/10 : Xây dựng Asynchronous Reverse Proxy Gateway : Thử nghiệm Deep Packet Filtering
+        17/10 : Bóc tách 4 Session Keys & Cơ chế Fencing Lock : Tích hợp Real Webhook (Discord / Telegram)
+        18/10 : Kết nối RPC system_peers & Geo-IP Radar : Nâng cấp Background Worker Daemon
+        19/10 - 21/10 : Hoàn thiện kịch bản DEMO_SCENARIO.md : Kiểm thử tích hợp toàn diện E2E
+        22/10 - 23/10 : Quay Video Demo 3 Phút : Cập nhật tài liệu nộp Check-in
+        24/10 : NỘP BÀI CHECK-IN DORAHACKS : Đạt 100% tiêu chí Check-in
+    section Giai Đoạn 2: Tối Ưu Hóa Chuyên Sâu (Final Push)
+        25/10 - 28/10 : Bóc tách trực tiếp pallet_staking Storage : Triển khai Sequential Phragmén Engine
+        29/10 - 02/11 : Tích hợp Prometheus Exporter : Cắm endpoint Live Testnet V3 từ BTC
+        03/11 - 05/11 : Code Freeze & Stress Testing 1000 RPS : Hoàn thiện Pitch Deck & Presentation
+        06/11 : CHỐT BÀI NỘP CHUNG KẾT (FINAL SUBMISSION)
+        07/11 - 08/11 : LIVE DEMO DAY WITH JUDGES
+```
+
+### Kế Hoạch Chi Tiết Từng Ngày:
+
+* **Ngày 16/10 (Thứ Sáu) — Asynchronous Reverse Proxy Gateway:**
+  * Dựng HTTP/WebSocket Reverse Proxy trên cổng 8546 và 9946.
+  * Viết parser bóc tách raw JSON-RPC batch requests và chặn `eth_getLogs` quét diện rộng.
+  * Cắm thử nghiệm gửi request từ curl và MetaMask qua cổng Proxy.
+
+* **Ngày 17/10 (Thứ Bảy) — Real Session Keys & Webhook Dispatcher:**
+  * Bóc tách 4 Session Keys từ chuỗi hex của `author_rotateKeys`.
+  * Viết module Webhook gửi tin nhắn thật đến Discord Webhook URL và Telegram Bot API.
+  * Thêm node Webhook Alert trên Visual DAG Canvas để bắn thông báo thật khi chạy kịch bản.
+
+* **Ngày 18/10 (Chủ Nhật) — libp2p Peer Discovery & Background Daemon:**
+  * Kết nối hàm `system_peers` Substrate, bóc tách Multiaddress và tích hợp thư viện định vị Geo-IP.
+  * Dựng Background Worker Daemon chạy ngầm chu kỳ kiểm tra nhịp tim node và tự động kích hoạt failover.
+
+* **Ngày 19/10 – 21/10 — Hoàn Thiện DEMO_SCENARIO.md & E2E Testing:**
+  * Soạn thảo chi tiết [`docs/DEMO_SCENARIO.md`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/docs/DEMO_SCENARIO.md) hướng dẫn từng bước bấm máy demo.
+  * Bổ sung test cases trong `tests/test_engine.py` cho Reverse Proxy, Key Decomposer và Webhook Dispatcher (nâng từ 10 tests lên 16+ tests bao phủ toàn diện).
+
+* **Ngày 22/10 – 23/10 — Quay Video Demo & Rà Soát Tiêu Chí Check-in:**
+  * Quay video demo chất lượng cao (< 3 phút) theo kịch bản `DEMO_SCENARIO.md`.
+  * Đẩy video lên YouTube/Loom, gắn link vào README và tài liệu nộp bài.
+
+* **Ngày 24/10 (Thứ Bảy) — NỘP CHECK-IN DORAHACKS (MILESTONE QUAN TRỌNG):**
+  * Nộp link GitHub repository công khai, README chuẩn chỉ và link Video demo chạy thực tế.
+
+* **Ngày 25/10 – 02/11 (Sprint Final) — Pallet Staking Storage & Phragmén Optimization:**
+  * Đọc trực tiếp Storage Map `Staking.Validators` và `Staking.ErasStakersClipped`.
+  * Hoàn thiện thuật toán Sequential Phragmén.
+  * Sẵn sàng cắm endpoint chính thức ngay khi @Titus công bố RPC V3 mới.
+  * Tích hợp Prometheus `/metrics` exporter.
+
+* **Ngày 03/11 – 05/11 — Code Freeze & Chuẩn Bị Pitching:**
+  * Chốt toàn bộ code, chạy stress-test tải cao giả lập 1,000 requests/giây qua RPC Proxy.
+  * Luyện tập kịch bản thuyết trình trực tiếp (Pitching) với Ban Giám Khảo.
+
+* **Ngày 06/11 — FINAL CODE FREEZE & SUBMISSION:**
+  * Nộp bài chung kết trên cổng DoraHacks.
+

@@ -282,3 +282,114 @@ export function getHandlePoint(
       return { x: position.x + width, y: position.y + height / 2 };
   }
 }
+
+// Pre-configured Default Operational Runbooks
+export const DEFAULT_RUNBOOKS = [
+  {
+    id: 'runbook-slash-guard',
+    name: 'Automated Slashing Guard & Standby Failover',
+    description: 'Monitors pallet_im_online heartbeat and safely switches to standby node without double-signing.',
+    category: 'SECURITY',
+    nodes: [
+      {
+        id: 'n1',
+        type: 'watcher',
+        label: 'Heartbeat Daemon (:9944)',
+        position: { x: 50, y: 120 },
+        data: { metric: 'missed_blocks', condition: '>= 2', status: 'ACTIVE' },
+      },
+      {
+        id: 'n2',
+        type: 'security',
+        label: 'Anti-Equivocation Lock',
+        position: { x: 350, y: 120 },
+        data: { lease_timeout: '30s', check: 'Strict Mutex', status: 'LOCKED' },
+      },
+      {
+        id: 'n3',
+        type: 'action',
+        label: 'Activate Standby Node IP',
+        position: { x: 650, y: 120 },
+        data: { standby_url: 'ws://127.0.0.1:9945', action: 'promote_primary', status: 'READY' },
+      },
+    ],
+    edges: [
+      { id: 'e1-2', source: 'n1', target: 'n2', animated: true, label: 'Missing Ping >= 2' },
+      { id: 'e2-3', source: 'n2', target: 'n3', animated: true, label: 'Revoke Old & Promote' },
+    ],
+  },
+  {
+    id: 'runbook-dual-vm-sync',
+    name: 'Dual-VM Parity Watcher & Desync Alert',
+    description: 'Correlates Substrate WASM block production with EVM JSON-RPC height.',
+    category: 'TELEMETRY',
+    nodes: [
+      {
+        id: 'n-sub',
+        type: 'infra',
+        label: 'Substrate WS (:9944)',
+        position: { x: 50, y: 60 },
+        data: { engine: 'WASM / ink!', port: 9944, status: 'STREAMING' },
+      },
+      {
+        id: 'n-evm',
+        type: 'infra',
+        label: 'EVM RPC (:8545)',
+        position: { x: 50, y: 220 },
+        data: { engine: 'Solidity EVM', port: 8545, status: 'STREAMING' },
+      },
+      {
+        id: 'n-sync',
+        type: 'watcher',
+        label: 'Dual-VM Desync Detector',
+        position: { x: 350, y: 140 },
+        data: { max_lag: 2, metric: 'Delta Blocks', status: 'EVALUATING' },
+      },
+      {
+        id: 'n-alert',
+        type: 'action',
+        label: 'Urgent Discord / Ops Alert',
+        position: { x: 650, y: 140 },
+        data: { channel: '#ops-alerts', webhook: 'configured', status: 'STANDBY' },
+      },
+    ],
+    edges: [
+      { id: 'e-sub-sync', source: 'n-sub', target: 'n-sync', animated: true },
+      { id: 'e-evm-sync', source: 'n-evm', target: 'n-sync', animated: true },
+      { id: 'e-sync-alert', source: 'n-sync', target: 'n-alert', animated: true, label: 'Delta > 2 Blocks' },
+    ],
+  },
+  {
+    id: 'runbook-npos-compound',
+    name: 'NPoS Auto-Compounding & Yield Optimizer',
+    description: 'Scans active validators, weeds out oversubscribed pools, and auto-bonds yield.',
+    category: 'STAKING',
+    nodes: [
+      {
+        id: 'n-era',
+        type: 'watcher',
+        label: 'NPoS Era Scanner',
+        position: { x: 50, y: 120 },
+        data: { frequency: 'Every Era (6h)', status: 'WATCHING' },
+      },
+      {
+        id: 'n-filter',
+        type: 'action',
+        label: 'Top 16 Optimizer Filter',
+        position: { x: 350, y: 120 },
+        data: { criteria: 'Uptime + Low Comm + Capacity', status: 'READY' },
+      },
+      {
+        id: 'n-bond',
+        type: 'action',
+        label: 'Auto-Bond & Compound POT',
+        position: { x: 650, y: 120 },
+        data: { extrinsic: 'staking.bondExtra', boost: '+1.16% APY', status: 'ARMED' },
+      },
+    ],
+    edges: [
+      { id: 'e-era-filter', source: 'n-era', target: 'n-filter', animated: true, label: 'Era Finalized' },
+      { id: 'e-filter-bond', source: 'n-filter', target: 'n-bond', animated: true, label: 'Top 16 Selected' },
+    ],
+  },
+];

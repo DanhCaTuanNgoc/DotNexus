@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { RunbookDAG, api, LogItem } from '../services/api';
 import { CanvasEdge, CanvasNode, CanvasViewport, FlowHandleId, NodeCategory, NodeTemplate } from '../components/canvas/types';
+import { DEFAULT_RUNBOOKS } from '../components/canvas/constants';
 import { InteractiveCanvas } from '../components/canvas/InteractiveCanvas';
 import { NodePalette } from '../components/canvas/NodePalette';
 import { NodeInspector } from '../components/canvas/NodeInspector';
@@ -36,7 +37,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   // Check localStorage for saved canvas state
   const savedCanvas = useMemo(() => storage.getCanvasState(), []);
 
-  const [runbooks, setRunbooks] = useState<RunbookDAG[]>([]);
+  const [runbooks, setRunbooks] = useState<RunbookDAG[]>(DEFAULT_RUNBOOKS as unknown as RunbookDAG[]);
   const [selectedRunbookId, setSelectedRunbookId] = useState<string>(
     () => savedCanvas?.selectedRunbookId || 'runbook-slash-guard'
   );
@@ -96,7 +97,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   const [executing, setExecuting] = useState(false);
   const [execResult, setExecResult] = useState<any | null>(null);
 
-  // Load initial runbooks from API
+  // Load initial runbooks from API (with automatic fallback to DEFAULT_RUNBOOKS)
   useEffect(() => {
     loadRunbooks();
   }, []);
@@ -104,16 +105,25 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   const loadRunbooks = async () => {
     try {
       const res = await api.getRunbooks();
-      if (res.success && res.data.length > 0) {
-        setRunbooks(res.data);
-        // Only initialize default graph if user did NOT have a saved canvas in localStorage!
-        const existingSaved = storage.getCanvasState();
-        if (!existingSaved || (existingSaved.nodes.length === 0 && existingSaved.selectedRunbookId !== 'custom-blank')) {
-          initRunbookGraph(res.data[0]);
+      const list = res?.success && res.data?.length > 0 ? res.data : (DEFAULT_RUNBOOKS as unknown as RunbookDAG[]);
+      setRunbooks(list);
+
+      const existingSaved = storage.getCanvasState();
+      // If user had no saved canvas or had 0 nodes on a non-blank preset, initialize the selected preset!
+      if (!existingSaved || (existingSaved.nodes.length === 0 && existingSaved.selectedRunbookId !== 'custom-blank')) {
+        const target = list.find((r) => r.id === selectedRunbookId) || list[0];
+        if (target) {
+          initRunbookGraph(target);
         }
       }
     } catch (e) {
-      console.error('Failed to load DAG runbooks', e);
+      console.warn('Failed to fetch DAG runbooks from API, using default presets:', e);
+      setRunbooks(DEFAULT_RUNBOOKS as unknown as RunbookDAG[]);
+      const existingSaved = storage.getCanvasState();
+      if (!existingSaved || (existingSaved.nodes.length === 0 && existingSaved.selectedRunbookId !== 'custom-blank')) {
+        const target = DEFAULT_RUNBOOKS.find((r) => r.id === selectedRunbookId) || DEFAULT_RUNBOOKS[0];
+        initRunbookGraph(target as unknown as RunbookDAG);
+      }
     }
   };
 
@@ -159,17 +169,37 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     const convertedNodes: CanvasNode[] = rb.nodes.map((n, idx) => {
       let cat: NodeCategory = 'INFRA';
       const t = n.type.toLowerCase();
-      if (t.includes('watch')) cat = 'WATCHER';
-      else if (t.includes('sec') || t.includes('lock')) cat = 'SECURITY';
-      else if (t.includes('action') || t.includes('promot') || t.includes('alert')) cat = 'ACTION';
-      else if (t.includes('stak') || t.includes('yield') || t.includes('bond')) cat = 'STAKING';
+      const labelLower = n.label.toLowerCase();
+
+      if (t.includes('watch') || labelLower.includes('heartbeat') || labelLower.includes('scanner') || labelLower.includes('detector')) {
+        cat = 'WATCHER';
+      } else if (t.includes('sec') || t.includes('lock') || labelLower.includes('mutex') || labelLower.includes('equivocation')) {
+        cat = 'SECURITY';
+      } else if (t.includes('stak') || t.includes('yield') || t.includes('bond') || labelLower.includes('compound') || labelLower.includes('top 16')) {
+        cat = 'STAKING';
+      } else if (t.includes('action') || t.includes('promot') || t.includes('alert') || labelLower.includes('standby')) {
+        cat = 'ACTION';
+      }
+
+      // Match best icon kind from NODE_TEMPLATES
+      let matchedKind = n.id;
+      if (labelLower.includes('heartbeat')) matchedKind = 'heartbeat_daemon';
+      else if (labelLower.includes('mutex') || labelLower.includes('equivocation')) matchedKind = 'mutex_lock';
+      else if (labelLower.includes('standby')) matchedKind = 'promote_standby';
+      else if (labelLower.includes('substrate')) matchedKind = 'ws_substrate';
+      else if (labelLower.includes('evm')) matchedKind = 'evm_rpc';
+      else if (labelLower.includes('desync')) matchedKind = 'desync_detector';
+      else if (labelLower.includes('alert')) matchedKind = 'discord_alert';
+      else if (labelLower.includes('era')) matchedKind = 'era_scanner';
+      else if (labelLower.includes('top 16') || labelLower.includes('filter')) matchedKind = 'top_16_filter';
+      else if (labelLower.includes('compound') || labelLower.includes('bond')) matchedKind = 'compound_yield';
 
       return {
         id: n.id,
         type: n.type,
         position: n.position || { x: 80 + idx * 300, y: 160 },
         data: {
-          kind: n.id,
+          kind: matchedKind,
           category: cat,
           label: n.label,
           description: `Configured operational step: ${n.label}`,
@@ -210,7 +240,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
         lastSavedAt: Date.now(),
       });
     } else {
-      const targetRb = runbooks.find((r) => r.id === rbId);
+      const targetRb = runbooks.find((r) => r.id === rbId) || (DEFAULT_RUNBOOKS.find((r) => r.id === rbId) as unknown as RunbookDAG);
       if (targetRb) {
         initRunbookGraph(targetRb);
       }

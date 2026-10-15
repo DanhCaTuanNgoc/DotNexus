@@ -189,7 +189,13 @@ export const App: React.FC = () => {
         </aside>
 
         {/* Center Workspace */}
-        <main className="flex-1 overflow-y-auto p-6 bg-[#080512] pb-48">
+        <main
+          className={`flex-1 ${
+            activeTab === 'canvas'
+              ? 'p-2.5 pb-10 overflow-hidden flex flex-col'
+              : 'p-6 pb-48 overflow-y-auto'
+          } bg-[#080512]`}
+        >
           {activeTab === 'dual-vm' && (
             <DualEngineView data={dualData} onRefresh={fetchAllData} isLoading={isLoading} />
           )}

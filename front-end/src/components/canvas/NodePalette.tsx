@@ -81,10 +81,13 @@ export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode }) => {
   };
 
   return (
-    <div className="w-72 border-r border-[#261B42] bg-[#0A0515] flex flex-col justify-between shrink-0 select-none">
-      <div className="p-3 border-b border-[#261B42]">
-        <div className="text-[10px] uppercase font-mono text-[#C084FC] font-bold tracking-wider mb-2">
-          Ops Node Toolbox ({NODE_TEMPLATES.length})
+    <div className="w-72 h-full max-h-full border-r border-[#261B42] bg-[#0A0515] flex flex-col shrink-0 select-none overflow-hidden">
+      <div className="p-2.5 border-b border-[#261B42] shrink-0">
+        <div className="text-[10px] uppercase font-mono text-[#C084FC] font-bold tracking-wider mb-1.5 flex items-center justify-between">
+          <span>Ops Node Toolbox</span>
+          <span className="text-[9px] px-1.5 py-0.2 bg-[#1E113E] border border-[#3B2564] text-zinc-300">
+            {NODE_TEMPLATES.length} NODES
+          </span>
         </div>
 
         {/* Search */}
@@ -117,8 +120,8 @@ export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode }) => {
         </div>
       </div>
 
-      {/* Node Catalog List */}
-      <div className="flex-1 overflow-y-auto p-2.5 space-y-2">
+      {/* Node Catalog List - Constrained internal scroll container */}
+      <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-2 overscroll-contain">
         {filteredTemplates.map((tpl) => {
           const theme = CATEGORY_THEMES[tpl.category];
           const Icon = ICON_MAP[tpl.iconName] || Activity;
@@ -128,10 +131,10 @@ export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode }) => {
               key={tpl.kind}
               draggable
               onDragStart={(e) => handleDragStart(e, tpl)}
-              className="tech-corner-accent p-2.5 border border-[#261B42] bg-[#110A24] hover:border-[#8B5CF6] hover:bg-[#160D33] transition-all cursor-grab active:cursor-grabbing group shadow-sm"
+              className="tech-corner-accent p-2 border border-[#261B42] bg-[#110A24] hover:border-[#8B5CF6] hover:bg-[#160D33] transition-all cursor-grab active:cursor-grabbing group shadow-sm"
             >
               <div className="flex items-center justify-between mb-1">
-                <span className={`text-[8px] uppercase font-mono px-1.5 py-0.5 rounded-none border font-bold ${theme.badgeBg}`}>
+                <span className={`text-[8px] uppercase font-mono px-1.5 py-0.2 rounded-none border font-bold ${theme.badgeBg}`}>
                   {tpl.category}
                 </span>
                 <button
@@ -164,7 +167,7 @@ export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode }) => {
         )}
       </div>
 
-      <div className="p-2 border-t border-[#261B42] text-[10px] font-mono text-zinc-500 text-center">
+      <div className="p-1.5 border-t border-[#261B42] text-[9px] font-mono text-zinc-500 text-center shrink-0 bg-[#06030D]">
         Drag & drop into canvas or click [+]
       </div>
     </div>

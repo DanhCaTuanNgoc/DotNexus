@@ -31,6 +31,7 @@ interface NodeCardProps {
   node: CanvasNode;
   selected: boolean;
   hasViolation?: boolean;
+  isConnectable?: boolean;
   onHandlePointerDown: (e: PointerEvent<HTMLButtonElement>, nodeId: string, handle: FlowHandleId) => void;
 }
 
@@ -63,6 +64,7 @@ export const NodeCard = memo(function NodeCard({
   node,
   selected,
   hasViolation,
+  isConnectable = false,
   onHandlePointerDown,
 }: NodeCardProps) {
   const theme = CATEGORY_THEMES[node.data.category] || CATEGORY_THEMES.INFRA;
@@ -83,8 +85,8 @@ export const NodeCard = memo(function NodeCard({
           : `${theme.border} ${theme.bg} hover:border-[#8B5CF6] hover:shadow-md`
       }`}
     >
-      {/* 4 Port Handles for Wiring */}
-      {HANDLES.map((handle) => (
+      {/* 4 Port Handles for Wiring (Hidden by default, shown when Flow Connect is ON) */}
+      {isConnectable && HANDLES.map((handle) => (
         <button
           key={handle}
           type="button"
@@ -92,7 +94,7 @@ export const NodeCard = memo(function NodeCard({
           data-flow-handle={handle}
           title={`Drag to connect from ${handle} port`}
           onPointerDown={(e) => onHandlePointerDown(e, node.id, handle)}
-          className={`portal-node__handle portal-node__handle--${handle}`}
+          className={`portal-node__handle portal-node__handle--${handle} transition-transform hover:scale-125 animate-in fade-in duration-100`}
         >
           <span className="block w-1.5 h-1.5 bg-[#8B5CF6] mx-auto my-auto pointer-events-none" />
         </button>

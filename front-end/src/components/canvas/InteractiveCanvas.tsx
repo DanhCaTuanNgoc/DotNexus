@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback, useMemo, useEffect, PointerEvent, DragEvent } from 'react';
-import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Link2, Trash2, RotateCcw } from 'lucide-react';
 import { CanvasEdge, CanvasNode, CanvasViewport, FlowHandleId, NodeTemplate } from './types';
 import { calculateBezierPath, getHandlePoint, NODE_HEIGHT, NODE_WIDTH } from './constants';
 import { NodeCard } from './NodeCard';
@@ -27,6 +27,10 @@ interface InteractiveCanvasProps {
   onDropTemplate: (template: NodeTemplate, position: { x: number; y: number }) => void;
   initialViewport?: CanvasViewport;
   onViewportChange?: (viewport: CanvasViewport) => void;
+  flowConnectMode?: boolean;
+  onToggleFlowConnect?: () => void;
+  onDeleteSelectedNode?: () => void;
+  onClearBoard?: () => void;
 }
 
 export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
@@ -41,6 +45,10 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
   onDropTemplate,
   initialViewport,
   onViewportChange,
+  flowConnectMode = false,
+  onToggleFlowConnect,
+  onDeleteSelectedNode,
+  onClearBoard,
 }) => {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const [viewport, setViewport] = useState<CanvasViewport>(
@@ -263,6 +271,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
   // Wire Connection Handlers
   const startConnection = useCallback(
     (event: PointerEvent<HTMLButtonElement>, nodeId: string, sourceHandle: FlowHandleId) => {
+      if (!flowConnectMode) return;
       event.preventDefault();
       event.stopPropagation();
       const sourceNode = nodesById.get(nodeId);
@@ -275,7 +284,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
       });
       event.currentTarget.setPointerCapture(event.pointerId);
     },
-    [nodesById]
+    [nodesById, flowConnectMode]
   );
 
   const moveConnection = useCallback(
@@ -376,42 +385,6 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
         backgroundPosition: `${viewport.x}px ${viewport.y}px`,
       }}
     >
-      {/* Zoom / Pan Controls Toolbar */}
-      <div className="absolute top-4 right-4 z-30 flex items-center gap-1.5 p-1 bg-[#0E071F]/95 border border-[#261B42] backdrop-blur-md shadow-lg select-none">
-        <span className="hidden sm:inline-block text-[9px] font-mono text-zinc-400 px-1.5 border-r border-[#261B42]">
-          Ctrl + Scroll: Zoom
-        </span>
-        <button
-          onClick={() => {
-            const nextZoom = Math.min(2.2, viewport.zoom + 0.15);
-            setViewport((v) => ({ ...v, zoom: Number(nextZoom.toFixed(2)) }));
-          }}
-          className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#261B42] transition-colors"
-          title="Zoom In"
-        >
-          <ZoomIn className="w-3.5 h-3.5" />
-        </button>
-        <span className="text-[10px] font-mono text-zinc-300 px-1.5 tabular-nums font-semibold">
-          {Math.round(viewport.zoom * 100)}%
-        </span>
-        <button
-          onClick={() => {
-            const nextZoom = Math.max(0.3, viewport.zoom - 0.15);
-            setViewport((v) => ({ ...v, zoom: Number(nextZoom.toFixed(2)) }));
-          }}
-          className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#261B42] transition-colors"
-          title="Zoom Out"
-        >
-          <ZoomOut className="w-3.5 h-3.5" />
-        </button>
-        <button
-          onClick={() => setViewport({ x: 30, y: 30, zoom: 0.88 })}
-          className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#261B42] transition-colors"
-          title="Reset View"
-        >
-          <Maximize2 className="w-3.5 h-3.5" />
-        </button>
-      </div>
 
       {/* Scaled & Translated World Layer */}
       <div
@@ -540,10 +513,126 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
               node={node}
               selected={selectedNodeId === node.id}
               hasViolation={violatedNodeIds.includes(node.id)}
+              isConnectable={flowConnectMode}
               onHandlePointerDown={startConnection}
             />
           </div>
         ))}
+      </div>
+
+      {/* Floating Action Dock (Floated at bottom center of visual board) */}
+      <div 
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1.5 border border-[#3B2564] bg-[#0E071F]/95 backdrop-blur-md shadow-2xl shadow-black/80 select-none"
+        role="toolbar"
+        aria-label="Visual Board Actions Dock"
+      >
+        {/* Selection Status Meta */}
+        <div className="hidden sm:flex items-center gap-1.5 pr-2.5 border-r border-[#261B42] text-[10px] font-mono">
+          <span className="text-zinc-500 uppercase font-bold tracking-wider">SELECT:</span>
+          {selectedNodeId ? (
+            <span className="text-[#C084FC] font-semibold truncate max-w-[110px]" title={nodesById.get(selectedNodeId)?.data.label}>
+              {nodesById.get(selectedNodeId)?.data.label || '1 node'}
+            </span>
+          ) : selectedEdgeId ? (
+            <span className="text-amber-400 font-semibold">1 wire</span>
+          ) : (
+            <span className="text-zinc-500">None</span>
+          )}
+        </div>
+
+        {/* 1. Flow Connect (Toggle custom node connection handles) */}
+        <button
+          type="button"
+          onClick={onToggleFlowConnect}
+          title={flowConnectMode ? "Toggle connection pins OFF (Hide handles)" : "Toggle connection pins ON (Show handles)"}
+          className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-semibold transition-all cursor-pointer ${
+            flowConnectMode
+              ? 'bg-[#7C3AED] text-white border border-[#A855F7] shadow-lg shadow-[#8B5CF6]/30'
+              : 'bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] border border-[#261B42]'
+          }`}
+        >
+          <Link2 className={`w-3.5 h-3.5 ${flowConnectMode ? 'text-white' : 'text-[#8B5CF6]'}`} />
+          <span>Flow connect</span>
+          <span className={`text-[8px] font-bold px-1 py-0.2 rounded-none border ${
+            flowConnectMode 
+              ? 'bg-[#581C87] border-[#C084FC] text-white' 
+              : 'bg-[#180E30] border-[#3B2564] text-zinc-400'
+          }`}>
+            {flowConnectMode ? 'ON' : 'OFF'}
+          </span>
+        </button>
+
+        {/* 2. Delete Focused Node / Edge */}
+        <button
+          type="button"
+          onClick={() => {
+            if (selectedNodeId) {
+              onDeleteSelectedNode?.();
+            } else if (selectedEdgeId) {
+              onEdgesChange(edges.filter((e) => e.id !== selectedEdgeId));
+              setSelectedEdgeId(null);
+            }
+          }}
+          disabled={!selectedNodeId && !selectedEdgeId}
+          title={
+            selectedNodeId
+              ? "Delete focused node (Delete key)"
+              : selectedEdgeId
+              ? "Delete focused wire (Delete key)"
+              : "Select a node or wire to delete"
+          }
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-semibold border border-[#261B42] bg-[#110A24] text-zinc-400 hover:text-rose-300 hover:bg-rose-950/60 hover:border-rose-500/70 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+          <span>Delete</span>
+        </button>
+
+        {/* 3. Zoom In / Out Controls */}
+        <div className="flex items-center gap-1 px-2 border-x border-[#261B42]">
+          <button
+            type="button"
+            onClick={() => {
+              const nextZoom = Math.max(0.3, viewport.zoom - 0.15);
+              setViewport((v) => ({ ...v, zoom: Number(nextZoom.toFixed(2)) }));
+            }}
+            className="p-1 text-zinc-400 hover:text-white hover:bg-[#261B42] transition-colors cursor-pointer"
+            title="Zoom Out"
+          >
+            <ZoomOut className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setViewport({ x: 30, y: 30, zoom: 0.88 })}
+            className="px-1.5 py-0.5 text-[10px] font-mono text-zinc-300 hover:text-[#C084FC] tabular-nums font-semibold cursor-pointer hover:bg-[#261B42]/50 transition-colors"
+            title="Reset Zoom to 88%"
+          >
+            {Math.round(viewport.zoom * 100)}%
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              const nextZoom = Math.min(2.2, viewport.zoom + 0.15);
+              setViewport((v) => ({ ...v, zoom: Number(nextZoom.toFixed(2)) }));
+            }}
+            className="p-1 text-zinc-400 hover:text-white hover:bg-[#261B42] transition-colors cursor-pointer"
+            title="Zoom In"
+          >
+            <ZoomIn className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* 4. Clear Board */}
+        <button
+          type="button"
+          onClick={onClearBoard}
+          title="Clear all nodes and wires on the board"
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-semibold border border-[#261B42] bg-[#110A24] text-zinc-400 hover:text-amber-300 hover:bg-amber-950/40 hover:border-amber-500/70 transition-all cursor-pointer"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span>Clear board</span>
+        </button>
       </div>
     </div>
   );

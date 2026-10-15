@@ -107,4 +107,10 @@ export const storage = {
     getItem<string>(STORAGE_KEYS.PALETTE_CATEGORY, fallback),
   setPaletteCategory: (category: string) =>
     setItem(STORAGE_KEYS.PALETTE_CATEGORY, category),
+
+  // Flow Connect Mode (Wiring Pin Visibility)
+  getFlowConnectMode: (fallback: boolean = false): boolean =>
+    getItem<boolean>('dotnexus_flow_connect_mode', fallback),
+  setFlowConnectMode: (enabled: boolean) =>
+    setItem('dotnexus_flow_connect_mode', enabled),
 };

@@ -40,6 +40,33 @@ export const CanvasBoard: React.FC = () => {
     () => !!(savedCanvas && (savedCanvas.nodes.length > 0 || savedCanvas.selectedRunbookId === 'custom-blank'))
   );
 
+  // Flow Connect Mode (Handle / Pin Visibility)
+  const [flowConnectMode, setFlowConnectMode] = useState<boolean>(() =>
+    storage.getFlowConnectMode(false)
+  );
+
+  const handleToggleFlowConnect = useCallback(() => {
+    setFlowConnectMode((prev) => {
+      const next = !prev;
+      storage.setFlowConnectMode(next);
+      return next;
+    });
+  }, []);
+
+  const handleClearBoard = useCallback(() => {
+    setNodes([]);
+    setEdges([]);
+    setSelectedNodeId(null);
+    setExecResult(null);
+    storage.setCanvasState({
+      nodes: [],
+      edges: [],
+      selectedRunbookId: 'custom-blank',
+      viewport,
+      lastSavedAt: Date.now(),
+    });
+  }, [viewport]);
+
   // Execution State
   const [executing, setExecuting] = useState(false);
   const [execResult, setExecResult] = useState<any | null>(null);
@@ -454,15 +481,6 @@ if __name__ == "__main__":
             <RotateCcw className="w-3 h-3" />
           </button>
 
-          {/* LocalStorage Sync Status Pill */}
-          <div className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 text-[9px] font-mono border border-[#261B42] bg-[#0A0516] text-zinc-300">
-            <span className="w-1.5 h-1.5 rounded-none bg-[#10B981]" title="LocalStorage Active" />
-            <span className="text-zinc-500 font-bold">SAVED:</span>
-            <span className="text-white font-semibold tabular-nums">{nodes.length} nodes</span>
-            <span className="text-zinc-600">/</span>
-            <span className="text-[#C084FC] font-semibold tabular-nums">{edges.length} wires</span>
-          </div>
-
           {/* Export JSON */}
           <button
             onClick={handleExportJSON}
@@ -532,11 +550,19 @@ if __name__ == "__main__":
               onDropTemplate={handleAddNodeFromTemplate}
               initialViewport={viewport}
               onViewportChange={setViewport}
+              flowConnectMode={flowConnectMode}
+              onToggleFlowConnect={handleToggleFlowConnect}
+              onDeleteSelectedNode={() => {
+                if (selectedNodeId) {
+                  handleDeleteNode(selectedNodeId);
+                }
+              }}
+              onClearBoard={handleClearBoard}
             />
 
-            {/* Floating Execution Results Summary HUD */}
+            {/* Floating Execution Results Summary HUD (Shifted above dock) */}
             {execResult && (
-              <div className="absolute bottom-3 right-3 z-30 max-w-sm w-full tech-corner-accent p-3 border border-[#10B981]/60 bg-[#0E071F]/95 backdrop-blur-md shadow-2xl space-y-2">
+              <div className="absolute bottom-16 right-3 z-30 max-w-sm w-full tech-corner-accent p-3 border border-[#10B981]/60 bg-[#0E071F]/95 backdrop-blur-md shadow-2xl space-y-2">
                 <div className="flex items-center justify-between text-xs font-mono">
                   <span className="text-[#10B981] font-bold flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5" />

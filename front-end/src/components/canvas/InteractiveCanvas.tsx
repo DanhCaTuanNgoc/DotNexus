@@ -466,7 +466,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
               <polygon points="0 1, 10 5, 0 9" fill="#FACC15" />
             </marker>
 
-            {/* Completed Flow Arrow Marker (Clean emerald) */}
+            {/* Completed Flow Arrow Marker (Dominant purple) */}
             <marker
               id="flow-arrow-completed"
               markerWidth="12"
@@ -475,7 +475,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
               refY="5"
               orient="auto"
             >
-              <polygon points="0 1, 10 5, 0 9" fill="#10B981" />
+              <polygon points="0 1, 10 5, 0 9" fill="#A855F7" />
             </marker>
           </defs>
 
@@ -498,7 +498,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
             const isWireCompleted = sourceNode.data.status === 'success' && targetNode.data.status === 'success';
             const isFlowRunning = isExecuting && !isWireCompleted;
 
-            // Restrained stroke styling
+            // Restrained dominant purple stroke styling (No green)
             const strokeColor = isSelected
               ? '#FACC15'
               : isWireActive
@@ -506,8 +506,8 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
               : isFlowRunning
               ? '#C084FC'
               : isWireCompleted
-              ? '#10B981'
-              : '#6D28D9';
+              ? '#A855F7'
+              : '#7C3AED';
 
             const strokeWidth = isSelected ? '2.5' : isWireActive ? '2.5' : '2';
 
@@ -516,13 +516,13 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
             const strokeDasharray = isDashed ? '8 6' : undefined;
             const className = isDashed ? 'animate-flow-dash' : 'wire-idle';
 
-            // Subtle glowing light along the path
+            // Subtle glowing light along the path (Dominant purple / active cyan)
             const filterStyle = isWireActive
               ? 'drop-shadow(0 0 6px rgba(56, 189, 248, 0.85)) drop-shadow(0 0 12px rgba(56, 189, 248, 0.4))'
               : isFlowRunning
               ? 'drop-shadow(0 0 5px rgba(192, 132, 252, 0.6))'
               : isWireCompleted
-              ? 'drop-shadow(0 0 3px rgba(16, 185, 129, 0.35))'
+              ? 'drop-shadow(0 0 3px rgba(168, 85, 247, 0.4))'
               : undefined;
 
             const markerEnd = isSelected

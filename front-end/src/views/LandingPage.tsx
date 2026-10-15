@@ -103,7 +103,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="relative z-20 max-w-5xl mx-auto text-center space-y-8">
           {/* Track Chip */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-none border border-[#4C2889] bg-[#110A24]/90 backdrop-blur-md text-xs font-mono text-[#C084FC] shadow-lg shadow-[#8B5CF6]/20 pointer-events-auto">
-            <span className="w-2 h-2 rounded-none bg-[#10B981] animate-ping" />
+            <span className="w-2 h-2 rounded bg-[#10B981] animate-ping" />
             <span className="font-semibold tracking-wider">PORTALDOT HACKER HOUSE 2026 • NODE OPERATIONS & TOOLING</span>
           </div>
 

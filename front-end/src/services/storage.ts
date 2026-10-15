@@ -113,4 +113,10 @@ export const storage = {
     getItem<boolean>('dotnexus_flow_connect_mode', fallback),
   setFlowConnectMode: (enabled: boolean) =>
     setItem('dotnexus_flow_connect_mode', enabled),
+
+  // Terminal Filter Preference
+  getTerminalFilter: (fallback: string = 'ALL'): string =>
+    getItem<string>('dotnexus_terminal_filter', fallback),
+  setTerminalFilter: (filter: string) =>
+    setItem('dotnexus_terminal_filter', filter),
 };

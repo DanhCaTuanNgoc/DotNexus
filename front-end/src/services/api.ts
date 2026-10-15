@@ -5,6 +5,14 @@
 
 const BASE_URL = '/api';
 
+export interface LogItem {
+  source: string;
+  level: string;
+  time: number;
+  text: string;
+  nodeId?: string;
+}
+
 export interface DualTelemetryState {
   timestamp: number;
   substrate: {

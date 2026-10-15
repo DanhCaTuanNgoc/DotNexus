@@ -12,7 +12,7 @@ import {
   FileCode2,
   Sliders
 } from 'lucide-react';
-import { RunbookDAG, api } from '../services/api';
+import { RunbookDAG, api, LogItem } from '../services/api';
 import { CanvasEdge, CanvasNode, CanvasViewport, FlowHandleId, NodeCategory, NodeTemplate } from '../components/canvas/types';
 import { InteractiveCanvas } from '../components/canvas/InteractiveCanvas';
 import { NodePalette } from '../components/canvas/NodePalette';
@@ -20,7 +20,19 @@ import { NodeInspector } from '../components/canvas/NodeInspector';
 import { validateCanvasSafety, autoFixEquivocation } from '../components/canvas/safetyLinter';
 import { storage } from '../services/storage';
 
-export const CanvasBoard: React.FC = () => {
+export interface CanvasBoardProps {
+  onLog?: (log: LogItem) => void;
+  selectedNodeId?: string | null;
+  onSelectNode?: (nodeId: string | null) => void;
+  onRequestOpenTerminal?: () => void;
+}
+
+export const CanvasBoard: React.FC<CanvasBoardProps> = ({
+  onLog,
+  selectedNodeId: externalSelectedNodeId,
+  onSelectNode: externalOnSelectNode,
+  onRequestOpenTerminal,
+}) => {
   // Check localStorage for saved canvas state
   const savedCanvas = useMemo(() => storage.getCanvasState(), []);
 
@@ -35,7 +47,20 @@ export const CanvasBoard: React.FC = () => {
   const [viewport, setViewport] = useState<CanvasViewport>(
     () => savedCanvas?.viewport || { x: 30, y: 30, zoom: 0.88 }
   );
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [internalSelectedNodeId, setInternalSelectedNodeId] = useState<string | null>(null);
+
+  const selectedNodeId = externalSelectedNodeId !== undefined ? externalSelectedNodeId : internalSelectedNodeId;
+  const setSelectedNodeId = useCallback(
+    (id: string | null) => {
+      if (externalOnSelectNode) {
+        externalOnSelectNode(id);
+      } else {
+        setInternalSelectedNodeId(id);
+      }
+    },
+    [externalOnSelectNode]
+  );
+
   const [isHydrated, setIsHydrated] = useState<boolean>(
     () => !!(savedCanvas && (savedCanvas.nodes.length > 0 || savedCanvas.selectedRunbookId === 'custom-blank'))
   );
@@ -318,27 +343,40 @@ export const CanvasBoard: React.FC = () => {
     setSelectedNodeId(null);
   }, []);
 
-  // Execute Pipeline (with visual step transitions)
+  // Helper delay for sequential animations
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // Execute Pipeline (with sequential flow step transitions and real-time terminal streaming)
   const handleExecute = async () => {
-    if (hasCritical) return;
+    if (hasCritical || executing) return;
     setExecuting(true);
     setExecResult(null);
 
-    // Visual: Transition nodes to 'running'
-    setNodes((prev) => prev.map((n) => ({ ...n, data: { ...n.data, status: 'running' } })));
+    // Open terminal automatically to stream live activity
+    onRequestOpenTerminal?.();
+
+    const timestamp = Date.now() / 1000;
+    onLog?.({
+      source: 'DAG_ENGINE',
+      level: 'INFO',
+      time: timestamp,
+      text: `▶ Initiating pipeline execution: "${activeRunbook?.name || 'Custom DAG Topology'}"...`,
+    });
+
+    // Reset all nodes to idle
+    setNodes((prev) => prev.map((n) => ({ ...n, data: { ...n.data, status: 'idle' } })));
 
     try {
       let res: any;
       if (selectedRunbookId !== 'custom-blank') {
         res = await api.executeRunbook(selectedRunbookId);
       } else {
-        // Mock custom execution
-        await new Promise((r) => setTimeout(r, 600));
+        await sleep(300);
         res = {
           success: true,
           data: {
             execution_id: `custom-exec-${Date.now().toString(36)}`,
-            duration_ms: 182,
+            duration_ms: nodes.length * 280,
             steps: nodes.map((n) => ({
               step: n.data.label,
               status: 'SUCCESS',
@@ -348,14 +386,67 @@ export const CanvasBoard: React.FC = () => {
         };
       }
 
-      if (res?.success) {
+      if (res?.success && res.data) {
+        const steps: Array<{ step: string; status: string; detail: string }> = res.data.steps || [];
+
+        // Sequentially execute visual state for each node along the flow
+        for (let i = 0; i < nodes.length; i++) {
+          const currentNode = nodes[i];
+          const matchedStep = steps[i] || {
+            step: currentNode.data.label,
+            status: 'SUCCESS',
+            detail: `Processed by Portaldot runtime (Engine: ${currentNode.type || currentNode.data.category})`,
+          };
+
+          // 1. Mark current node as 'running'
+          setNodes((prev) =>
+            prev.map((n) => (n.id === currentNode.id ? { ...n, data: { ...n.data, status: 'running' } } : n))
+          );
+
+          onLog?.({
+            source: 'DAG_ENGINE',
+            level: 'RUNNING',
+            time: Date.now() / 1000,
+            nodeId: currentNode.id,
+            text: `[${currentNode.data.label}] Executing step: ${matchedStep.step}...`,
+          });
+
+          // Wait a natural step interval for visual animation flow
+          await sleep(420);
+
+          // 2. Mark current node as 'success'
+          setNodes((prev) =>
+            prev.map((n) => (n.id === currentNode.id ? { ...n, data: { ...n.data, status: 'success' } } : n))
+          );
+
+          onLog?.({
+            source: 'DAG_ENGINE',
+            level: 'SUCCESS',
+            time: Date.now() / 1000,
+            nodeId: currentNode.id,
+            text: `[${currentNode.data.label}] ${matchedStep.detail}`,
+          });
+
+          await sleep(150);
+        }
+
         setExecResult(res.data);
-        // Visual: Transition nodes to 'success'
-        setNodes((prev) => prev.map((n) => ({ ...n, data: { ...n.data, status: 'success' } })));
+        onLog?.({
+          source: 'DAG_ENGINE',
+          level: 'SUCCESS',
+          time: Date.now() / 1000,
+          text: `✔ Pipeline completed successfully in ${res.data.duration_ms || 420}ms (${nodes.length} nodes processed).`,
+        });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setNodes((prev) => prev.map((n) => ({ ...n, data: { ...n.data, status: 'error' } })));
+      onLog?.({
+        source: 'DAG_ENGINE',
+        level: 'ERROR',
+        time: Date.now() / 1000,
+        text: `✖ Pipeline execution failed: ${err?.message || 'Internal execution error'}`,
+      });
     } finally {
       setExecuting(false);
     }

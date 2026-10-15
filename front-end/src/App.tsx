@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Layers, 
   ShieldCheck, 
@@ -59,6 +59,17 @@ export const App: React.FC = () => {
   const [nposData, setNposData] = useState<NPoSRecommendation | null>(null);
   const [shieldData, setShieldData] = useState<ShieldStatus | null>(null);
   const [logs, setLogs] = useState<any[]>([]);
+  const [selectedCanvasNodeId, setSelectedCanvasNodeId] = useState<string | null>(null);
+  const [isTerminalOpen, setIsTerminalOpen] = useState<boolean>(() => storage.getTerminalOpen(true));
+
+  const handleAppendLog = useCallback((log: any) => {
+    setLogs((prev) => [log, ...prev].slice(0, 100));
+  }, []);
+
+  const handleToggleTerminal = useCallback((open: boolean) => {
+    setIsTerminalOpen(open);
+    storage.setTerminalOpen(open);
+  }, []);
 
   const fetchAllData = async () => {
     setIsLoading(true);
@@ -75,7 +86,20 @@ export const App: React.FC = () => {
       if (secRes?.success) setSecData(secRes.data);
       if (nposRes?.success) setNposData(nposRes.data);
       if (shieldRes?.success) setShieldData(shieldRes.data);
-      if (logsRes?.success) setLogs(logsRes.logs);
+      if (logsRes?.success) {
+        setLogs((prev) => {
+          // Preserve runtime DAG logs
+          const dagLogs = prev.filter((l) => l.source === 'DAG_ENGINE' || l.source === 'RUNBOOK');
+          const merged = [...dagLogs, ...logsRes.logs];
+          const seen = new Set();
+          return merged.filter((item) => {
+            const key = `${item.time}-${item.source}-${item.text}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          }).sort((a, b) => b.time - a.time).slice(0, 100);
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -208,12 +232,26 @@ export const App: React.FC = () => {
           {activeTab === 'shield' && (
             <TopologyRadarView data={shieldData} onRefresh={fetchAllData} />
           )}
-          {activeTab === 'canvas' && <CanvasBoard />}
+          {activeTab === 'canvas' && (
+            <CanvasBoard
+              onLog={handleAppendLog}
+              selectedNodeId={selectedCanvasNodeId}
+              onSelectNode={setSelectedCanvasNodeId}
+              onRequestOpenTerminal={() => handleToggleTerminal(true)}
+            />
+          )}
         </main>
       </div>
 
-      {/* Fixed Diagnostic Terminal Drawer */}
-      <TerminalDrawer logs={logs} onClear={() => setLogs([])} />
+      {/* Fixed Diagnostic Terminal Drawer with Multi-Source and Node Filtering */}
+      <TerminalDrawer
+        logs={logs}
+        onClear={() => setLogs([])}
+        selectedNodeId={activeTab === 'canvas' ? selectedCanvasNodeId : null}
+        onClearNodeFilter={() => setSelectedCanvasNodeId(null)}
+        isOpen={isTerminalOpen}
+        onToggleOpen={handleToggleTerminal}
+      />
     </div>
   );
 };

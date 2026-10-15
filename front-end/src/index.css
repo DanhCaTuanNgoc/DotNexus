@@ -261,14 +261,11 @@ body {
 
 /* Default state: Standing still wire without moving animation */
 .wire-idle {
-  transition: stroke 0.3s ease, stroke-width 0.3s ease;
+  transition: stroke 0.3s ease, stroke-width 0.3s ease, filter 0.3s ease;
 }
 
-/* Active running state: High-energy moving laser beam and pulse */
+/* Active running state: Smooth restrained stream moving towards next node */
 .animate-flow-dash {
-  animation: flowDash 600ms linear infinite;
-}
-
-.animate-pulse-beam {
-  animation: pulseBeam 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: flowDash 750ms linear infinite;
+  transition: stroke 0.25s ease, filter 0.25s ease;
 }

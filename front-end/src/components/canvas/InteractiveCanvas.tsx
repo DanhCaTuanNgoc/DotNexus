@@ -430,16 +430,28 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
               <polygon points="0 1, 10 5, 0 9" fill="#8B5CF6" />
             </marker>
 
-            {/* Active Execution Arrow Marker (High-visibility pulsing cyan/neon purple) */}
+            {/* Running Flow Arrow Marker (Soft glowing violet) */}
             <marker
-              id="flow-arrow-active"
-              markerWidth="14"
-              markerHeight="12"
-              refX="11"
-              refY="6"
+              id="flow-arrow-running"
+              markerWidth="12"
+              markerHeight="10"
+              refX="10"
+              refY="5"
               orient="auto"
             >
-              <polygon points="0 0, 12 6, 0 12" fill="#38BDF8" stroke="#0E071F" strokeWidth="1" />
+              <polygon points="0 1, 10 5, 0 9" fill="#C084FC" />
+            </marker>
+
+            {/* Active Execution Arrow Marker (High-visibility glowing cyan) */}
+            <marker
+              id="flow-arrow-active"
+              markerWidth="13"
+              markerHeight="11"
+              refX="11"
+              refY="5.5"
+              orient="auto"
+            >
+              <polygon points="0 1, 11 5.5, 0 10" fill="#38BDF8" stroke="#0E071F" strokeWidth="0.8" />
             </marker>
 
             {/* Selected Arrow Marker (Gold / Yellow) */}
@@ -478,9 +490,50 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
             const pathD = calculateBezierPath(sPos, tPos, edge.sourceHandle, edge.targetHandle);
             const isSelected = selectedEdgeId === edge.id;
 
-            // Wire is actively streaming if whole pipeline is executing OR if source/target is running
+            // Flow state logic:
+            // - isWireActive: wire leading to/from the currently executing node
+            // - isWireCompleted: both source and target have succeeded
+            // - isFlowRunning: wire is part of the actively running pipeline
             const isWireActive = isExecuting && (sourceNode.data.status === 'running' || targetNode.data.status === 'running');
             const isWireCompleted = sourceNode.data.status === 'success' && targetNode.data.status === 'success';
+            const isFlowRunning = isExecuting && !isWireCompleted;
+
+            // Restrained stroke styling
+            const strokeColor = isSelected
+              ? '#FACC15'
+              : isWireActive
+              ? '#38BDF8'
+              : isFlowRunning
+              ? '#C084FC'
+              : isWireCompleted
+              ? '#10B981'
+              : '#6D28D9';
+
+            const strokeWidth = isSelected ? '2.5' : isWireActive ? '2.5' : '2';
+
+            // Dashed ONLY when pipeline is executing; solid when idle or completed
+            const isDashed = isWireActive || isFlowRunning;
+            const strokeDasharray = isDashed ? '8 6' : undefined;
+            const className = isDashed ? 'animate-flow-dash' : 'wire-idle';
+
+            // Subtle glowing light along the path
+            const filterStyle = isWireActive
+              ? 'drop-shadow(0 0 6px rgba(56, 189, 248, 0.85)) drop-shadow(0 0 12px rgba(56, 189, 248, 0.4))'
+              : isFlowRunning
+              ? 'drop-shadow(0 0 5px rgba(192, 132, 252, 0.6))'
+              : isWireCompleted
+              ? 'drop-shadow(0 0 3px rgba(16, 185, 129, 0.35))'
+              : undefined;
+
+            const markerEnd = isSelected
+              ? 'url(#flow-arrow-selected)'
+              : isWireActive
+              ? 'url(#flow-arrow-active)'
+              : isFlowRunning
+              ? 'url(#flow-arrow-running)'
+              : isWireCompleted
+              ? 'url(#flow-arrow-completed)'
+              : 'url(#flow-arrow)';
 
             return (
               <g
@@ -496,51 +549,17 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
                 {/* Thick invisible click hit target */}
                 <path d={pathD} fill="none" stroke="transparent" strokeWidth="20" />
 
-                {/* Base Wire: Solid, clean, stationary by default */}
+                {/* Restrained single-wire flow: Solid when idle, moving dashed line with glowing light when executing */}
                 <path
                   d={pathD}
                   fill="none"
-                  stroke={
-                    isSelected
-                      ? '#FACC15'
-                      : isWireActive
-                      ? '#38BDF8'
-                      : isWireCompleted
-                      ? '#10B981'
-                      : '#6D28D9'
-                  }
-                  strokeWidth={isSelected ? '3' : isWireActive ? '3' : isWireCompleted ? '2.5' : '2'}
-                  className="wire-idle"
-                  markerEnd={
-                    isSelected
-                      ? 'url(#flow-arrow-selected)'
-                      : isWireActive
-                      ? 'url(#flow-arrow-active)'
-                      : isWireCompleted
-                      ? 'url(#flow-arrow-completed)'
-                      : 'url(#flow-arrow)'
-                  }
+                  stroke={strokeColor}
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={strokeDasharray}
+                  className={className}
+                  markerEnd={markerEnd}
+                  style={filterStyle ? { filter: filterStyle } : undefined}
                 />
-
-                {/* Prominent High-Energy Laser Beam + Traveling Photon (ONLY active while running pipeline) */}
-                {isWireActive && (
-                  <>
-                    <path
-                      d={pathD}
-                      fill="none"
-                      stroke="#38BDF8"
-                      strokeWidth="3.5"
-                      strokeDasharray="14 10"
-                      className="animate-flow-dash"
-                      style={{
-                        filter: 'drop-shadow(0 0 8px rgba(56, 189, 248, 0.95))',
-                      }}
-                    />
-                    <circle r="4" fill="#FFFFFF" stroke="#38BDF8" strokeWidth="2">
-                      <animateMotion path={pathD} dur="0.75s" repeatCount="indefinite" />
-                    </circle>
-                  </>
-                )}
 
                 {/* Optional Edge Label */}
                 {edge.label && (

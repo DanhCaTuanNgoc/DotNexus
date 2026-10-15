@@ -13,20 +13,32 @@ import {
   Sliders
 } from 'lucide-react';
 import { RunbookDAG, api } from '../services/api';
-import { CanvasEdge, CanvasNode, FlowHandleId, NodeCategory, NodeTemplate } from '../components/canvas/types';
+import { CanvasEdge, CanvasNode, CanvasViewport, FlowHandleId, NodeCategory, NodeTemplate } from '../components/canvas/types';
 import { InteractiveCanvas } from '../components/canvas/InteractiveCanvas';
 import { NodePalette } from '../components/canvas/NodePalette';
 import { NodeInspector } from '../components/canvas/NodeInspector';
 import { validateCanvasSafety, autoFixEquivocation } from '../components/canvas/safetyLinter';
+import { storage } from '../services/storage';
 
 export const CanvasBoard: React.FC = () => {
+  // Check localStorage for saved canvas state
+  const savedCanvas = useMemo(() => storage.getCanvasState(), []);
+
   const [runbooks, setRunbooks] = useState<RunbookDAG[]>([]);
-  const [selectedRunbookId, setSelectedRunbookId] = useState<string>('runbook-slash-guard');
+  const [selectedRunbookId, setSelectedRunbookId] = useState<string>(
+    () => savedCanvas?.selectedRunbookId || 'runbook-slash-guard'
+  );
   
-  // Interactive DAG State
-  const [nodes, setNodes] = useState<CanvasNode[]>([]);
-  const [edges, setEdges] = useState<CanvasEdge[]>([]);
+  // Interactive DAG State: load saved nodes/edges if available
+  const [nodes, setNodes] = useState<CanvasNode[]>(() => savedCanvas?.nodes || []);
+  const [edges, setEdges] = useState<CanvasEdge[]>(() => savedCanvas?.edges || []);
+  const [viewport, setViewport] = useState<CanvasViewport>(
+    () => savedCanvas?.viewport || { x: 30, y: 30, zoom: 0.88 }
+  );
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState<boolean>(
+    () => !!(savedCanvas && (savedCanvas.nodes.length > 0 || savedCanvas.selectedRunbookId === 'custom-blank'))
+  );
 
   // Execution State
   const [executing, setExecuting] = useState(false);
@@ -42,12 +54,53 @@ export const CanvasBoard: React.FC = () => {
       const res = await api.getRunbooks();
       if (res.success && res.data.length > 0) {
         setRunbooks(res.data);
-        initRunbookGraph(res.data[0]);
+        // Only initialize default graph if user did NOT have a saved canvas in localStorage!
+        const existingSaved = storage.getCanvasState();
+        if (!existingSaved || (existingSaved.nodes.length === 0 && existingSaved.selectedRunbookId !== 'custom-blank')) {
+          initRunbookGraph(res.data[0]);
+        }
       }
     } catch (e) {
       console.error('Failed to load DAG runbooks', e);
     }
   };
+
+  // Auto-save canvas to localStorage with debounce
+  useEffect(() => {
+    if (nodes.length === 0 && !isHydrated && selectedRunbookId !== 'custom-blank') {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      storage.setCanvasState({
+        nodes,
+        edges,
+        selectedRunbookId,
+        viewport,
+        lastSavedAt: Date.now(),
+      });
+      setIsHydrated(true);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [nodes, edges, selectedRunbookId, viewport, isHydrated]);
+
+  // Synchronous flush on page unload / refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (nodes.length > 0 || selectedRunbookId === 'custom-blank') {
+        storage.setCanvasState({
+          nodes,
+          edges,
+          selectedRunbookId,
+          viewport,
+          lastSavedAt: Date.now(),
+        });
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [nodes, edges, selectedRunbookId, viewport]);
 
   // Convert a preset Runbook into Canvas Nodes and Edges
   const initRunbookGraph = (rb: RunbookDAG) => {
@@ -97,11 +150,39 @@ export const CanvasBoard: React.FC = () => {
       setEdges([]);
       setSelectedNodeId(null);
       setExecResult(null);
+      storage.setCanvasState({
+        nodes: [],
+        edges: [],
+        selectedRunbookId: 'custom-blank',
+        viewport,
+        lastSavedAt: Date.now(),
+      });
     } else {
       const targetRb = runbooks.find((r) => r.id === rbId);
       if (targetRb) {
         initRunbookGraph(targetRb);
       }
+    }
+  };
+
+  const handleResetCanvas = () => {
+    if (selectedRunbookId === 'custom-blank') {
+      setNodes([]);
+      setEdges([]);
+      setSelectedNodeId(null);
+      setExecResult(null);
+      storage.setCanvasState({
+        nodes: [],
+        edges: [],
+        selectedRunbookId: 'custom-blank',
+        viewport,
+        lastSavedAt: Date.now(),
+      });
+      return;
+    }
+    const targetRb = runbooks.find((r) => r.id === selectedRunbookId) || runbooks[0];
+    if (targetRb) {
+      initRunbookGraph(targetRb);
     }
   };
 
@@ -332,12 +413,21 @@ if __name__ == "__main__":
 
           {/* Reset button */}
           <button
-            onClick={() => handleSelectRunbook(selectedRunbookId)}
+            onClick={handleResetCanvas}
             className="p-1.5 border border-[#261B42] bg-[#110A24] text-zinc-400 hover:text-white hover:bg-[#1E113E] transition-colors"
-            title="Reset to Original Preset"
+            title="Reset to Original Preset (Clears Custom Edits)"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
+
+          {/* LocalStorage Sync Status Pill */}
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono border border-[#261B42] bg-[#0A0516] text-zinc-300">
+            <span className="w-1.5 h-1.5 rounded-none bg-[#10B981]" title="LocalStorage Active" />
+            <span className="text-zinc-500 font-bold">SAVED:</span>
+            <span className="text-white font-semibold tabular-nums">{nodes.length} nodes</span>
+            <span className="text-zinc-600">/</span>
+            <span className="text-[#C084FC] font-semibold tabular-nums">{edges.length} wires</span>
+          </div>
 
           {/* Export JSON */}
           <button
@@ -445,6 +535,8 @@ if __name__ == "__main__":
             onEdgesChange={setEdges}
             onSelectNode={setSelectedNodeId}
             onDropTemplate={handleAddNodeFromTemplate}
+            initialViewport={viewport}
+            onViewportChange={setViewport}
           />
         </div>
 

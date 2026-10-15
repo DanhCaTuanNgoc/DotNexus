@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Terminal, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
+import { storage } from '../services/storage';
 
 interface LogItem {
   source: string;
@@ -14,8 +15,16 @@ interface TerminalDrawerProps {
 }
 
 export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({ logs, onClear }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpenState] = useState<boolean>(() => storage.getTerminalOpen(true));
   const endRef = useRef<HTMLDivElement | null>(null);
+
+  const setIsOpen = (val: boolean | ((prev: boolean) => boolean)) => {
+    setIsOpenState((prev) => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      storage.setTerminalOpen(next);
+      return next;
+    });
+  };
 
   // Auto-scroll to latest event when new log arrives
   useEffect(() => {

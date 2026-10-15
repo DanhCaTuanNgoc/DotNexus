@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, Award, CheckCircle2, ShieldAlert, Sparkles, Send } from 'lucide-react';
 import { NPoSRecommendation, api } from '../services/api';
+import { storage } from '../services/storage';
 
 interface StakingYieldViewProps {
   data: NPoSRecommendation | null;
@@ -8,9 +9,14 @@ interface StakingYieldViewProps {
 }
 
 export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefresh }) => {
-  const [stakeInput, setStakeInput] = useState<number>(10000);
+  const [stakeInput, setStakeInputState] = useState<number>(() => storage.getStakeInput(10000));
   const [rebalanceResult, setRebalanceResult] = useState<any | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+
+  const setStakeInput = (amount: number) => {
+    setStakeInputState(amount);
+    storage.setStakeInput(amount);
+  };
 
   if (!data) {
     return <div className="text-zinc-500 font-mono text-xs">Loading NPoS Scorecard...</div>;

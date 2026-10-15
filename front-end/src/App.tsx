@@ -26,16 +26,32 @@ import {
   NPoSRecommendation, 
   ShieldStatus 
 } from './services/api';
-
-type ViewMode = 'landing' | 'console';
-type TabType = 'dual-vm' | 'slashing' | 'staking' | 'shield' | 'canvas';
+import { storage, ViewMode, TabType } from './services/storage';
 
 export const App: React.FC = () => {
-  // Default to our semantic React + Three.js Landing Page
-  const [viewMode, setViewMode] = useState<ViewMode>('landing');
-  const [activeTab, setActiveTab] = useState<TabType>('dual-vm');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  // Restore view mode, active tab, and sidebar state from localStorage
+  const [viewMode, setViewModeState] = useState<ViewMode>(() => storage.getViewMode('landing'));
+  const [activeTab, setActiveTabState] = useState<TabType>(() => storage.getActiveTab('dual-vm'));
+  const [isSidebarCollapsed, setIsSidebarCollapsedState] = useState<boolean>(() => storage.getSidebarCollapsed(false));
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const setViewMode = (mode: ViewMode) => {
+    setViewModeState(mode);
+    storage.setViewMode(mode);
+  };
+
+  const setActiveTab = (tab: TabType) => {
+    setActiveTabState(tab);
+    storage.setActiveTab(tab);
+  };
+
+  const setIsSidebarCollapsed = (val: boolean | ((prev: boolean) => boolean)) => {
+    setIsSidebarCollapsedState((prev) => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      storage.setSidebarCollapsed(next);
+      return next;
+    });
+  };
 
   // States
   const [dualData, setDualData] = useState<DualTelemetryState | null>(null);

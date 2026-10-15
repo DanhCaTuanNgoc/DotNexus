@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { NodeCategory, NodeTemplate } from './types';
 import { CATEGORY_THEMES, NODE_TEMPLATES } from './constants';
+import { storage } from '../../services/storage';
 
 interface NodePaletteProps {
   onAddNode: (template: NodeTemplate) => void;
@@ -56,8 +57,15 @@ const ICON_MAP: Record<string, React.FC<any>> = {
 const CATEGORIES: ('ALL' | NodeCategory)[] = ['ALL', 'INFRA', 'WATCHER', 'SECURITY', 'ACTION', 'STAKING'];
 
 export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode }) => {
-  const [selectedCategory, setSelectedCategory] = useState<'ALL' | NodeCategory>('ALL');
+  const [selectedCategory, setSelectedCategoryState] = useState<'ALL' | NodeCategory>(
+    () => storage.getPaletteCategory('ALL') as 'ALL' | NodeCategory
+  );
   const [searchQuery, setSearchQuery] = useState('');
+
+  const setSelectedCategory = (cat: 'ALL' | NodeCategory) => {
+    setSelectedCategoryState(cat);
+    storage.setPaletteCategory(cat);
+  };
 
   const filteredTemplates = NODE_TEMPLATES.filter((tpl) => {
     const matchesCategory = selectedCategory === 'ALL' || tpl.category === selectedCategory;

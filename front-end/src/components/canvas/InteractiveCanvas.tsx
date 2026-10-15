@@ -25,6 +25,8 @@ interface InteractiveCanvasProps {
   onEdgesChange: (edges: CanvasEdge[]) => void;
   onSelectNode: (nodeId: string | null) => void;
   onDropTemplate: (template: NodeTemplate, position: { x: number; y: number }) => void;
+  initialViewport?: CanvasViewport;
+  onViewportChange?: (viewport: CanvasViewport) => void;
 }
 
 export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
@@ -37,12 +39,35 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
   onEdgesChange,
   onSelectNode,
   onDropTemplate,
+  initialViewport,
+  onViewportChange,
 }) => {
   const boardRef = useRef<HTMLDivElement | null>(null);
-  const [viewport, setViewport] = useState<CanvasViewport>({ x: 30, y: 30, zoom: 0.88 });
+  const [viewport, setViewport] = useState<CanvasViewport>(
+    initialViewport || { x: 30, y: 30, zoom: 0.88 }
+  );
   const [connecting, setConnecting] = useState<ConnectingState | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
+
+  useEffect(() => {
+    onViewportChange?.(viewport);
+  }, [viewport, onViewportChange]);
+
+  useEffect(() => {
+    if (initialViewport) {
+      setViewport((current) => {
+        if (
+          current.x === initialViewport.x &&
+          current.y === initialViewport.y &&
+          current.zoom === initialViewport.zoom
+        ) {
+          return current;
+        }
+        return initialViewport;
+      });
+    }
+  }, [initialViewport]);
 
   // RAF Throttled Movement references (identical to proven PortalModeler engine)
   const pendingMoveRef = useRef<{ nodeIds: string[]; delta: { x: number; y: number } } | null>(null);

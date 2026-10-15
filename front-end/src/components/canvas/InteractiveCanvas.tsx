@@ -71,11 +71,14 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   const lastNotifiedViewportRef = useRef(viewport);
   const notifyRafRef = useRef<number | null>(null);
   useEffect(() => {
-    if (
-      viewport.x !== lastNotifiedViewportRef.current.x ||
-      viewport.y !== lastNotifiedViewportRef.current.y ||
-      viewport.zoom !== lastNotifiedViewportRef.current.zoom
-    ) {
+    const curX = viewport?.x ?? 0;
+    const curY = viewport?.y ?? 0;
+    const curZoom = viewport?.zoom ?? 0.88;
+    const lastX = lastNotifiedViewportRef.current?.x ?? 0;
+    const lastY = lastNotifiedViewportRef.current?.y ?? 0;
+    const lastZoom = lastNotifiedViewportRef.current?.zoom ?? 0.88;
+
+    if (curX !== lastX || curY !== lastY || curZoom !== lastZoom) {
       lastNotifiedViewportRef.current = viewport;
       if (notifyRafRef.current === null) {
         notifyRafRef.current = window.requestAnimationFrame(() => {
@@ -98,11 +101,19 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
     if (!initialViewport) return;
     if (isPanning) return; // Never snap back while user is holding mouse / panning!
 
+    const currentVp = viewportRef.current || { x: 30, y: 30, zoom: 0.88 };
+    const initX = initialViewport.x ?? 30;
+    const initY = initialViewport.y ?? 30;
+    const initZoom = initialViewport.zoom ?? 0.88;
+    const curX = currentVp.x ?? 30;
+    const curY = currentVp.y ?? 30;
+    const curZoom = currentVp.zoom ?? 0.88;
+
     if (
       initialViewport !== lastInitialViewportRef.current &&
-      (Math.abs(initialViewport.x - viewportRef.current.x) > 2 ||
-        Math.abs(initialViewport.y - viewportRef.current.y) > 2 ||
-        Math.abs(initialViewport.zoom - viewportRef.current.zoom) > 0.02)
+      (Math.abs(initX - curX) > 2 ||
+        Math.abs(initY - curY) > 2 ||
+        Math.abs(initZoom - curZoom) > 0.02)
     ) {
       lastInitialViewportRef.current = initialViewport;
       setViewport(initialViewport);
@@ -131,9 +142,10 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
     (clientX: number, clientY: number) => {
       const rect = boardRef.current?.getBoundingClientRect();
       if (!rect) return { x: 0, y: 0 };
-      const zoom = Number.isFinite(viewport.zoom) && viewport.zoom > 0 ? viewport.zoom : 1;
-      const vpX = Number.isFinite(viewport.x) ? viewport.x : 0;
-      const vpY = Number.isFinite(viewport.y) ? viewport.y : 0;
+      const curVp = viewportRef.current || viewport || { x: 30, y: 30, zoom: 0.88 };
+      const zoom = Number.isFinite(curVp.zoom) && curVp.zoom > 0 ? curVp.zoom : 0.88;
+      const vpX = Number.isFinite(curVp.x) ? curVp.x : 0;
+      const vpY = Number.isFinite(curVp.y) ? curVp.y : 0;
       return {
         x: (clientX - rect.left - vpX) / zoom,
         y: (clientY - rect.top - vpY) / zoom,
@@ -146,19 +158,22 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   const flushMove = useCallback(() => {
     rafRef.current = null;
     const pending = pendingMoveRef.current;
-    if (!pending) return;
+    if (!pending || !pending.delta) return;
     pendingMoveRef.current = null;
-    onMoveNodes(pending.nodeIds, pending.delta);
+    const { nodeIds, delta } = pending;
+    if (Number.isFinite(delta.x) && Number.isFinite(delta.y)) {
+      onMoveNodes(nodeIds, { x: delta.x, y: delta.y });
+    }
   }, [onMoveNodes]);
 
   const scheduleMove = useCallback(
-    (nodeIds: string[], delta: { x: number; y: number }) => {
-      if (!Number.isFinite(delta.x) || !Number.isFinite(delta.y)) return;
-      if (pendingMoveRef.current) {
+    (nodeIds: string[], delta: { x: number; y: number } | null | undefined) => {
+      if (!delta || !Number.isFinite(delta.x) || !Number.isFinite(delta.y)) return;
+      if (pendingMoveRef.current && pendingMoveRef.current.delta) {
         pendingMoveRef.current.delta.x += delta.x;
         pendingMoveRef.current.delta.y += delta.y;
       } else {
-        pendingMoveRef.current = { nodeIds, delta: { ...delta } };
+        pendingMoveRef.current = { nodeIds, delta: { x: delta.x, y: delta.y } };
       }
       if (rafRef.current === null) {
         rafRef.current = window.requestAnimationFrame(flushMove);
@@ -182,7 +197,9 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
         origin: { x: event.clientX, y: event.clientY },
         lastDelta: { x: 0, y: 0 },
       };
-      event.currentTarget.setPointerCapture(event.pointerId);
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch (_) {}
     },
     [onSelectNode]
   );
@@ -190,34 +207,43 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   const moveNodeDrag = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       const drag = dragRef.current;
-      if (!drag || drag.pointerId !== event.pointerId) return;
+      if (!drag || drag.pointerId !== event.pointerId || !drag.origin || !drag.lastDelta) return;
 
-      const zoom = Number.isFinite(viewport.zoom) && viewport.zoom > 0 ? viewport.zoom : 1;
-      const dx = (event.clientX - drag.origin.x) / zoom;
-      const dy = (event.clientY - drag.origin.y) / zoom;
+      const curZoom = Number.isFinite(viewport?.zoom) && viewport!.zoom > 0 ? viewport!.zoom : 0.88;
+      const originX = Number.isFinite(drag.origin.x) ? drag.origin.x : event.clientX;
+      const originY = Number.isFinite(drag.origin.y) ? drag.origin.y : event.clientY;
+
+      const dx = (event.clientX - originX) / curZoom;
+      const dy = (event.clientY - originY) / curZoom;
       if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
 
       const nextDelta = { x: dx, y: dy };
+      const lastX = Number.isFinite(drag.lastDelta.x) ? drag.lastDelta.x : 0;
+      const lastY = Number.isFinite(drag.lastDelta.y) ? drag.lastDelta.y : 0;
       const frameDelta = {
-        x: nextDelta.x - drag.lastDelta.x,
-        y: nextDelta.y - drag.lastDelta.y,
+        x: nextDelta.x - lastX,
+        y: nextDelta.y - lastY,
       };
       drag.lastDelta = nextDelta;
       scheduleMove(drag.nodeIds, frameDelta);
     },
-    [viewport.zoom, scheduleMove]
+    [viewport?.zoom, scheduleMove]
   );
 
   const stopNodeDrag = useCallback(
-    (event: PointerEvent<HTMLDivElement>) => {
+    (event?: PointerEvent<HTMLDivElement> | globalThis.PointerEvent) => {
       const drag = dragRef.current;
-      if (!drag || drag.pointerId !== event.pointerId) return;
+      if (!drag) return;
+      if (event && 'pointerId' in event && drag.pointerId !== event.pointerId) return;
 
-      try {
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        }
-      } catch (_) {}
+      if (event && 'currentTarget' in event && event.currentTarget) {
+        try {
+          const el = event.currentTarget as HTMLElement;
+          if (el.hasPointerCapture && el.hasPointerCapture(drag.pointerId)) {
+            el.releasePointerCapture(drag.pointerId);
+          }
+        } catch (_) {}
+      }
 
       if (rafRef.current !== null) {
         window.cancelAnimationFrame(rafRef.current);
@@ -234,10 +260,11 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
 
   const startPan = useCallback((event: PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0 && event.button !== 1) return;
+    const curVp = viewportRef.current || { x: 30, y: 30 };
     panRef.current = {
       pointerId: event.pointerId,
       origin: { x: event.clientX, y: event.clientY },
-      viewport: { x: viewportRef.current.x, y: viewportRef.current.y },
+      viewport: { x: curVp.x ?? 30, y: curVp.y ?? 30 },
     };
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -247,29 +274,34 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
 
   const movePan = useCallback((event: PointerEvent<HTMLDivElement>) => {
     const pan = panRef.current;
-    if (!pan || pan.pointerId !== event.pointerId) return;
+    if (!pan || pan.pointerId !== event.pointerId || !pan.origin || !pan.viewport) return;
 
     panPendingRef.current = {
-      x: pan.viewport.x + (event.clientX - pan.origin.x),
-      y: pan.viewport.y + (event.clientY - pan.origin.y),
+      x: (pan.viewport.x ?? 0) + (event.clientX - (pan.origin.x ?? event.clientX)),
+      y: (pan.viewport.y ?? 0) + (event.clientY - (pan.origin.y ?? event.clientY)),
     };
 
     if (panRafRef.current === null) {
       panRafRef.current = window.requestAnimationFrame(() => {
         panRafRef.current = null;
-        if (panPendingRef.current) {
-          setViewport((current) => ({
-            ...current,
-            x: panPendingRef.current!.x,
-            y: panPendingRef.current!.y,
-          }));
+        const pending = panPendingRef.current;
+        if (pending && Number.isFinite(pending.x) && Number.isFinite(pending.y)) {
+          const { x: targetX, y: targetY } = pending;
+          setViewport((current) => {
+            const cur = current || { x: 30, y: 30, zoom: 0.88 };
+            return {
+              ...cur,
+              x: targetX,
+              y: targetY,
+            };
+          });
         }
       });
     }
   }, []);
 
-  const stopPan = useCallback((event: PointerEvent<HTMLDivElement>) => {
-    if (panRef.current?.pointerId === event.pointerId) {
+  const stopPan = useCallback((event?: PointerEvent<HTMLDivElement> | globalThis.PointerEvent) => {
+    if (panRef.current && (!event || !('pointerId' in event) || panRef.current.pointerId === event.pointerId)) {
       if (panRafRef.current !== null) {
         window.cancelAnimationFrame(panRafRef.current);
         panRafRef.current = null;
@@ -277,19 +309,28 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
       if (panPendingRef.current) {
         const finalPos = panPendingRef.current;
         panPendingRef.current = null;
-        setViewport((current) => ({
-          ...current,
-          x: finalPos.x,
-          y: finalPos.y,
-        }));
+        if (Number.isFinite(finalPos.x) && Number.isFinite(finalPos.y)) {
+          const { x: finalX, y: finalY } = finalPos;
+          setViewport((current) => {
+            const cur = current || { x: 30, y: 30, zoom: 0.88 };
+            return {
+              ...cur,
+              x: finalX,
+              y: finalY,
+            };
+          });
+        }
+      }
+      if (event && 'currentTarget' in event && event.currentTarget) {
+        try {
+          const el = event.currentTarget as HTMLElement;
+          if (el.hasPointerCapture && el.hasPointerCapture(panRef.current.pointerId)) {
+            el.releasePointerCapture(panRef.current.pointerId);
+          }
+        } catch (_) {}
       }
       panRef.current = null;
       setIsPanning(false);
-      try {
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        }
-      } catch (_) {}
     }
   }, []);
 
@@ -308,11 +349,16 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
       if (!isZoomKey) {
         // Normal wheel scrolling pans the board vertically / horizontally (Shift + Wheel)
         event.preventDefault();
-        setViewport((current) => ({
-          ...current,
-          x: current.x - (event.shiftKey ? wheelDeltaY : wheelDeltaX),
-          y: current.y - (event.shiftKey ? 0 : wheelDeltaY),
-        }));
+        setViewport((current) => {
+          const cur = current || { x: 30, y: 30, zoom: 0.88 };
+          const curX = Number.isFinite(cur.x) ? cur.x : 0;
+          const curY = Number.isFinite(cur.y) ? cur.y : 0;
+          return {
+            ...cur,
+            x: curX - (event.shiftKey ? wheelDeltaY : wheelDeltaX),
+            y: curY - (event.shiftKey ? 0 : wheelDeltaY),
+          };
+        });
         return;
       }
 
@@ -323,10 +369,15 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
       const pointer = { x: event.clientX - rect.left, y: event.clientY - rect.top };
 
       setViewport((current) => {
-        const nextZoom = Math.min(2.2, Math.max(0.3, current.zoom - wheelDeltaY * 0.0015));
+        const cur = current || { x: 30, y: 30, zoom: 0.88 };
+        const curZoom = Number.isFinite(cur.zoom) && cur.zoom > 0 ? cur.zoom : 0.88;
+        const curX = Number.isFinite(cur.x) ? cur.x : 0;
+        const curY = Number.isFinite(cur.y) ? cur.y : 0;
+
+        const nextZoom = Math.min(2.2, Math.max(0.3, curZoom - wheelDeltaY * 0.0015));
         const flow = {
-          x: (pointer.x - current.x) / current.zoom,
-          y: (pointer.y - current.y) / current.zoom,
+          x: (pointer.x - curX) / curZoom,
+          y: (pointer.y - curY) / curZoom,
         };
 
         return {
@@ -402,15 +453,37 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
     [connecting, onConnect]
   );
 
-  // Global safety fallback for wire connection drag
+  // Global safety fallback for node drag, viewport pan, and wire connection
   useEffect(() => {
-    if (!connecting) return;
-    const handleGlobalPointerUp = () => {
+    const handleGlobalPointerUp = (e: globalThis.PointerEvent) => {
+      if (dragRef.current && (!e.pointerId || dragRef.current.pointerId === e.pointerId)) {
+        stopNodeDrag(e);
+      }
+      if (panRef.current && (!e.pointerId || panRef.current.pointerId === e.pointerId)) {
+        stopPan(e);
+      }
       setConnecting(null);
     };
+
+    const handleWindowBlur = () => {
+      if (dragRef.current) {
+        stopNodeDrag();
+      }
+      if (panRef.current) {
+        stopPan();
+      }
+      setConnecting(null);
+    };
+
     window.addEventListener('pointerup', handleGlobalPointerUp);
-    return () => window.removeEventListener('pointerup', handleGlobalPointerUp);
-  }, [connecting]);
+    window.addEventListener('pointercancel', handleGlobalPointerUp);
+    window.addEventListener('blur', handleWindowBlur);
+    return () => {
+      window.removeEventListener('pointerup', handleGlobalPointerUp);
+      window.removeEventListener('pointercancel', handleGlobalPointerUp);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, [stopNodeDrag, stopPan]);
 
   // Template Drag & Drop
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -451,6 +524,10 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedEdgeId, edges, onEdgesChange]);
 
+  const vpX = viewport?.x ?? 30;
+  const vpY = viewport?.y ?? 30;
+  const vpZoom = viewport?.zoom ?? 0.88;
+
   return (
     <div
       ref={boardRef}
@@ -480,8 +557,8 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
       onDrop={handleDrop}
       style={{
         backgroundImage: `radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.25) 1.2px, transparent 1.2px)`,
-        backgroundSize: `${28 * viewport.zoom}px ${28 * viewport.zoom}px`,
-        backgroundPosition: `${viewport.x}px ${viewport.y}px`,
+        backgroundSize: `${28 * vpZoom}px ${28 * vpZoom}px`,
+        backgroundPosition: `${vpX}px ${vpY}px`,
       }}
     >
 
@@ -489,7 +566,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
       <div
         className="flow-board__world"
         style={{
-          transform: `translate3d(${viewport.x}px, ${viewport.y}px, 0) scale(${viewport.zoom})`,
+          transform: `translate3d(${vpX}px, ${vpY}px, 0) scale(${vpZoom})`,
         }}
       >
         {/* SVG Wiring Layer */}

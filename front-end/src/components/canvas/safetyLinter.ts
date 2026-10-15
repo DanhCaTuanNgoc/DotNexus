@@ -147,10 +147,11 @@ export function autoFixEquivocation(
   const mutexTpl = NODE_TEMPLATES.find((t) => t.kind === 'mutex_lock') || NODE_TEMPLATES[8];
 
   const newMutexId = `node-mutex-autofix-${Date.now().toString(36)}`;
-  const posX = upstreamNode
-    ? (upstreamNode.position.x + standbyNode.position.x) / 2
-    : standbyNode.position.x - 300;
-  const posY = standbyNode.position.y;
+  const standbyX = Number.isFinite(standbyNode.position?.x) ? standbyNode.position.x : 650;
+  const standbyY = Number.isFinite(standbyNode.position?.y) ? standbyNode.position.y : 120;
+  const upstreamX = Number.isFinite(upstreamNode?.position?.x) ? upstreamNode!.position.x : undefined;
+  const posX = upstreamX !== undefined ? (upstreamX + standbyX) / 2 : standbyX - 300;
+  const posY = standbyY;
 
   const newMutexNode: CanvasNode = {
     id: newMutexId,

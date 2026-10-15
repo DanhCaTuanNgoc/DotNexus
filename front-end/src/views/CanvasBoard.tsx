@@ -47,9 +47,11 @@ export function getTopologicalSortedNodes(nodes: CanvasNode[], edges: CanvasEdge
 
   // Root nodes have no incoming edges (inDegree === 0).
   // Sắp xếp các root node từ trái qua phải theo trục X
+  // Start with nodes that have inDegree === 0 (roots)
+  // Ties broken by X-coordinate (left to right)
   const queue: string[] = nodes
     .filter((n) => (inDegree.get(n.id) || 0) === 0)
-    .sort((a, b) => a.position.x - b.position.x)
+    .sort((a, b) => (a.position?.x ?? 0) - (b.position?.x ?? 0))
     .map((n) => n.id);
 
   const order: CanvasNode[] = [];
@@ -67,7 +69,7 @@ export function getTopologicalSortedNodes(nodes: CanvasNode[], edges: CanvasEdge
     neighbors.sort((a, b) => {
       const na = nodeMap.get(a);
       const nb = nodeMap.get(b);
-      return (na?.position.x || 0) - (nb?.position.x || 0);
+      return (na?.position?.x ?? 0) - (nb?.position?.x ?? 0);
     });
 
     for (const v of neighbors) {
@@ -80,7 +82,9 @@ export function getTopologicalSortedNodes(nodes: CanvasNode[], edges: CanvasEdge
   }
 
   // Any remaining nodes (e.g. disconnected or cycles) sorted left to right
-  const remaining = nodes.filter((n) => !visited.has(n.id)).sort((a, b) => a.position.x - b.position.x);
+  const remaining = nodes
+    .filter((n) => !visited.has(n.id))
+    .sort((a, b) => (a.position?.x ?? 0) - (b.position?.x ?? 0));
   return [...order, ...remaining];
 }
 
@@ -289,10 +293,13 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
       else if (labelLower.includes('top 16') || labelLower.includes('filter')) matchedKind = 'top_16_filter';
       else if (labelLower.includes('compound') || labelLower.includes('bond')) matchedKind = 'compound_yield';
 
+      const posX = Number.isFinite(n?.position?.x) ? n.position!.x : 80 + idx * 300;
+      const posY = Number.isFinite(n?.position?.y) ? n.position!.y : 160;
+
       return {
         id: n.id,
         type: n.type,
-        position: n.position || { x: 80 + idx * 300, y: 160 },
+        position: { x: posX, y: posY },
         data: {
           kind: matchedKind,
           category: cat,
@@ -416,8 +423,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   );
 
   // Functional updater for butter-smooth 60-120fps node movement without stale state
-  const handleMoveNodes = useCallback((nodeIds: string[], delta: { x: number; y: number }) => {
-    if (!Number.isFinite(delta.x) || !Number.isFinite(delta.y)) return;
+  const handleMoveNodes = useCallback((nodeIds: string[], delta: { x: number; y: number } | null | undefined) => {
+    if (!delta || !Number.isFinite(delta.x) || !Number.isFinite(delta.y)) return;
     const moving = new Set(nodeIds);
     setNodes((current) =>
       current.map((node) => {

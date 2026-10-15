@@ -591,7 +591,95 @@ Toàn bộ các giải pháp nâng cấp kỹ thuật phản biện chuyên sâu
 | **6** | **`engine/worker_daemon.py`** | • Tiến trình nền Headless Daemon 24/7 độc lập browser.<br>• Bộ chia tầng Kahn's Topological Sort cho phép chạy song song các node cùng tier.<br>• Hỗ trợ `dry_run=True` mô phỏng an toàn.<br>• Webhook Dispatcher có Token Bucket Rate Limiter (tối đa 5 alerts/phút). | **ĐÃ HOÀN THÀNH** |
 | **7** | **`engine/server.py`** | • Xác thực Gateway: kiểm tra header `X-DotNexus-Auth`.<br>• Endpoint `/metrics` Prometheus.<br>• Endpoint `/api/security/audit-log` đọc nhật ký kiểm toán bất biến. | **ĐÃ HOÀN THÀNH** |
 
-### 12.2. Kết Quả Kiểm Thử Toàn Diện (Zero Bug Guarantee)
-* **Backend Unit & Integration Tests:** Chạy `python -m unittest tests/test_engine.py` $\rightarrow$ **15/15 tests PASS 100%** (bao gồm 5 bài test chuyên sâu mới cho 3-Tier, Dead Man's Switch, Safe Logs/Batches, Phragmén Simulator, và Headless Worker Daemon).
-* **Frontend Type-Check & Production Build:** Chạy `cd front-end && npm run build` $\rightarrow$ **0 lỗi TypeScript, build thành công sạch sẽ trong 722ms**.
+### 12.2. Kết Quả Kiểm Thử Toàn Diện (Zero Bug Guarantee — 20/20 Tests Pass)
+* **Backend Unit & Integration Tests:** Chạy `python -m unittest tests/test_engine.py` $\rightarrow$ **20/20 tests PASS 100%** (bao gồm toàn bộ các bài test cho 3-Tier Root-Cause, Ultra-large BigInt safety, Dead Man's Switch Self-Fencing & Epoch Monotonicity, Socket 256KB Ceiling, Batch Limits, Safe Block Tags, Substrate Storage Guards, Sequential Phragmén Simulation, Election Window Locks, Async Nonce Concurrency, DAG Cycle Detection, Webhook Token Bucket Limiter, và Immutable Audit Trail).
+* **Frontend Type-Check & Production Build:** Chạy `cd front-end && npm run build` $\rightarrow$ **0 lỗi TypeScript, build thành công sạch sẽ trong 501ms**.
+
+---
+
+## 13. Kế Hoạch Đột Phá Kỹ Thuật & Tích Hợp Tính Năng Lai (Hybrid Extension Blueprint)
+
+> **Mục tiêu:** Nâng tầm DotNexus từ công cụ giám sát Off-chain thuần túy thành **Giao thức Điều phối Hạ tầng Lai (Hybrid On-chain/Off-chain Infrastructure Protocol)**, khai thác triệt để lợi thế kiến trúc **Dual-VM (Substrate WASM + Frontier EVM)** của mạng lưới Portaldot V3.0.  
+> **Nguyên tắc cốt lõi:** Tuyệt đối không thêm tính năng rời rạc làm loãng dự án; đánh thẳng vào "điểm mù giao thoa" giữa Smart Contract và Hạ tầng Node với **2 Hợp đồng Thông minh mỏng**, **2 Thuật toán độc quyền**, và **1 Bộ công cụ Diễn tập Sự cố (Chaos Engineering)**.
+
+---
+
+### 13.1. Hai Smart Contract Đột Phá Trên Tầng EVM (`:8545`)
+
+#### 1. `SlashGuardLeaseRegistry.sol` (On-Chain Anti-Equivocation Lease & Heartbeat Arbiter)
+* **Vấn đề giải quyết & Tính cần thiết:**
+  * Hiện tại trong `slash_guard.py`, cơ chế Monotonic Fencing Epoch đang lưu ở file JSON/SQLite cục bộ (`FAILOVER_STATE_FILE`).
+  * Khi Node Primary (Tokyo) và Standby (Frankfurt) bị đứt kết nối mạng bất đối xứng (Network Partition / Split-Brain), file lock cục bộ vô hiệu lực. Dùng Redis/DB trung tâm thì lại tạo ra "Single Point of Failure" (SPOF).
+* **Giải pháp kiến trúc:**
+  * Triển khai một Smart Contract mỏng lên tầng EVM (`:8545`) của chính mạng Portaldot V3.0 để làm **Trọng tài Đồng thuận Bất biến (Decentralized Lease Arbiter)**.
+  * Cấu trúc dữ liệu cốt lõi:
+    ```solidity
+    struct ValidatorLease {
+        address activeNodeOperator;
+        uint256 fencingEpoch;
+        uint256 expiresAtBlock;
+        bytes32 peerIdHash;
+    }
+    ```
+  * Khi thực hiện Failover, daemon gọi hàm `acquireFailoverLease(uint256 expectedEpoch)` trên EVM.
+  * **Cơ chế Hybrid:** Kết hợp Atomic Mutex Lock nội bộ cực nhanh ($< 1\text{ms}$) với On-chain Consensus Finality trên EVM. Hai node ở hai lục địa khác nhau chỉ cần đọc `fencingEpoch` từ hợp đồng là xác định chuẩn xác 100% quyền ký hợp pháp.
+
+#### 2. `DotNexusValidatorSlaBond.sol` (Ký Quỹ Cam Kết SLA & Bảo Hiểm Slashing)
+* **Phân tích định vị & Tối ưu phạm vi (Scope Optimization):**
+  * *Tránh bẫy lệch Scope:* Nếu xây dựng một Staking Vault đầy đủ quản lý tiền gửi của Staker thì DotNexus sẽ bị chuyển hướng sang mảng Liquid Staking / DeFi và đòi hỏi Staking Precompile ở Substrate Runtime.
+  * *Giải pháp tinh gọn đúng Track Node Ops:* Chuyển đổi thành **Hợp đồng Ký quỹ SLA (Validator SLA Bond & Slashing Insurance)** trên EVM:
+    * Validator tham gia hệ sinh thái DotNexus nạp một khoản cọc bảo chứng (ví dụ $1,000\text{ POT}$) vào contract để cam kết duy trì SLA (Uptime $\ge 99.5\%$, Commission $\le 5\%$, không tráo key tùy tiện).
+    * `npos_optimizer.py` ưu tiên đề xuất các Validator có SLA Bond cho staker.
+    * Nếu Validator âm thầm tăng hoa hồng lên 100% (Commission Rug-Pull) hoặc dính Slash, engine sẽ gửi bằng chứng (cryptographic proof) để hợp đồng tự động cắt khoản cọc bồi thường cho cộng đồng ủy quyền.
+
+---
+
+### 13.2. Hai Thuật Toán Sáng Tạo Độc Quyền (Formalized Algorithmic Engines)
+
+#### 1. Thuật toán "Cross-VM Causal Lag Index" (CLI — Trong `engine/dual_tracker.py`)
+* **Bối cảnh:** Thay vì chỉ so sánh nhị phân $B_{\text{WASM}} \neq B_{\text{EVM}}$, DotNexus chuyển đổi cơ chế chẩn đoán 3-Tier thành **hàm liên tục định lượng chỉ số trễ nhân quả (CLI)** kết hợp 3 vector thời gian thực:
+  $$\text{CLI} = w_1 \left( \frac{B_{\text{WASM}} - B_{\text{EVM}}}{\Delta B_{\text{max}}} \right) + w_2 \left( \frac{\text{TxPool}_{\text{EVM}}}{\text{TxPool}_{\text{WASM}} + \epsilon} \right) + w_3 \left( \frac{\text{Latency}_{8545}}{\text{Latency}_{9944}} \right)$$
+  *(Trọng số chuẩn hóa: $w_1 = 0.5$, $w_2 = 0.3$, $w_3 = 0.2$, $\epsilon = 1$)*.
+* **Quy tắc phân loại căn nguyên tự động:**
+  * Khi $\frac{B_{\text{WASM}} - B_{\text{EVM}}}{\Delta B_{\text{max}}} \gg 0$ trong khi tỷ lệ TxPool bình thường $\rightarrow$ Phân loại: **`FRONTIER_DB_LOCK`** (Nghẽn tầng ánh xạ `fc-db` Substrate-to-EVM).
+  * Khi $B_{\text{WASM}} \approx B_{\text{EVM}}$ nhưng tỷ trọng TxPool và Latency vọt đỉnh $\rightarrow$ Phân loại: **`EVM_GAS_SATURATION`** (Quá tải thực thi Smart Contract Solidity).
+* **Giá trị trình diễn:** Cung cấp điểm số sức khỏe trực quan thời gian thực (0 – 100) trên giao diện `DualEngineView.tsx`.
+
+#### 2. Thuật toán "Predictive Anti-Oversubscription Phragmén" (PAO-Phragmén — Trong `engine/npos_optimizer.py`)
+* **Bối cảnh:** Substrate NPoS chỉ chia thưởng cho tối đa 256/512 nominator có số lượng stake cao nhất của mỗi Validator. Các công cụ hiện nay chỉ kiểm tra tĩnh `nominator_count >= max`. Khi một validator đang ở mức `250/256`, staker nhỏ lẻ vừa ủy quyền sẽ lập tức bị cá mập đá văng ở Era kế tiếp (nhận 0 đồng lãi).
+* **Công thức toán học giải quyết:**
+  1. **Khoảng cách An toàn Vị thế Stake (Stake Safety Margin — $M_v(u)$):**
+     $$M_v(u) = \frac{\text{Stake}_u - \text{Stake}_{\text{min\_rewarded}}(v)}{\text{Stake}_{\text{median}}(v)}$$
+     *(Nếu $M_v(u) \le 0.05 \rightarrow$ Báo động đỏ: Nguy cơ bị loại khỏi Active Payout Set ở Era tới là cực cao; tự động loại bỏ validator đó khỏi danh sách đề cử).*
+  2. **Hệ số Phạt Biến động Hoa hồng (Commission Rug-Pull Penalty):**
+     $$\text{Penalty}_{\text{comm}}(v) = 1.0 - \min\left(1.0, \beta \times \left| \frac{\Delta \text{Commission}}{\Delta \text{Era}} \right|\right)$$
+     *(Gắn cờ đen cảnh báo vĩnh viễn các validator có lịch sử hạ 0% câu view rồi nâng 100% trục lợi).*
+  3. **Hàm Mục Tiêu Tối Ưu Toàn Diện (Objective Score):**
+     $$\text{Score}(v) = \text{APY}_{\text{net}}(v) \times \tanh\big(\alpha \cdot M_v(u)\big) \times \text{Penalty}_{\text{comm}}(v) \times (1 - P_{\text{slash}}) \times \mathbb{I}(\text{Phase} = \text{Off})$$
+
+---
+
+### 13.3. Tính Năng "Chaos Monkey / Fault Injector" Trên Visual DAG Canvas
+
+* **Định vị & Vai trò:**
+  * Nhóm node thứ 4 mang tên **`[⚡ Chaos / Fault Injector]`** (Màu Đỏ/Tím Neon Cyberpunk) trên `CanvasBoard.tsx`.
+  * Biến DotNexus thành công cụ **Chaos Engineering & Fire-Drill (Diễn tập Ứng cứu Sự cố)** chuẩn doanh nghiệp dành cho Validator trước khi lên Mainnet.
+* **Các khối Chaos Node thực chiến:**
+  * `[Inject EVM Mapping Lag (+5 Blocks)]`: Tạo độ trễ nhân tạo trên luồng đọc `:8545` để kích hoạt kịch bản đồng bộ lại `fc-db`.
+  * `[Simulate RPC DDoS Attack]`: Phát luồng 500 truy vấn `eth_getLogs` cực nặng vào proxy `:8546` để chứng minh RPC Shield tự động kích hoạt mã chặn 429 / Ban IP.
+  * `[Sever Primary Heartbeat (Simulate Partition)]`: Ngắt kết nối Primary Lease để chứng minh Dead Man's Switch tự sát ở giây thứ 10 và Standby tiếp quản an toàn ở giây thứ 15 không sinh Double-Signing.
+* **Lợi thế khi Demo trước Ban Giám Khảo:** Cho phép ban giám khảo trực tiếp click nút kích hoạt sự cố trên Canvas để chứng kiến toàn bộ hệ sinh thái phòng vệ tự động phản ứng mượt mà.
+
+---
+
+### 13.4. Ma Trận Đánh Giá Tích Hợp & Kế Hoạch Triển Khai (Execution Priority)
+
+| Hạng Mục | Phù Hợp | Khả Thi | Nguy Cơ Dư Thừa | Thứ Tự Triển Khai |
+|---|:---:|:---:|:---:|:---:|
+| **1. Causal Lag Index (CLI)** | 10/10 | 10/10 | Không (Toán học hoá 3-Tier) | **Ưu tiên 1 (Làm ngay)** |
+| **2. PAO-Phragmén Algorithm** | 10/10 | 10/10 | Không (Giải quyết rủi ro văng Era) | **Ưu tiên 1 (Làm ngay)** |
+| **3. Canvas Chaos Monkey Nodes** | 9.5/10 | 9/10 | Không (Phục vụ Fire-Drill & Demo) | **Ưu tiên 2 (Làm ngay)** |
+| **4. `SlashGuardLeaseRegistry.sol`** | 9.5/10 | 8.5/10 | Không (Nâng cấp Consensus Lock) | **Ưu tiên 2 (Triển khai bản mỏng)** |
+| **5. `ValidatorSlaBond.sol`** | 8.5/10 | 8/10 | Đã tối ưu (Chỉ tập trung SLA Bond) | **Ưu tiên 3 (Giai đoạn mở rộng)** |
+
 

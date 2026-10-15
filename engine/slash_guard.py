@@ -307,14 +307,17 @@ class SlashingGuard:
         old_active = self.active_node
         new_active = "STANDBY" if old_active == "PRIMARY" else "PRIMARY"
 
-        # Step 1: Revoke old lock file
+        # Step 1: Increment fencing epoch monotonically on failover handover
+        self.fencing_epoch += 1
+
+        # Step 2: Revoke old lock file
         if LOCK_FILE.exists():
             try:
                 os.remove(LOCK_FILE)
             except Exception:
                 pass
 
-        # Step 2: Acquire lease for new node with force_takeover flag
+        # Step 3: Acquire lease for new node with force_takeover flag
         target_id = self.standby_node_id if new_active == "STANDBY" else self.node_id
         lease = self.acquire_signing_lease(target_id, force_takeover=True)
 

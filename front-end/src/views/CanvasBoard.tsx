@@ -97,8 +97,33 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   onSelectNode: externalOnSelectNode,
   onRequestOpenTerminal,
 }) => {
-  // Check localStorage for saved canvas state
-  const savedCanvas = useMemo(() => storage.getCanvasState(), []);
+  // Check localStorage for saved canvas state with defensive validation
+  const savedCanvas = useMemo(() => {
+    const raw = storage.getCanvasState();
+    if (!raw) return null;
+    const safeNodes = Array.isArray(raw.nodes)
+      ? raw.nodes.filter(Boolean).map((n) => ({
+          ...n,
+          position: {
+            x: Number.isFinite(n?.position?.x) ? n.position.x : 100,
+            y: Number.isFinite(n?.position?.y) ? n.position.y : 100,
+          },
+        }))
+      : [];
+    const safeEdges = Array.isArray(raw.edges) ? raw.edges.filter((e) => e && e.id && e.source && e.target) : [];
+    const vp = raw.viewport;
+    const safeVp: CanvasViewport = {
+      x: Number.isFinite(vp?.x) ? vp!.x : 30,
+      y: Number.isFinite(vp?.y) ? vp!.y : 30,
+      zoom: Number.isFinite(vp?.zoom) && vp!.zoom >= 0.2 && vp!.zoom <= 3.0 ? vp!.zoom : 0.88,
+    };
+    return {
+      ...raw,
+      nodes: safeNodes,
+      edges: safeEdges,
+      viewport: safeVp,
+    };
+  }, []);
 
   const [runbooks, setRunbooks] = useState<RunbookDAG[]>(DEFAULT_RUNBOOKS as unknown as RunbookDAG[]);
   const [selectedRunbookId, setSelectedRunbookId] = useState<string>(
@@ -363,10 +388,11 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   // Add Node from Palette
   const handleAddNodeFromTemplate = useCallback(
     (tpl: NodeTemplate, dropPos?: { x: number; y: number }) => {
-      const newId = `node-${tpl.kind}-${Date.now().toString(36)}`;
-      const position = dropPos || {
-        x: 100 + (nodes.length % 4) * 280,
-        y: 120 + Math.floor(nodes.length / 4) * 180,
+      const uniqueSuffix = `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 7)}`;
+      const newId = `node-${tpl.kind}-${uniqueSuffix}`;
+      const position = {
+        x: Number.isFinite(dropPos?.x) ? dropPos!.x : 100 + (nodes.length % 4) * 280,
+        y: Number.isFinite(dropPos?.y) ? dropPos!.y : 120 + Math.floor(nodes.length / 4) * 180,
       };
 
       const newNode: CanvasNode = {
@@ -386,24 +412,26 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
       setNodes((prev) => [...prev, newNode]);
       setSelectedNodeId(newId);
     },
-    [nodes.length]
+    [nodes.length, setSelectedNodeId]
   );
 
   // Functional updater for butter-smooth 60-120fps node movement without stale state
   const handleMoveNodes = useCallback((nodeIds: string[], delta: { x: number; y: number }) => {
+    if (!Number.isFinite(delta.x) || !Number.isFinite(delta.y)) return;
     const moving = new Set(nodeIds);
     setNodes((current) =>
-      current.map((node) =>
-        moving.has(node.id)
-          ? {
-              ...node,
-              position: {
-                x: Math.round(node.position.x + delta.x),
-                y: Math.round(node.position.y + delta.y),
-              },
-            }
-          : node
-      )
+      current.map((node) => {
+        if (!moving.has(node.id)) return node;
+        const currentX = Number.isFinite(node.position?.x) ? node.position.x : 0;
+        const currentY = Number.isFinite(node.position?.y) ? node.position.y : 0;
+        return {
+          ...node,
+          position: {
+            x: Math.round(currentX + delta.x),
+            y: Math.round(currentY + delta.y),
+          },
+        };
+      })
     );
   }, []);
 

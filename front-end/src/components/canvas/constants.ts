@@ -229,15 +229,20 @@ export const NODE_TEMPLATES: NodeTemplate[] = [
   },
 ];
 
-// Port calculation & Bézier curve algorithms
+// Port calculation & Bezier curve algorithms
 export function calculateBezierPath(
-  source: { x: number; y: number },
-  target: { x: number; y: number },
+  source: { x: number; y: number } | undefined | null,
+  target: { x: number; y: number } | undefined | null,
   sourceHandle: FlowHandleId = 'right',
   targetHandle: FlowHandleId = 'left'
 ): string {
-  const distance = Math.hypot(target.x - source.x, target.y - source.y);
-  const curvature = Math.min(180, Math.max(44, distance * 0.35));
+  const sx = Number.isFinite(source?.x) ? source!.x : 0;
+  const sy = Number.isFinite(source?.y) ? source!.y : 0;
+  const tx = Number.isFinite(target?.x) ? target!.x : 0;
+  const ty = Number.isFinite(target?.y) ? target!.y : 0;
+
+  const distance = Math.hypot(tx - sx, ty - sy);
+  const curvature = Number.isFinite(distance) ? Math.min(180, Math.max(44, distance * 0.35)) : 50;
 
   const getVector = (handle: FlowHandleId) => {
     switch (handle) {
@@ -257,29 +262,34 @@ export function calculateBezierPath(
   const sVec = getVector(sourceHandle);
   const tVec = getVector(targetHandle);
 
-  const cp1 = { x: source.x + sVec.x * curvature, y: source.y + sVec.y * curvature };
-  const cp2 = { x: target.x + tVec.x * curvature, y: target.y + tVec.y * curvature };
+  const cp1 = { x: sx + sVec.x * curvature, y: sy + sVec.y * curvature };
+  const cp2 = { x: tx + tVec.x * curvature, y: ty + tVec.y * curvature };
 
-  return `M ${source.x} ${source.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${target.x} ${target.y}`;
+  return `M ${sx} ${sy} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${tx} ${ty}`;
 }
 
 export function getHandlePoint(
-  position: { x: number; y: number },
+  position: { x: number; y: number } | undefined | null,
   handle: FlowHandleId,
   width = NODE_WIDTH,
   height = NODE_HEIGHT
 ): { x: number; y: number } {
+  const posX = Number.isFinite(position?.x) ? position!.x : 0;
+  const posY = Number.isFinite(position?.y) ? position!.y : 0;
+  const w = Number.isFinite(width) ? width : NODE_WIDTH;
+  const h = Number.isFinite(height) ? height : NODE_HEIGHT;
+
   switch (handle) {
     case 'left':
-      return { x: position.x, y: position.y + height / 2 };
+      return { x: posX, y: posY + h / 2 };
     case 'right':
-      return { x: position.x + width, y: position.y + height / 2 };
+      return { x: posX + w, y: posY + h / 2 };
     case 'top':
-      return { x: position.x + width / 2, y: position.y };
+      return { x: posX + w / 2, y: posY };
     case 'bottom':
-      return { x: position.x + width / 2, y: position.y + height };
+      return { x: posX + w / 2, y: posY + h };
     default:
-      return { x: position.x + width, y: position.y + height / 2 };
+      return { x: posX + w, y: posY + h / 2 };
   }
 }
 

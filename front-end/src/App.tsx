@@ -18,6 +18,7 @@ import { SecurityGuardView } from './views/SecurityGuardView';
 import { StakingYieldView } from './views/StakingYieldView';
 import { TopologyRadarView } from './views/TopologyRadarView';
 import { CanvasBoard } from './views/CanvasBoard';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { LandingPage } from './views/LandingPage';
 import { 
   api, 
@@ -233,12 +234,14 @@ export const App: React.FC = () => {
             <TopologyRadarView data={shieldData} onRefresh={fetchAllData} />
           )}
           {activeTab === 'canvas' && (
-            <CanvasBoard
-              onLog={handleAppendLog}
-              selectedNodeId={selectedCanvasNodeId}
-              onSelectNode={setSelectedCanvasNodeId}
-              onRequestOpenTerminal={() => handleToggleTerminal(true)}
-            />
+            <ErrorBoundary fallbackTitle="Visual DAG Canvas Interrupted">
+              <CanvasBoard
+                onLog={handleAppendLog}
+                selectedNodeId={selectedCanvasNodeId}
+                onSelectNode={setSelectedCanvasNodeId}
+                onRequestOpenTerminal={() => handleToggleTerminal(true)}
+              />
+            </ErrorBoundary>
           )}
         </main>
       </div>

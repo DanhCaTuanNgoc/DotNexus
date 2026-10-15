@@ -131,9 +131,12 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
     (clientX: number, clientY: number) => {
       const rect = boardRef.current?.getBoundingClientRect();
       if (!rect) return { x: 0, y: 0 };
+      const zoom = Number.isFinite(viewport.zoom) && viewport.zoom > 0 ? viewport.zoom : 1;
+      const vpX = Number.isFinite(viewport.x) ? viewport.x : 0;
+      const vpY = Number.isFinite(viewport.y) ? viewport.y : 0;
       return {
-        x: (clientX - rect.left - viewport.x) / viewport.zoom,
-        y: (clientY - rect.top - viewport.y) / viewport.zoom,
+        x: (clientX - rect.left - vpX) / zoom,
+        y: (clientY - rect.top - vpY) / zoom,
       };
     },
     [viewport]
@@ -150,6 +153,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
 
   const scheduleMove = useCallback(
     (nodeIds: string[], delta: { x: number; y: number }) => {
+      if (!Number.isFinite(delta.x) || !Number.isFinite(delta.y)) return;
       if (pendingMoveRef.current) {
         pendingMoveRef.current.delta.x += delta.x;
         pendingMoveRef.current.delta.y += delta.y;
@@ -188,10 +192,12 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
       const drag = dragRef.current;
       if (!drag || drag.pointerId !== event.pointerId) return;
 
-      const nextDelta = {
-        x: (event.clientX - drag.origin.x) / viewport.zoom,
-        y: (event.clientY - drag.origin.y) / viewport.zoom,
-      };
+      const zoom = Number.isFinite(viewport.zoom) && viewport.zoom > 0 ? viewport.zoom : 1;
+      const dx = (event.clientX - drag.origin.x) / zoom;
+      const dy = (event.clientY - drag.origin.y) / zoom;
+      if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+
+      const nextDelta = { x: dx, y: dy };
       const frameDelta = {
         x: nextDelta.x - drag.lastDelta.x,
         y: nextDelta.y - drag.lastDelta.y,
@@ -206,6 +212,12 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
     (event: PointerEvent<HTMLDivElement>) => {
       const drag = dragRef.current;
       if (!drag || drag.pointerId !== event.pointerId) return;
+
+      try {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+      } catch (_) {}
 
       if (rafRef.current !== null) {
         window.cancelAnimationFrame(rafRef.current);
@@ -348,7 +360,6 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
         sourceHandle,
         target: getHandlePoint(sourceNode.position, sourceHandle),
       });
-      event.currentTarget.setPointerCapture(event.pointerId);
     },
     [nodesById, flowConnectMode]
   );
@@ -366,25 +377,40 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
     (event: PointerEvent<HTMLDivElement>) => {
       if (!connecting) return;
 
-      const hitElement = document.elementFromPoint(event.clientX, event.clientY);
-      const handleTarget = hitElement?.closest<HTMLElement>('[data-node-id][data-flow-handle]');
-      const nodeTarget = hitElement?.closest<HTMLElement>('[data-node-id]');
+      try {
+        const hitElement = document.elementFromPoint(event.clientX, event.clientY);
+        const handleTarget = hitElement?.closest<HTMLElement>('[data-node-id][data-flow-handle]');
+        const nodeTarget = hitElement?.closest<HTMLElement>('[data-node-id]');
 
-      const targetId = handleTarget?.dataset.nodeId || nodeTarget?.dataset.nodeId;
-      const targetHandle = (handleTarget?.dataset.flowHandle || 'left') as FlowHandleId;
+        const targetId = handleTarget?.dataset.nodeId || nodeTarget?.dataset.nodeId;
+        const targetHandle = (handleTarget?.dataset.flowHandle || 'left') as FlowHandleId;
 
-      if (targetId && targetId !== connecting.source) {
-        onConnect({
-          source: connecting.source,
-          target: targetId,
-          sourceHandle: connecting.sourceHandle,
-          targetHandle,
-        });
+        if (targetId && targetId !== connecting.source) {
+          onConnect({
+            source: connecting.source,
+            target: targetId,
+            sourceHandle: connecting.sourceHandle,
+            targetHandle,
+          });
+        }
+      } catch (err) {
+        console.warn('Error during finishConnection:', err);
+      } finally {
+        setConnecting(null);
       }
-      setConnecting(null);
     },
     [connecting, onConnect]
   );
+
+  // Global safety fallback for wire connection drag
+  useEffect(() => {
+    if (!connecting) return;
+    const handleGlobalPointerUp = () => {
+      setConnecting(null);
+    };
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+    return () => window.removeEventListener('pointerup', handleGlobalPointerUp);
+  }, [connecting]);
 
   // Template Drag & Drop
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -400,9 +426,11 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
     try {
       const template: NodeTemplate = JSON.parse(templateData);
       const worldPos = screenToFlow(e.clientX, e.clientY);
+      const posX = Number.isFinite(worldPos.x) ? Math.round(worldPos.x - NODE_WIDTH / 2) : 100;
+      const posY = Number.isFinite(worldPos.y) ? Math.round(worldPos.y - NODE_HEIGHT / 2) : 100;
       onDropTemplate(template, {
-        x: Math.round(worldPos.x - NODE_WIDTH / 2),
-        y: Math.round(worldPos.y - NODE_HEIGHT / 2),
+        x: posX,
+        y: posY,
       });
     } catch (err) {
       console.error('Failed to parse dropped template', err);
@@ -661,27 +689,32 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
         </svg>
 
         {/* Nodes Layer with Butter-Smooth Dragging */}
-        {nodes.map((node) => (
-          <div
-            key={node.id}
-            className="flow-board__node"
-            style={{
-              transform: `translate3d(${node.position.x}px, ${node.position.y}px, 0)`,
-            }}
-            onPointerDown={(event) => startNodeDrag(event, node.id)}
-            onPointerMove={moveNodeDrag}
-            onPointerUp={stopNodeDrag}
-            onPointerCancel={stopNodeDrag}
-          >
-            <NodeCard
-              node={node}
-              selected={selectedNodeId === node.id}
-              hasViolation={violatedNodeIds.includes(node.id)}
-              isConnectable={flowConnectMode}
-              onHandlePointerDown={startConnection}
-            />
-          </div>
-        ))}
+        {nodes.map((node) => {
+          if (!node || !node.id) return null;
+          const posX = Number.isFinite(node.position?.x) ? node.position.x : 0;
+          const posY = Number.isFinite(node.position?.y) ? node.position.y : 0;
+          return (
+            <div
+              key={node.id}
+              className="flow-board__node"
+              style={{
+                transform: `translate3d(${posX}px, ${posY}px, 0)`,
+              }}
+              onPointerDown={(event) => startNodeDrag(event, node.id)}
+              onPointerMove={moveNodeDrag}
+              onPointerUp={stopNodeDrag}
+              onPointerCancel={stopNodeDrag}
+            >
+              <NodeCard
+                node={node}
+                selected={selectedNodeId === node.id}
+                hasViolation={violatedNodeIds.includes(node.id)}
+                isConnectable={flowConnectMode}
+                onHandlePointerDown={startConnection}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* Floating Action Dock (Floated at bottom center of visual board) */}

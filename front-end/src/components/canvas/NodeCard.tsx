@@ -77,7 +77,7 @@ export const NodeCard = memo(function NodeCard({
         width: `${NODE_WIDTH}px`,
         height: `${NODE_HEIGHT}px`,
       }}
-      className={`tech-corner-accent relative select-none p-3.5 rounded-none border transition-all group ${
+      className={`tech-corner-accent relative select-none p-3.5 rounded-none border transition-colors duration-150 group ${
         hasViolation
           ? 'border-rose-500 bg-[#1F0712] shadow-lg shadow-rose-950/80 animate-pulse'
           : selected

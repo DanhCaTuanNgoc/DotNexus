@@ -58,22 +58,28 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
 
+  const lastNotifiedViewportRef = useRef(viewport);
   useEffect(() => {
-    onViewportChange?.(viewport);
+    if (
+      viewport.x !== lastNotifiedViewportRef.current.x ||
+      viewport.y !== lastNotifiedViewportRef.current.y ||
+      viewport.zoom !== lastNotifiedViewportRef.current.zoom
+    ) {
+      lastNotifiedViewportRef.current = viewport;
+      onViewportChange?.(viewport);
+    }
   }, [viewport, onViewportChange]);
 
+  const lastInitialViewportRef = useRef(initialViewport);
   useEffect(() => {
-    if (initialViewport) {
-      setViewport((current) => {
-        if (
-          current.x === initialViewport.x &&
-          current.y === initialViewport.y &&
-          current.zoom === initialViewport.zoom
-        ) {
-          return current;
-        }
-        return initialViewport;
-      });
+    if (
+      initialViewport &&
+      (initialViewport.x !== lastInitialViewportRef.current?.x ||
+        initialViewport.y !== lastInitialViewportRef.current?.y ||
+        initialViewport.zoom !== lastInitialViewportRef.current?.zoom)
+    ) {
+      lastInitialViewportRef.current = initialViewport;
+      setViewport(initialViewport);
     }
   }, [initialViewport]);
 
@@ -118,7 +124,12 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
 
   const scheduleMove = useCallback(
     (nodeIds: string[], delta: { x: number; y: number }) => {
-      pendingMoveRef.current = { nodeIds, delta };
+      if (pendingMoveRef.current) {
+        pendingMoveRef.current.delta.x += delta.x;
+        pendingMoveRef.current.delta.y += delta.y;
+      } else {
+        pendingMoveRef.current = { nodeIds, delta: { ...delta } };
+      }
       if (rafRef.current === null) {
         rafRef.current = window.requestAnimationFrame(flushMove);
       }
@@ -362,6 +373,11 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
       ref={boardRef}
       className={`flow-board ${isPanning ? 'is-panning' : ''}`}
       onPointerDown={(event) => {
+        // Do NOT cancel selection or start panning when clicking on the action dock or buttons
+        if ((event.target as HTMLElement).closest('[role="toolbar"], .canvas-action-dock, button')) {
+          return;
+        }
+
         const interactiveTarget = (event.target as HTMLElement).closest('.flow-board__node, [data-edge-id]');
         if (!interactiveTarget) {
           onSelectNode(null);
@@ -522,24 +538,12 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
 
       {/* Floating Action Dock (Floated at bottom center of visual board) */}
       <div 
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1.5 border border-[#3B2564] bg-[#0E071F]/95 backdrop-blur-md shadow-2xl shadow-black/80 select-none"
+        className="canvas-action-dock absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1.5 border border-[#3B2564] bg-[#0E071F]/95 backdrop-blur-md shadow-2xl shadow-black/80 select-none"
         role="toolbar"
         aria-label="Visual Board Actions Dock"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Selection Status Meta */}
-        <div className="hidden sm:flex items-center gap-1.5 pr-2.5 border-r border-[#261B42] text-[10px] font-mono">
-          <span className="text-zinc-500 uppercase font-bold tracking-wider">SELECT:</span>
-          {selectedNodeId ? (
-            <span className="text-[#C084FC] font-semibold truncate max-w-[110px]" title={nodesById.get(selectedNodeId)?.data.label}>
-              {nodesById.get(selectedNodeId)?.data.label || '1 node'}
-            </span>
-          ) : selectedEdgeId ? (
-            <span className="text-amber-400 font-semibold">1 wire</span>
-          ) : (
-            <span className="text-zinc-500">None</span>
-          )}
-        </div>
-
         {/* 1. Flow Connect (Toggle custom node connection handles) */}
         <button
           type="button"

@@ -1,5 +1,16 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Terminal, ChevronUp, ChevronDown, Trash2, Copy, Check, Filter } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { 
+  Terminal, 
+  ChevronUp, 
+  ChevronDown, 
+  Trash2, 
+  Copy, 
+  Check, 
+  Filter, 
+  Maximize2, 
+  Minimize2,
+  GripHorizontal
+} from 'lucide-react';
 import { storage } from '../services/storage';
 import { LogItem } from '../services/api';
 
@@ -11,6 +22,11 @@ interface TerminalDrawerProps {
   isOpen?: boolean;
   onToggleOpen?: (open: boolean) => void;
 }
+
+const MIN_HEIGHT = 120;
+const MAX_HEIGHT = 650;
+const DEFAULT_HEIGHT = 160;
+const EXPANDED_HEIGHT = 420;
 
 export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
   logs,
@@ -24,8 +40,13 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
 
   const [activeTab, setActiveTabState] = useState<string>(() => storage.getTerminalFilter('ALL'));
-  const [copied, setCopied] = useState(false);
+  const [height, setHeightState] = useState<number>(() => storage.getTerminalHeight(DEFAULT_HEIGHT));
+  const [isResizing, setIsResizing] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
+
   const endRef = useRef<HTMLDivElement | null>(null);
+  const dragStartYRef = useRef<number>(0);
+  const dragStartHeightRef = useRef<number>(DEFAULT_HEIGHT);
 
   const setIsOpen = (next: boolean) => {
     if (onToggleOpen) {
@@ -36,9 +57,61 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
     }
   };
 
+  const setHeight = (h: number) => {
+    const clamped = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, Math.round(h)));
+    setHeightState(clamped);
+    storage.setTerminalHeight(clamped);
+  };
+
   const setActiveTab = (tab: string) => {
     setActiveTabState(tab);
     storage.setTerminalFilter(tab);
+  };
+
+  // Toggle Maximize / Normal Expand height
+  const handleToggleExpandHeight = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isOpen) {
+      setIsOpen(true);
+      return;
+    }
+    if (height >= EXPANDED_HEIGHT - 20) {
+      setHeight(DEFAULT_HEIGHT);
+    } else {
+      setHeight(EXPANDED_HEIGHT);
+    }
+  };
+
+  // Drag-to-resize handlers
+  const handleResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+    setIsResizing(true);
+    dragStartYRef.current = e.clientY;
+    dragStartHeightRef.current = height;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handleResizePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isResizing) return;
+      const deltaY = dragStartYRef.current - e.clientY; // dragging up increases height
+      const nextH = dragStartHeightRef.current + deltaY;
+      setHeight(nextH);
+    },
+    [isResizing]
+  );
+
+  const handleResizePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isResizing) {
+      setIsResizing(false);
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {}
+    }
   };
 
   // Filter logs by source tab and node filter
@@ -81,9 +154,31 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const isTall = height >= EXPANDED_HEIGHT - 20;
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#261B42] bg-[#080512]/95 backdrop-blur-md transition-all duration-200 shadow-2xl shadow-black/80">
-      {/* Bar toggle & Controls */}
+    <div 
+      className={`fixed bottom-0 left-0 right-0 z-40 border-t border-[#261B42] bg-[#080512]/95 backdrop-blur-md shadow-2xl shadow-black/80 transition-shadow ${
+        isResizing ? 'select-none pointer-events-auto' : ''
+      }`}
+    >
+      {/* Draggable Vertical Resize Bar (Top Edge) */}
+      {isOpen && (
+        <div
+          onPointerDown={handleResizePointerDown}
+          onPointerMove={handleResizePointerMove}
+          onPointerUp={handleResizePointerUp}
+          onPointerCancel={handleResizePointerUp}
+          className="group relative h-2 -top-1 w-full cursor-ns-resize flex items-center justify-center hover:bg-[#8B5CF6]/30 transition-colors z-50 touch-none"
+          title="Drag up/down to resize terminal height"
+        >
+          <div className="w-16 h-1 rounded-none bg-[#3B2564] group-hover:bg-[#C084FC] transition-colors flex items-center justify-center">
+            <GripHorizontal className="w-3 h-3 text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        </div>
+      )}
+
+      {/* Bar header & Controls */}
       <div 
         onClick={() => setIsOpen(!isOpen)}
         className="h-8 px-4 bg-[#0E071F]/90 flex items-center justify-between cursor-pointer select-none hover:bg-[#150B2E] border-b border-[#261B42]/70"
@@ -101,6 +196,12 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
             <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
             LIVE FEED
           </span>
+
+          {isOpen && (
+            <span className="hidden lg:inline text-[9px] font-mono text-zinc-500 tabular-nums">
+              ({height}px)
+            </span>
+          )}
 
           {/* Active Node Filter Badge */}
           {selectedNodeId && (
@@ -145,16 +246,36 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
         {/* Right Action Buttons */}
         <div className="flex items-center gap-2">
           {isOpen && (
-            <button
-              onClick={handleCopyLogs}
-              className="text-zinc-400 hover:text-zinc-200 p-1 hover:bg-[#261B42]/50 transition-colors cursor-pointer"
-              title="Copy Terminal Logs"
-            >
-              {copied ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
-            </button>
+            <>
+              {/* Copy logs */}
+              <button
+                type="button"
+                onClick={handleCopyLogs}
+                className="text-zinc-400 hover:text-zinc-200 p-1 hover:bg-[#261B42]/50 transition-colors cursor-pointer"
+                title="Copy Terminal Logs"
+              >
+                {copied ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+              </button>
+
+              {/* Vertical Expand / Minimize Toggle */}
+              <button
+                type="button"
+                onClick={handleToggleExpandHeight}
+                className="text-zinc-400 hover:text-[#C084FC] p-1 hover:bg-[#261B42]/50 transition-colors cursor-pointer"
+                title={isTall ? "Restore Default Height (160px)" : "Expand Height Vertically (420px)"}
+              >
+                {isTall ? (
+                  <Minimize2 className="w-3 h-3 text-[#C084FC]" />
+                ) : (
+                  <Maximize2 className="w-3 h-3" />
+                )}
+              </button>
+            </>
           )}
 
+          {/* Clear logs */}
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onClear();
@@ -165,22 +286,27 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
             <Trash2 className="w-3 h-3" />
           </button>
 
+          {/* Minimize / Open Drawer Toggle */}
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(!isOpen);
             }}
             className="text-zinc-400 hover:text-zinc-200 p-1 transition-colors cursor-pointer"
-            title={isOpen ? "Minimize Terminal" : "Maximize Terminal"}
+            title={isOpen ? "Minimize Terminal" : "Open Terminal"}
           >
             {isOpen ? <ChevronDown className="w-3.5 h-3.5 text-zinc-400" /> : <ChevronUp className="w-3.5 h-3.5 text-zinc-400" />}
           </button>
         </div>
       </div>
 
-      {/* Terminal Content */}
+      {/* Terminal Content (Dynamic Height) */}
       {isOpen && (
-        <div className="h-40 overflow-y-auto p-3 font-mono text-[11px] space-y-1 bg-[#06030D]/95 border-b border-[#261B42]/50">
+        <div 
+          style={{ height: `${height}px` }}
+          className="overflow-y-auto p-3 font-mono text-[11px] space-y-1 bg-[#06030D]/95 border-b border-[#261B42]/50 transition-[height] duration-75"
+        >
           {filteredLogs.length === 0 ? (
             <div className="text-zinc-600 italic py-2">
               {selectedNodeId

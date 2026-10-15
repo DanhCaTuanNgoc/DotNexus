@@ -119,4 +119,10 @@ export const storage = {
     getItem<string>('dotnexus_terminal_filter', fallback),
   setTerminalFilter: (filter: string) =>
     setItem('dotnexus_terminal_filter', filter),
+
+  // Terminal Height Preference (Vertical Expand / Resizing)
+  getTerminalHeight: (fallback: number = 160): number =>
+    getItem<number>('dotnexus_terminal_height', fallback),
+  setTerminalHeight: (height: number) =>
+    setItem('dotnexus_terminal_height', height),
 };

@@ -114,21 +114,15 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
         className="hidden"
       />
 
-      {/* View Header matching DualEngineView / SecurityGuardView */}
-      <div className="flex flex-wrap items-center justify-between border-b border-[#261B42] pb-3 sm:pb-4 gap-3">
+      {/* View Header */}
+      <div className="flex flex-wrap items-center justify-between border-b border-[#261B42] pb-3 gap-3">
         <div>
           <div className="flex items-center gap-2">
             <Workflow className="w-4 h-4 text-[#8B5CF6]" />
             <h2 className="text-sm sm:text-base font-bold font-mono text-white tracking-wider uppercase">
-              AUTOMATION WORKFLOW CANVASES &amp; ORCHESTRATION HUB
+              AUTOMATION WORKFLOW CANVASES
             </h2>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 border border-[#4C2889] bg-[#140C2B] text-[#C084FC]">
-              24/7 DAEMON ENGINE
-            </span>
           </div>
-          <p className="text-xs font-mono text-zinc-400 mt-1">
-            Visual control plane for Portaldot Network V3.0. Create 24/7 telemetry signal bots, automated slashing failover runbooks, and yield optimizers with zero double-signing risk.
-          </p>
         </div>
 
         {/* Header Action Buttons */}

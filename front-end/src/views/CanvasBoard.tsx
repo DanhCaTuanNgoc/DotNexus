@@ -934,7 +934,7 @@ if __name__ == "__main__":
             title="Return to Canvas Management Hub"
           >
             <ArrowLeft className="w-3.5 h-3.5 text-[#8B5CF6]" />
-            <span>All Workflows</span>
+            <span>Back</span>
           </button>
 
           {/* Workflow Title & Details */}

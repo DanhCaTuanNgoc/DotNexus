@@ -307,27 +307,6 @@ export const App: React.FC = () => {
         </main>
       </div>
 
-      {/* Persistent Mobile Bottom Navigation Bar (1-Thumb Tab Switching) */}
-      <nav className="fixed bottom-0 left-0 right-0 h-14 bg-[#0A0515]/95 backdrop-blur-md border-t border-[#261B42] flex items-center justify-around z-30 md:hidden px-1 select-none shadow-2xl">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center justify-center flex-1 py-1 px-0.5 text-[10px] font-mono transition-colors ${
-                isActive ? 'text-[#C084FC] font-bold' : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              <Icon className={`w-4 h-4 mb-0.5 ${isActive ? 'text-[#8B5CF6]' : 'text-zinc-500'}`} />
-              <span className="truncate max-w-[58px] text-center text-[9px] sm:text-[10px]">{item.shortLabel}</span>
-              {isActive && <span className="w-1 h-1 rounded-full bg-[#8B5CF6] mt-0.5" />}
-            </button>
-          );
-        })}
-      </nav>
-
       {/* Fixed Diagnostic Terminal Drawer with Multi-Source and Node Filtering */}
       <TerminalDrawer
         logs={logs}

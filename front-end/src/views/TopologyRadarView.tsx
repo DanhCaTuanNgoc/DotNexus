@@ -59,9 +59,6 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
               PORT :30333 / :8545
             </span>
           </div>
-          <p className="text-xs font-mono text-zinc-400 mt-1">
-            256KB socket ceiling, AST log queries sanitization, and live libp2p multiaddress topology radar.
-          </p>
         </div>
 
         <div className="flex items-center gap-2 font-mono text-xs text-[#10B981] bg-[#0E2820]/40 px-3 py-1.5 border border-[#10B981]/40 font-bold">

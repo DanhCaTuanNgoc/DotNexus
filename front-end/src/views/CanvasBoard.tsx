@@ -739,7 +739,7 @@ if __name__ == "__main__":
           {/* Reset button */}
           <button
             onClick={handleResetCanvas}
-            className="p-1 border border-[#261B42] bg-[#110A24] text-zinc-400 hover:text-white hover:bg-[#1E113E] transition-colors"
+            className="p-1 border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-400 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
             title="Reset to Original Preset (Clears Custom Edits)"
           >
             <RotateCcw className="w-3 h-3" />
@@ -748,7 +748,7 @@ if __name__ == "__main__":
           {/* Export JSON */}
           <button
             onClick={handleExportJSON}
-            className="flex items-center gap-1 px-2 py-1 text-[11px] font-mono border border-[#261B42] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
             title="Export DAG as JSON"
           >
             <Download className="w-3 h-3 text-[#8B5CF6]" />
@@ -758,7 +758,7 @@ if __name__ == "__main__":
           {/* Export CLI Script */}
           <button
             onClick={handleExportCLI}
-            className="hidden sm:flex items-center gap-1 px-2 py-1 text-[11px] font-mono border border-[#261B42] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors"
+            className="hidden sm:flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
             title="Export Standalone Python CLI Runner"
           >
             <FileCode2 className="w-3 h-3 text-[#10B981]" />
@@ -769,7 +769,7 @@ if __name__ == "__main__":
           {hasCritical && (
             <button
               onClick={handleAutoFix}
-              className="flex items-center gap-1 px-2.5 py-1 text-xs font-mono border border-amber-500 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black font-bold transition-all shadow-md animate-pulse cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1 text-xs font-mono border border-amber-500 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black font-bold transition-all cursor-pointer"
             >
               <Zap className="w-3 h-3 fill-current" />
               <span>Auto-Fix</span>
@@ -780,12 +780,12 @@ if __name__ == "__main__":
           <button
             onClick={handleExecute}
             disabled={executing || hasCritical}
-            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold transition-all shadow-md cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold transition-all cursor-pointer ${
               hasCritical
-                ? 'border-rose-900 bg-rose-950/40 text-rose-400 cursor-not-allowed opacity-70'
+                ? 'border border-rose-900 bg-rose-950/40 text-rose-400 cursor-not-allowed opacity-70'
                 : executing
                 ? 'bg-[#581C87] border border-[#8B5CF6] text-white animate-pulse cursor-wait'
-                : 'border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white shadow-[#8B5CF6]/20'
+                : 'border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white'
             }`}
           >
             <Play className={`w-3.5 h-3.5 fill-current ${executing ? 'animate-pulse' : ''}`} />

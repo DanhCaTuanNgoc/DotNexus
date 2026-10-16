@@ -233,8 +233,8 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
                 onClick={() => setActiveTab(tab)}
                 className={`px-2 py-0.5 text-[9px] font-mono font-bold uppercase transition-colors cursor-pointer ${
                   activeTab === tab
-                    ? 'bg-[#7C3AED] text-white'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1A0E38]'
+                    ? 'bg-[#8B5CF6] text-white border border-[#8B5CF6]'
+                    : 'text-zinc-400 hover:text-zinc-200 border border-transparent hover:border-[#4C2889] hover:bg-[#1A0E38]'
                 }`}
               >
                 {tab === 'DAG' ? 'DAG Runbook' : tab}

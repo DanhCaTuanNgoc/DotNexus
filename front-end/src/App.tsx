@@ -188,10 +188,10 @@ export const App: React.FC = () => {
                   title={isSidebarCollapsed ? item.label : undefined}
                   className={`w-full flex items-center ${
                     isSidebarCollapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3'
-                  } py-2.5 rounded-none text-xs font-mono transition-all text-left ${
+                  } py-2.5 rounded-none text-xs font-mono transition-all text-left cursor-pointer ${
                     isActive
-                      ? 'bg-[#180E30] border-l-2 border-[#8B5CF6] text-white font-semibold'
-                      : 'text-zinc-400 hover:bg-[#110A24] hover:text-zinc-200'
+                      ? 'bg-[#180E30] border-l-2 border-[#8B5CF6] text-white font-bold'
+                      : 'border-l-2 border-transparent text-zinc-400 hover:bg-[#110A24] hover:text-white hover:border-[#4C2889]'
                   }`}
                 >
                   <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#8B5CF6]' : 'text-zinc-400'}`} />

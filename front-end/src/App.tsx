@@ -49,7 +49,7 @@ export const App: React.FC = () => {
     // Normalize route if user accessed root alias like /app or /control
     const currentPath = window.location.pathname.toLowerCase().replace(/^\/+|\/+$/g, '');
     if (routeState.viewMode === 'console' && (currentPath === 'control' || currentPath === 'app' || currentPath === 'console')) {
-      navigateTo('console', routeState.activeTab, true);
+      navigateTo('console', routeState.activeTab, undefined, true);
     }
 
     window.addEventListener('popstate', handleSyncRoute);
@@ -305,7 +305,7 @@ export const App: React.FC = () => {
         <main
           className={`flex-1 ${
             activeTab === 'canvas'
-              ? 'p-1 sm:p-2.5 pb-20 md:pb-10 overflow-hidden flex flex-col'
+              ? 'p-0 pb-16 md:pb-8 overflow-hidden flex flex-col'
               : 'p-3 sm:p-5 md:p-6 pb-36 sm:pb-44 md:pb-48 overflow-y-auto'
           } bg-[#080512]`}
         >
@@ -328,6 +328,8 @@ export const App: React.FC = () => {
                 selectedNodeId={selectedCanvasNodeId}
                 onSelectNode={setSelectedCanvasNodeId}
                 onRequestOpenTerminal={() => handleToggleTerminal(true)}
+                subRoute={routeState.subRoute}
+                onNavigateSubRoute={(sub) => navigateTo('console', 'canvas', sub)}
               />
             </ErrorBoundary>
           )}

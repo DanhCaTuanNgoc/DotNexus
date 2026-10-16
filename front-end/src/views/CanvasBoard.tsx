@@ -11,14 +11,10 @@ import {
   AlertTriangle,
   FileCode2,
   Sliders,
-  Plus,
-  Copy,
-  Trash2,
-  Edit3,
-  Upload,
+  ArrowLeft,
   Bot,
-  Sparkles,
-  ChevronDown
+  Activity,
+  Sparkles
 } from 'lucide-react';
 import { RunbookDAG, api, LogItem } from '../services/api';
 import { 
@@ -36,8 +32,7 @@ import { NodePalette } from '../components/canvas/NodePalette';
 import { NodeInspector } from '../components/canvas/NodeInspector';
 import { validateCanvasSafety, autoFixEquivocation } from '../components/canvas/safetyLinter';
 import { storage } from '../services/storage';
-import { NewWorkflowModal } from '../components/canvas/NewWorkflowModal';
-import { RenameWorkflowModal } from '../components/canvas/RenameWorkflowModal';
+import { CanvasHubView } from './CanvasHubView';
 
 /**
  * Topologically sorts DAG nodes according to directed edges (Source -> Target).
@@ -246,6 +241,8 @@ export interface CanvasBoardProps {
   selectedNodeId?: string | null;
   onSelectNode?: (nodeId: string | null) => void;
   onRequestOpenTerminal?: () => void;
+  subRoute?: string;
+  onNavigateSubRoute?: (subRoute?: string) => void;
 }
 
 export const CanvasBoard: React.FC<CanvasBoardProps> = ({
@@ -253,11 +250,34 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   selectedNodeId: externalSelectedNodeId,
   onSelectNode: externalOnSelectNode,
   onRequestOpenTerminal,
+  subRoute,
+  onNavigateSubRoute,
 }) => {
   // Multi-Workflow State
   const [initialData] = useState(() => loadInitialWorkflows());
   const [workflows, setWorkflows] = useState<CanvasWorkflow[]>(initialData.workflows);
-  const [activeWorkflowId, setActiveWorkflowId] = useState<string>(initialData.activeId);
+  const [activeWorkflowId, setActiveWorkflowId] = useState<string>(() => {
+    if (subRoute && initialData.workflows.some((w) => w.id === subRoute)) {
+      return subRoute;
+    }
+    return initialData.activeId;
+  });
+
+  // Track whether we are in Hub view or detailed Studio Editor view
+  const isStudioOpen = Boolean(subRoute);
+
+  // Sync activeWorkflowId when subRoute changes from URL navigation
+  useEffect(() => {
+    if (subRoute) {
+      const matched = workflows.find((w) => w.id === subRoute);
+      if (matched && matched.id !== activeWorkflowId) {
+        setActiveWorkflowId(matched.id);
+        setNodes(matched.nodes);
+        setEdges(matched.edges);
+        viewportRef.current = matched.viewport || { x: 30, y: 30, zoom: 0.88 };
+      }
+    }
+  }, [subRoute, workflows]);
 
   const activeWorkflow = useMemo(() => {
     return workflows.find((w) => w.id === activeWorkflowId) || workflows[0];
@@ -273,11 +293,6 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   const handleViewportChange = useCallback((vp: CanvasViewport) => {
     viewportRef.current = vp;
   }, []);
-
-  // Modals for Workflow Creation and Renaming
-  const [isNewModalOpen, setIsNewModalOpen] = useState(false);
-  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Selected Node State
   const [internalSelectedNodeId, setInternalSelectedNodeId] = useState<string | null>(null);
@@ -316,6 +331,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
 
   // Auto-save active canvas state into workflows list with debounce
   useEffect(() => {
+    if (!isStudioOpen) return;
+
     const timer = setTimeout(() => {
       setWorkflows((prev) => {
         const updated = prev.map((w) =>
@@ -337,7 +354,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [nodes, edges, activeWorkflowId]);
+  }, [nodes, edges, activeWorkflowId, isStudioOpen]);
 
   // Synchronous flush on page unload
   useEffect(() => {
@@ -356,32 +373,12 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [nodes, edges, activeWorkflowId]);
 
-  // Switch between workflows
-  const handleSwitchWorkflow = (targetId: string) => {
-    if (targetId === activeWorkflowId) return;
-
-    // Snapshot current nodes & edges before switching
-    const updatedWorkflows = workflows.map((w) => {
-      if (w.id === activeWorkflowId) {
-        return {
-          ...w,
-          nodes,
-          edges,
-          viewport: viewportRef.current,
-          updatedAt: Date.now(),
-        };
-      }
-      return w;
-    });
-
-    const targetWf = updatedWorkflows.find((w) => w.id === targetId);
+  // Navigate into detailed Studio view for a workflow
+  const handleOpenWorkflowStudio = (workflowId: string) => {
+    const targetWf = workflows.find((w) => w.id === workflowId);
     if (!targetWf) return;
 
-    setWorkflows(updatedWorkflows);
-    storage.setWorkflowsList(updatedWorkflows);
-    storage.setActiveWorkflowId(targetId);
-
-    setActiveWorkflowId(targetId);
+    setActiveWorkflowId(workflowId);
     setNodes(targetWf.nodes);
     setEdges(targetWf.edges);
     viewportRef.current = targetWf.viewport || { x: 30, y: 30, zoom: 0.88 };
@@ -391,12 +388,34 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     setActiveEdgeId(null);
     setCompletedEdgeIds([]);
 
+    storage.setActiveWorkflowId(workflowId);
+
+    if (onNavigateSubRoute) {
+      onNavigateSubRoute(workflowId);
+    }
+
     onLog?.({
       source: 'DAG_ENGINE',
       level: 'INFO',
       time: Date.now() / 1000,
-      text: `Switched active canvas to: "${targetWf.name}" (${targetWf.nodes.length} nodes, ${targetWf.edges.length} wires)`,
+      text: `Opened canvas studio: "${targetWf.name}" (${targetWf.nodes.length} nodes, ${targetWf.edges.length} wires)`,
     });
+  };
+
+  // Return to the Workflows Hub view
+  const handleBackToHub = () => {
+    // Snapshot current nodes before exiting
+    const updated = workflows.map((w) =>
+      w.id === activeWorkflowId
+        ? { ...w, nodes, edges, viewport: viewportRef.current, updatedAt: Date.now() }
+        : w
+    );
+    setWorkflows(updated);
+    storage.setWorkflowsList(updated);
+
+    if (onNavigateSubRoute) {
+      onNavigateSubRoute(undefined);
+    }
   };
 
   // Create New Workflow (Blank, Duplicate, or Template)
@@ -415,10 +434,11 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
       newNodes = [];
       newEdges = [];
     } else if (mode === 'duplicate') {
-      newNodes = nodes.map((n) => ({ ...n, data: { ...n.data } }));
-      newEdges = edges.map((e) => ({ ...e }));
-      category = activeWorkflow.category;
-      description = `Cloned from ${activeWorkflow.name}`;
+      const srcWf = activeWorkflow;
+      newNodes = srcWf.nodes.map((n) => ({ ...n, data: { ...n.data } }));
+      newEdges = srcWf.edges.map((e) => ({ ...e }));
+      category = srcWf.category;
+      description = `Cloned from ${srcWf.name}`;
     } else if (mode === 'template' && templateId) {
       const tpl = DEFAULT_RUNBOOKS.find((r) => r.id === templateId);
       if (tpl) {
@@ -443,28 +463,12 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
       updatedAt: Date.now(),
     };
 
-    const updatedWorkflows = workflows.map((w) =>
-      w.id === activeWorkflowId
-        ? { ...w, nodes, edges, viewport: viewportRef.current, updatedAt: Date.now() }
-        : w
-    );
-
-    const finalList = [...updatedWorkflows, newWf];
+    const finalList = [...workflows, newWf];
     setWorkflows(finalList);
     storage.setWorkflowsList(finalList);
-    storage.setActiveWorkflowId(newId);
 
-    setActiveWorkflowId(newId);
-    setNodes(newNodes);
-    setEdges(newEdges);
-    viewportRef.current = { x: 30, y: 30, zoom: 0.88 };
-
-    setSelectedNodeId(null);
-    setExecResult(null);
-    setActiveEdgeId(null);
-    setCompletedEdgeIds([]);
-
-    setIsNewModalOpen(false);
+    // Immediately open the newly created canvas in the studio
+    handleOpenWorkflowStudio(newId);
 
     onLog?.({
       source: 'DAG_ENGINE',
@@ -474,15 +478,14 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     });
   };
 
-  // Rename Active Workflow
-  const handleRenameWorkflow = (newName: string) => {
+  // Rename Workflow
+  const handleRenameWorkflow = (workflowId: string, newName: string) => {
     if (!newName.trim()) return;
     const updated = workflows.map((w) =>
-      w.id === activeWorkflowId ? { ...w, name: newName.trim(), updatedAt: Date.now() } : w
+      w.id === workflowId ? { ...w, name: newName.trim(), updatedAt: Date.now() } : w
     );
     setWorkflows(updated);
     storage.setWorkflowsList(updated);
-    setIsRenameModalOpen(false);
 
     onLog?.({
       source: 'DAG_ENGINE',
@@ -503,12 +506,10 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     storage.setWorkflowsList(remaining);
 
     if (activeWorkflowId === wfId) {
-      const nextWf = remaining[0];
-      setActiveWorkflowId(nextWf.id);
-      setNodes(nextWf.nodes);
-      setEdges(nextWf.edges);
-      viewportRef.current = nextWf.viewport || { x: 30, y: 30, zoom: 0.88 };
-      storage.setActiveWorkflowId(nextWf.id);
+      setActiveWorkflowId(remaining[0].id);
+      setNodes(remaining[0].nodes);
+      setEdges(remaining[0].edges);
+      storage.setActiveWorkflowId(remaining[0].id);
     }
 
     onLog?.({
@@ -543,7 +544,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
         source: 'DAG_ENGINE',
         level: 'INFO',
         time: Date.now() / 1000,
-        text: `Reset preset "${activeWorkflow.name}" back to default factory topology.`,
+        text: `Reset preset "${activeWorkflow.name}" back to factory topology.`,
       });
     } else {
       handleClearBoard();
@@ -579,12 +580,9 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
         const updated = [...workflows, importedWf];
         setWorkflows(updated);
         storage.setWorkflowsList(updated);
-        storage.setActiveWorkflowId(importedWf.id);
 
-        setActiveWorkflowId(importedWf.id);
-        setNodes(importedWf.nodes);
-        setEdges(importedWf.edges);
-        viewportRef.current = importedWf.viewport || { x: 30, y: 30, zoom: 0.88 };
+        // Open studio for imported workflow
+        handleOpenWorkflowStudio(importedWf.id);
 
         onLog?.({
           source: 'DAG_ENGINE',
@@ -601,15 +599,15 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   };
 
   // Export Active Workflow to JSON
-  const handleExportJSON = () => {
+  const handleExportJSON = (targetWf: CanvasWorkflow = activeWorkflow) => {
     const exportPayload = {
-      id: activeWorkflow.id,
-      name: activeWorkflow.name,
-      description: activeWorkflow.description,
-      category: activeWorkflow.category,
-      nodes,
-      edges,
-      viewport: viewportRef.current,
+      id: targetWf.id,
+      name: targetWf.name,
+      description: targetWf.description,
+      category: targetWf.category,
+      nodes: targetWf.id === activeWorkflowId ? nodes : targetWf.nodes,
+      edges: targetWf.id === activeWorkflowId ? edges : targetWf.edges,
+      viewport: targetWf.id === activeWorkflowId ? viewportRef.current : targetWf.viewport,
       exportedAt: new Date().toISOString(),
       network: 'Portaldot V3.0',
     };
@@ -618,7 +616,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `dotnexus-workflow-${activeWorkflow.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.json`;
+    a.download = `dotnexus-workflow-${targetWf.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -702,7 +700,7 @@ if __name__ == "__main__":
     [nodes.length, setSelectedNodeId]
   );
 
-  // Functional updater for smooth node movement
+  // Smooth node movement
   const handleMoveNodes = useCallback((nodeIds: string[], delta: { x: number; y: number } | null | undefined) => {
     if (!delta || !Number.isFinite(delta.x) || !Number.isFinite(delta.y)) return;
     const moving = new Set(nodeIds);
@@ -766,7 +764,7 @@ if __name__ == "__main__":
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  // Execute Pipeline (with sequential topological flow step transitions and real-time terminal streaming)
+  // Execute Pipeline
   const handleExecute = async () => {
     if (hasCritical || executing || nodes.length === 0) return;
     setExecuting(true);
@@ -904,78 +902,55 @@ if __name__ == "__main__":
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null;
 
+  // VIEW 1: DEDICATED WORKFLOW MANAGEMENT HUB
+  if (!isStudioOpen) {
+    return (
+      <CanvasHubView
+        workflows={workflows}
+        onOpenWorkflow={handleOpenWorkflowStudio}
+        onCreateWorkflow={handleCreateWorkflow}
+        onRenameWorkflow={handleRenameWorkflow}
+        onDeleteWorkflow={handleDeleteWorkflow}
+        onImportWorkflow={handleImportJSON}
+        onExportWorkflow={handleExportJSON}
+      />
+    );
+  }
+
+  // VIEW 2: FOCUSED, SPACIOUS VISUAL DAG STUDIO BOARD
   return (
-    <div className="flex flex-col h-full min-h-0 space-y-1.5 select-none">
-      {/* Top Bar with Multi-Canvas Workflow Control */}
-      <div className="px-3 py-1.5 border border-[#261B42] bg-[#0E071F]/95 backdrop-blur-md flex flex-wrap items-center justify-between gap-2 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5">
-            <Workflow className="w-4 h-4 text-[#8B5CF6]" />
-            <span className="text-xs font-mono font-bold text-white uppercase tracking-wider hidden sm:inline">
-              Canvas:
+    <div className="flex flex-col h-full min-h-0 select-none bg-[#07040E]">
+      {/* Spacious, De-cluttered Studio Header Bar */}
+      <div className="px-4 py-2 border-b border-[#261B42] bg-[#0E071F]/98 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-3">
+          {/* Back to Hub Button */}
+          <button
+            onClick={handleBackToHub}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border border-[#8B5CF6]/50 bg-[#110A24] hover:bg-[#1A1033] hover:border-[#8B5CF6] text-white transition-all cursor-pointer font-bold shadow-md"
+            title="Return to Canvas Management Hub"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <span>All Workflows</span>
+          </button>
+
+          {/* Workflow Title & Details */}
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs sm:text-sm font-mono font-bold text-white tracking-wider truncate max-w-xs sm:max-w-md">
+              {activeWorkflow.name}
+            </h2>
+            <span className="hidden sm:inline-block px-2 py-0.5 text-[9px] font-mono uppercase bg-[#18102E] border border-[#8B5CF6]/40 text-[#C084FC]">
+              {activeWorkflow.category}
             </span>
-          </div>
-
-          {/* Workflow Selector Dropdown */}
-          <div className="relative flex items-center">
-            <select
-              value={activeWorkflowId}
-              onChange={(e) => handleSwitchWorkflow(e.target.value)}
-              className="bg-[#06030D] border border-[#261B42] focus:border-[#8B5CF6] text-xs font-mono text-[#C084FC] font-bold px-2.5 py-1 rounded-none focus:outline-none max-w-[200px] sm:max-w-xs truncate cursor-pointer"
-            >
-              {workflows.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.isCustom ? `[CUSTOM] ${w.name}` : `[PRESET] ${w.name}`} ({w.nodes.length} nodes)
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Quick Canvas Actions */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setIsNewModalOpen(true)}
-              className="flex items-center gap-1 px-2 py-1 text-xs font-mono border border-[#8B5CF6]/50 bg-[#8B5CF6]/20 hover:bg-[#8B5CF6]/40 text-[#C084FC] hover:text-white transition-all cursor-pointer font-bold"
-              title="Create New Workflow Canvas"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">New Canvas</span>
-            </button>
-
-            <button
-              onClick={() => handleCreateWorkflow(`${activeWorkflow.name} (Clone)`, 'duplicate')}
-              className="p-1 border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-400 hover:text-white transition-colors cursor-pointer"
-              title="Duplicate Active Canvas"
-            >
-              <Copy className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              onClick={() => setIsRenameModalOpen(true)}
-              className="p-1 border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-400 hover:text-white transition-colors cursor-pointer"
-              title="Rename Canvas"
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-            </button>
-
-            {workflows.length > 1 && (
-              <button
-                onClick={() => {
-                  if (window.confirm(`Delete workflow "${activeWorkflow.name}"?`)) {
-                    handleDeleteWorkflow(activeWorkflowId);
-                  }
-                }}
-                className="p-1 border border-[#261B42] hover:border-rose-500 bg-[#110A24] text-zinc-400 hover:text-rose-400 transition-colors cursor-pointer"
-                title="Delete Workflow"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+            {activeWorkflow.isCustom && (
+              <span className="hidden md:inline-block px-1.5 py-0.5 text-[9px] font-mono uppercase bg-zinc-800 text-zinc-300 border border-zinc-700">
+                CUSTOM
+              </span>
             )}
           </div>
 
-          {/* Inline Compact Safety Status Tag */}
+          {/* Compact Safety Linter Tag */}
           <div
-            className={`hidden xl:flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono border ${
+            className={`hidden lg:flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono border ${
               hasCritical
                 ? 'border-rose-500/80 bg-rose-950/60 text-rose-300'
                 : hasWarning
@@ -992,7 +967,7 @@ if __name__ == "__main__":
             )}
             <span>
               {hasCritical
-                ? 'CRITICAL EQUIVOCATION HAZARD'
+                ? 'EQUIVOCATION HAZARD'
                 : hasWarning
                 ? 'TOPOLOGY WARNING'
                 : 'TOPOLOGY VERIFIED (0 Slashing Hazards)'}
@@ -1008,88 +983,82 @@ if __name__ == "__main__":
           </div>
         </div>
 
-        {/* Right Controls */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          {/* Hidden JSON File Input */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImportJSON}
-            accept=".json"
-            className="hidden"
-          />
+        {/* Right Studio Controls */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Reset button */}
           <button
-            onClick={() => fileInputRef.current?.click()}
-            className="hidden sm:flex items-center gap-1 px-2 py-1 text-[11px] font-mono border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
-            title="Import Workflow JSON"
+            onClick={handleResetCanvas}
+            className="p-1.5 border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-400 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
+            title="Reset Workflow Topology"
           >
-            <Upload className="w-3 h-3 text-[#38BDF8]" />
-            <span>Import</span>
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
 
           {/* Export JSON */}
           <button
-            onClick={handleExportJSON}
-            className="hidden xs:flex items-center gap-1 px-2 py-1 text-[11px] font-mono border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
+            onClick={() => handleExportJSON(activeWorkflow)}
+            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-mono border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
             title="Export Active Workflow as JSON"
           >
-            <Download className="w-3 h-3 text-[#8B5CF6]" />
+            <Download className="w-3.5 h-3.5 text-[#8B5CF6]" />
             <span>JSON</span>
           </button>
 
           {/* Export CLI Script */}
           <button
             onClick={handleExportCLI}
-            className="hidden md:flex items-center gap-1 px-2 py-1 text-[11px] font-mono border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
+            className="hidden md:flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-mono border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
             title="Export Standalone Python CLI Runner"
           >
-            <FileCode2 className="w-3 h-3 text-[#10B981]" />
+            <FileCode2 className="w-3.5 h-3.5 text-[#10B981]" />
             <span>CLI</span>
-          </button>
-
-          {/* Reset button */}
-          <button
-            onClick={handleResetCanvas}
-            className="p-1 border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-400 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
-            title="Reset Workflow Topology"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
           </button>
 
           {/* Toolbox toggle button */}
           <button
             onClick={() => setIsPaletteOpen(!isPaletteOpen)}
-            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono border transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border transition-colors cursor-pointer ${
               isPaletteOpen
                 ? 'border-[#8B5CF6] bg-[#8B5CF6]/30 text-white font-bold'
                 : 'border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E]'
             }`}
             title={isPaletteOpen ? 'Close Node Toolbox' : 'Open Node Toolbox'}
           >
-            <Workflow className="w-3 h-3 text-[#8B5CF6]" />
+            <Workflow className="w-3.5 h-3.5 text-[#8B5CF6]" />
             <span>Toolbox</span>
           </button>
+
+          {/* 1-Click Auto-Fix Button (if critical error exists) */}
+          {hasCritical && (
+            <button
+              onClick={handleAutoFix}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono border border-amber-500 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black font-bold transition-all cursor-pointer"
+            >
+              <Zap className="w-3.5 h-3.5 fill-current" />
+              <span>Auto-Fix</span>
+            </button>
+          )}
 
           {/* Execute Pipeline */}
           <button
             onClick={handleExecute}
             disabled={executing || hasCritical || nodes.length === 0}
-            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer ${
               hasCritical || nodes.length === 0
                 ? 'border border-zinc-800 bg-zinc-900/60 text-zinc-500 cursor-not-allowed opacity-60'
                 : executing
                 ? 'bg-[#581C87] border border-[#8B5CF6] text-white animate-pulse cursor-wait'
-                : 'border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white'
+                : 'border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white shadow-lg shadow-[#8B5CF6]/30'
             }`}
           >
             <Play className={`w-3.5 h-3.5 fill-current ${executing ? 'animate-pulse' : ''}`} />
-            <span>{executing ? 'Running...' : 'Run Pipeline'}</span>
+            <span>{executing ? 'Executing...' : 'Run Pipeline'}</span>
           </button>
         </div>
       </div>
 
       {/* 3-Section Main Workspace: [Palette | Interactive Canvas | Inspector] */}
-      <div className="relative flex-1 min-h-[500px] h-[calc(100vh-175px)] flex border border-[#261B42] bg-[#06030D] overflow-hidden shadow-2xl">
+      <div className="relative flex-1 min-h-[500px] h-[calc(100vh-175px)] flex border-t border-[#261B42] bg-[#06030D] overflow-hidden shadow-2xl">
         {/* Mobile Palette Overlay Backdrop */}
         {isPaletteOpen && (
           <div
@@ -1201,21 +1170,6 @@ if __name__ == "__main__":
           />
         )}
       </div>
-
-      {/* Creation & Rename Modals */}
-      <NewWorkflowModal
-        isOpen={isNewModalOpen}
-        onClose={() => setIsNewModalOpen(false)}
-        onCreate={handleCreateWorkflow}
-        activeWorkflowName={activeWorkflow.name}
-      />
-
-      <RenameWorkflowModal
-        isOpen={isRenameModalOpen}
-        currentName={activeWorkflow.name}
-        onClose={() => setIsRenameModalOpen(false)}
-        onRename={handleRenameWorkflow}
-      />
     </div>
   );
 };

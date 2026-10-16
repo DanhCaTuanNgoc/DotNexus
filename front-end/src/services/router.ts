@@ -3,6 +3,7 @@ import { TabType, ViewMode, storage } from './storage';
 export interface RouteState {
   viewMode: ViewMode;
   activeTab: TabType;
+  subRoute?: string;
 }
 
 export const VALID_TABS: readonly TabType[] = [
@@ -31,9 +32,12 @@ export function parseCurrentRoute(): RouteState {
   // 1. Check if hash specifies a route (e.g. #/slashing or #canvas)
   if (rawHash) {
     const hashSegments = rawHash.split('/');
-    const lastHashSegment = hashSegments[hashSegments.length - 1];
-    if (isValidTab(lastHashSegment)) {
-      return { viewMode: 'console', activeTab: lastHashSegment };
+    if (isValidTab(hashSegments[0])) {
+      return { 
+        viewMode: 'console', 
+        activeTab: hashSegments[0] as TabType,
+        subRoute: hashSegments[1]
+      };
     }
   }
 
@@ -44,19 +48,25 @@ export function parseCurrentRoute(): RouteState {
   }
 
   const segments = rawPath.split('/');
-  const lastSegment = segments[segments.length - 1];
 
-  // Direct tab path (e.g., /slashing, /dual-vm, /canvas)
-  if (isValidTab(lastSegment)) {
-    return { viewMode: 'console', activeTab: lastSegment };
+  // Primary tab matching
+  if (isValidTab(segments[0])) {
+    return { 
+      viewMode: 'console', 
+      activeTab: segments[0] as TabType,
+      subRoute: segments[1]
+    };
   }
 
-  // Generic console prefixes (/app, /control, /console) without specific tab
+  // Generic console prefixes (/app, /control, /console)
   if (segments[0] === 'app' || segments[0] === 'control' || segments[0] === 'console') {
     if (segments.length > 1 && isValidTab(segments[1])) {
-      return { viewMode: 'console', activeTab: segments[1] as TabType };
+      return { 
+        viewMode: 'console', 
+        activeTab: segments[1] as TabType,
+        subRoute: segments[2]
+      };
     }
-    // Default to stored active tab or dual-vm
     return { viewMode: 'console', activeTab: storage.getActiveTab('dual-vm') };
   }
 
@@ -65,11 +75,14 @@ export function parseCurrentRoute(): RouteState {
 }
 
 /**
- * Build canonical URL string from viewMode and activeTab
+ * Build canonical URL string from viewMode, activeTab and optional subRoute
  */
-export function getRouteUrl(viewMode: ViewMode, activeTab: TabType): string {
+export function getRouteUrl(viewMode: ViewMode, activeTab: TabType, subRoute?: string): string {
   if (viewMode === 'landing') {
     return '/';
+  }
+  if (subRoute) {
+    return `/${activeTab}/${subRoute}`;
   }
   return `/${activeTab}`;
 }
@@ -80,12 +93,13 @@ export function getRouteUrl(viewMode: ViewMode, activeTab: TabType): string {
 export function navigateTo(
   viewMode: ViewMode,
   activeTab?: TabType,
+  subRoute?: string,
   replace: boolean = false
 ): void {
   if (typeof window === 'undefined') return;
 
   const currentTab = activeTab || storage.getActiveTab('dual-vm');
-  const targetUrl = getRouteUrl(viewMode, currentTab);
+  const targetUrl = getRouteUrl(viewMode, currentTab, subRoute);
 
   // Sync to localStorage
   storage.setViewMode(viewMode);
@@ -97,14 +111,14 @@ export function navigateTo(
   const currentPath = window.location.pathname;
   if (currentPath !== targetUrl) {
     if (replace) {
-      window.history.replaceState({ viewMode, activeTab: currentTab }, '', targetUrl);
+      window.history.replaceState({ viewMode, activeTab: currentTab, subRoute }, '', targetUrl);
     } else {
-      window.history.pushState({ viewMode, activeTab: currentTab }, '', targetUrl);
+      window.history.pushState({ viewMode, activeTab: currentTab, subRoute }, '', targetUrl);
     }
   }
 
-  // Dispatch custom popstate-like event so all subscribers can update state synchronously
+  // Dispatch custom routechange event
   window.dispatchEvent(new CustomEvent('dotnexus:routechange', {
-    detail: { viewMode, activeTab: currentTab }
+    detail: { viewMode, activeTab: currentTab, subRoute }
   }));
 }

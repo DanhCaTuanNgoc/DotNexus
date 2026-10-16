@@ -314,7 +314,7 @@ export const App: React.FC = () => {
         {/* Center Workspace */}
         <main
           className={`flex-1 ${
-            activeTab === 'canvas'
+            activeTab === 'canvas' && Boolean(routeState.subRoute)
               ? 'p-0 pb-16 md:pb-8 overflow-hidden flex flex-col'
               : 'p-3 sm:p-5 md:p-6 pb-36 sm:pb-44 md:pb-48 overflow-y-auto'
           } bg-[#080512]`}

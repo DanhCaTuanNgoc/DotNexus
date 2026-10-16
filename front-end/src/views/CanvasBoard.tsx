@@ -264,10 +264,12 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   });
 
   // Track whether we are in Hub view or detailed Studio Editor view
-  const isStudioOpen = Boolean(subRoute);
+  const [currentStudioId, setCurrentStudioId] = useState<string | null>(() => subRoute || null);
+  const isStudioOpen = Boolean(currentStudioId || subRoute);
 
-  // Sync activeWorkflowId when subRoute changes from URL navigation
+  // Sync activeWorkflowId and currentStudioId when subRoute changes from URL navigation
   useEffect(() => {
+    setCurrentStudioId(subRoute || null);
     if (subRoute) {
       const matched = workflows.find((w) => w.id === subRoute);
       if (matched && matched.id !== activeWorkflowId) {
@@ -277,7 +279,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
         viewportRef.current = matched.viewport || { x: 30, y: 30, zoom: 0.88 };
       }
     }
-  }, [subRoute, workflows]);
+  }, [subRoute]);
 
   const activeWorkflow = useMemo(() => {
     return workflows.find((w) => w.id === activeWorkflowId) || workflows[0];
@@ -378,6 +380,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     const targetWf = workflows.find((w) => w.id === workflowId);
     if (!targetWf) return;
 
+    setCurrentStudioId(workflowId);
     setActiveWorkflowId(workflowId);
     setNodes(targetWf.nodes);
     setEdges(targetWf.edges);
@@ -413,6 +416,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     setWorkflows(updated);
     storage.setWorkflowsList(updated);
 
+    setCurrentStudioId(null);
     if (onNavigateSubRoute) {
       onNavigateSubRoute(undefined);
     }

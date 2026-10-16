@@ -242,7 +242,8 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
               return (
                 <div
                   key={workflow.id}
-                  className="tech-corner-accent flex flex-col justify-between border border-[#261B42] bg-[#0E071F]/90 hover:border-[#8B5CF6]/70 transition-all p-5 space-y-4 group shadow-xl relative"
+                  onClick={() => onOpenWorkflow(workflow.id)}
+                  className="tech-corner-accent flex flex-col justify-between border border-[#261B42] bg-[#0E071F]/90 hover:border-[#8B5CF6]/70 transition-all p-5 space-y-4 group shadow-xl relative cursor-pointer"
                 >
                   {/* Card Top: Badges & Actions */}
                   <div className="flex items-center justify-between gap-2">
@@ -261,6 +262,7 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
                     {/* Card Context Buttons */}
                     <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           onCreateWorkflow(`${workflow.name} (Clone)`, 'duplicate');
@@ -272,6 +274,7 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
                       </button>
 
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingWorkflow(workflow);
@@ -283,6 +286,7 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
                       </button>
 
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           onExportWorkflow(workflow);
@@ -295,6 +299,7 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
 
                       {workflow.isCustom && workflows.length > 1 && (
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (window.confirm(`Delete workflow "${workflow.name}"?`)) {
@@ -350,7 +355,11 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
                     </span>
 
                     <button
-                      onClick={() => onOpenWorkflow(workflow.id)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenWorkflow(workflow.id);
+                      }}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold border border-[#8B5CF6]/50 bg-[#8B5CF6]/20 hover:bg-[#8B5CF6] text-white transition-all cursor-pointer group-hover:border-[#8B5CF6]"
                     >
                       <span>Open Canvas Studio</span>

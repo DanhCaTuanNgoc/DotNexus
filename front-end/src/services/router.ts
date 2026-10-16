@@ -54,7 +54,7 @@ export function parseCurrentRoute(): RouteState {
     return { 
       viewMode: 'console', 
       activeTab: segments[0] as TabType,
-      subRoute: segments[1]
+      subRoute: segments[1] || undefined
     };
   }
 
@@ -64,10 +64,17 @@ export function parseCurrentRoute(): RouteState {
       return { 
         viewMode: 'console', 
         activeTab: segments[1] as TabType,
-        subRoute: segments[2]
+        subRoute: segments[2] || undefined
       };
     }
     return { viewMode: 'console', activeTab: storage.getActiveTab('dual-vm') };
+  }
+
+  // Check stored viewMode before falling back to landing
+  const savedMode = storage.getViewMode('landing');
+  const savedTab = storage.getActiveTab('dual-vm');
+  if (savedMode === 'console') {
+    return { viewMode: 'console', activeTab: savedTab };
   }
 
   // Default fallback for any unrecognised root path

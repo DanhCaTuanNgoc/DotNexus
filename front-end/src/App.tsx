@@ -42,7 +42,17 @@ export const App: React.FC = () => {
 
   // Sync state whenever URL or browser history changes (Back/Forward buttons)
   useEffect(() => {
-    const handleSyncRoute = () => {
+    const handleSyncRoute = (event?: Event) => {
+      // If triggered by custom routechange event, consume event.detail directly
+      if (event && 'detail' in event && (event as CustomEvent).detail) {
+        const detail = (event as CustomEvent).detail;
+        setRouteState({
+          viewMode: detail.viewMode || 'console',
+          activeTab: detail.activeTab || 'dual-vm',
+          subRoute: detail.subRoute
+        });
+        return;
+      }
       setRouteState(parseCurrentRoute());
     };
 

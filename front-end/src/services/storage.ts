@@ -1,4 +1,4 @@
-import { CanvasEdge, CanvasNode, CanvasViewport } from '../components/canvas/types';
+import { CanvasEdge, CanvasNode, CanvasViewport, CanvasWorkflow } from '../components/canvas/types';
 
 export type ViewMode = 'landing' | 'console';
 export type TabType = 'dual-vm' | 'slashing' | 'staking' | 'shield' | 'canvas';
@@ -17,6 +17,8 @@ const STORAGE_KEYS = {
   SIDEBAR_COLLAPSED: 'dotnexus_sidebar_collapsed',
   TERMINAL_OPEN: 'dotnexus_terminal_open',
   CANVAS_STATE: 'dotnexus_canvas_state',
+  WORKFLOWS_LIST: 'dotnexus_workflows_list',
+  ACTIVE_WORKFLOW_ID: 'dotnexus_active_workflow_id',
   STAKE_INPUT: 'dotnexus_stake_input',
   PALETTE_CATEGORY: 'dotnexus_palette_category',
 } as const;
@@ -90,12 +92,22 @@ export const storage = {
     getItem<boolean>(STORAGE_KEYS.TERMINAL_OPEN, fallback),
   setTerminalOpen: (open: boolean) => setItem(STORAGE_KEYS.TERMINAL_OPEN, open),
 
-  // Visual DAG Automation Canvas
+  // Visual DAG Automation Canvas (Single state compatibility & Multi-Canvas Workflows)
   getCanvasState: (): CanvasStorageState | null =>
     getItem<CanvasStorageState | null>(STORAGE_KEYS.CANVAS_STATE, null),
   setCanvasState: (state: CanvasStorageState) =>
     setItem(STORAGE_KEYS.CANVAS_STATE, state),
   clearCanvasState: () => removeItem(STORAGE_KEYS.CANVAS_STATE),
+
+  getWorkflowsList: (): CanvasWorkflow[] | null =>
+    getItem<CanvasWorkflow[] | null>(STORAGE_KEYS.WORKFLOWS_LIST, null),
+  setWorkflowsList: (workflows: CanvasWorkflow[]) =>
+    setItem(STORAGE_KEYS.WORKFLOWS_LIST, workflows),
+
+  getActiveWorkflowId: (fallback: string = 'runbook-slash-guard'): string =>
+    getItem<string>(STORAGE_KEYS.ACTIVE_WORKFLOW_ID, fallback),
+  setActiveWorkflowId: (id: string) =>
+    setItem(STORAGE_KEYS.ACTIVE_WORKFLOW_ID, id),
 
   // NPoS Staking Simulation Input
   getStakeInput: (fallback: number = 10000): number =>

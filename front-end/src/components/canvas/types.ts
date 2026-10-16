@@ -59,3 +59,16 @@ export interface CanvasViewport {
   y: number;
   zoom: number;
 }
+
+export interface CanvasWorkflow {
+  id: string;
+  name: string;
+  description: string;
+  category: NodeCategory | 'CUSTOM' | 'TELEMETRY' | 'SECURITY' | 'STAKING';
+  nodes: CanvasNode[];
+  edges: CanvasEdge[];
+  viewport?: CanvasViewport;
+  isCustom?: boolean;
+  status?: 'ACTIVE' | 'ARMED' | 'DRAFT';
+  updatedAt: number;
+}

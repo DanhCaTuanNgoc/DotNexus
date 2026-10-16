@@ -402,4 +402,83 @@ export const DEFAULT_RUNBOOKS = [
       { id: 'e-filter-bond', source: 'n-filter', target: 'n-bond', animated: true, label: 'Top 16 Selected' },
     ],
   },
+  {
+    id: 'runbook-health-bot',
+    name: '24/7 Node Health Monitor & Telegram/Discord Bot',
+    description: 'Continuously monitors node health, Substrate/EVM sync, and broadcasts real-time telemetry signals to Discord / Telegram.',
+    category: 'TELEMETRY',
+    nodes: [
+      {
+        id: 'hb-1',
+        type: 'infra',
+        label: 'Substrate WS (:9944)',
+        position: { x: 50, y: 70 },
+        data: { endpoint: 'ws://127.0.0.1:9944', role: 'WASM Runtime', status: 'STREAMING' },
+      },
+      {
+        id: 'hb-2',
+        type: 'watcher',
+        label: 'Heartbeat imOnline Daemon',
+        position: { x: 350, y: 70 },
+        data: { interval: '10s', metric: 'missed_blocks', condition: 'status == OK', status: 'ACTIVE' },
+      },
+      {
+        id: 'hb-3',
+        type: 'watcher',
+        label: 'Log Anomaly Filter',
+        position: { x: 350, y: 240 },
+        data: { pattern: 'WARN|ERR|CRITICAL', bufferSize: 100, status: 'WATCHING' },
+      },
+      {
+        id: 'hb-4',
+        type: 'action',
+        label: 'Discord / Telegram Alert Bot',
+        position: { x: 670, y: 150 },
+        data: {
+          channel: '#validator-telemetry',
+          botMode: '24/7 Continuous Signal',
+          telegramChatId: '@PortaldotOpsBot',
+          status: 'ARMED',
+        },
+      },
+    ],
+    edges: [
+      { id: 'ehb-1-2', source: 'hb-1', target: 'hb-2', animated: true, label: 'Feed Block Stream' },
+      { id: 'ehb-2-4', source: 'hb-2', target: 'hb-4', animated: true, label: 'Health Signal (Heartbeat OK)' },
+      { id: 'ehb-3-4', source: 'hb-3', target: 'hb-4', animated: true, label: 'Critical Log Alert' },
+    ],
+  },
+  {
+    id: 'runbook-rpc-shield',
+    name: 'RPC Anti-Spam Sentry & Malicious IP Defense',
+    description: 'Analyzes incoming JSON-RPC traffic, blocks heavy span log queries, and issues 60s temporary dynamic IP bans.',
+    category: 'SECURITY',
+    nodes: [
+      {
+        id: 'rpc-1',
+        type: 'infra',
+        label: 'EVM RPC (:8545)',
+        position: { x: 50, y: 120 },
+        data: { endpoint: 'http://127.0.0.1:8545', chainId: 4200, status: 'STREAMING' },
+      },
+      {
+        id: 'rpc-2',
+        type: 'security',
+        label: 'RPC Shield Rate-Limiter',
+        position: { x: 350, y: 120 },
+        data: { banDurationSec: 60, burstTolerance: 15, maxSpan: 2000, status: 'FILTERING' },
+      },
+      {
+        id: 'rpc-3',
+        type: 'action',
+        label: 'Discord / Ops Alert Bot',
+        position: { x: 660, y: 120 },
+        data: { channel: '#security-sentry', level: 'P2_WARNING', status: 'ARMED' },
+      },
+    ],
+    edges: [
+      { id: 'erpc-1-2', source: 'rpc-1', target: 'rpc-2', animated: true, label: 'Ingest eth_getLogs' },
+      { id: 'erpc-2-3', source: 'rpc-2', target: 'rpc-3', animated: true, label: 'Trigger on Span > 2000' },
+    ],
+  },
 ];

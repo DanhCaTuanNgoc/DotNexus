@@ -34,6 +34,7 @@ export const App: React.FC = () => {
   const [viewMode, setViewModeState] = useState<ViewMode>(() => storage.getViewMode('landing'));
   const [activeTab, setActiveTabState] = useState<TabType>(() => storage.getActiveTab('dual-vm'));
   const [isSidebarCollapsed, setIsSidebarCollapsedState] = useState<boolean>(() => storage.getSidebarCollapsed(false));
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const setViewMode = (mode: ViewMode) => {
@@ -44,6 +45,7 @@ export const App: React.FC = () => {
   const setActiveTab = (tab: TabType) => {
     setActiveTabState(tab);
     storage.setActiveTab(tab);
+    setIsMobileNavOpen(false);
   };
 
   const setIsSidebarCollapsed = (val: boolean | ((prev: boolean) => boolean)) => {
@@ -113,11 +115,11 @@ export const App: React.FC = () => {
   }, []);
 
   const navItems = [
-    { id: 'dual-vm' as TabType, label: 'Dual-VM Telemetry', icon: Layers },
-    { id: 'slashing' as TabType, label: 'Slashing Guard', icon: ShieldCheck },
-    { id: 'staking' as TabType, label: 'NPoS Staking', icon: TrendingUp },
-    { id: 'shield' as TabType, label: 'RPC Shield & Topology', icon: Shield },
-    { id: 'canvas' as TabType, label: 'Automation Canvas', icon: Workflow }
+    { id: 'dual-vm' as TabType, label: 'Dual-VM Telemetry', shortLabel: 'Dual-VM', icon: Layers },
+    { id: 'slashing' as TabType, label: 'Slashing Guard', shortLabel: 'Slashing', icon: ShieldCheck },
+    { id: 'staking' as TabType, label: 'NPoS Staking', shortLabel: 'Staking', icon: TrendingUp },
+    { id: 'shield' as TabType, label: 'RPC Shield & Topology', shortLabel: 'Shield', icon: Shield },
+    { id: 'canvas' as TabType, label: 'Automation Canvas', shortLabel: 'Canvas', icon: Workflow }
   ];
 
   // Semantic HTML/React Landing Page with Three.js Background
@@ -145,15 +147,74 @@ export const App: React.FC = () => {
         syncStatus={dualData?.sync?.status || 'SYNCED'}
         activeNode={secData?.active_node || 'PRIMARY'}
         onNavigateHome={() => setViewMode('landing')}
+        isMobileNavOpen={isMobileNavOpen}
+        onToggleMobileNav={() => setIsMobileNavOpen((prev) => !prev)}
       />
 
       {/* Main Control Center Body */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar Hotkey Rail */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Mobile Backdrop Overlay */}
+        {isMobileNavOpen && (
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-40 md:hidden"
+            onClick={() => setIsMobileNavOpen(false)}
+          />
+        )}
+
+        {/* Mobile Slide-over Drawer */}
         <aside
-          className={`${
+          className={`fixed inset-y-0 left-0 w-64 bg-[#0A0515] border-r border-[#261B42] z-50 flex flex-col justify-between py-4 select-none pb-8 transition-transform duration-200 md:hidden shadow-2xl ${
+            isMobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="space-y-1 px-3">
+            <div className="flex items-center justify-between px-2 py-2 mb-2 border-b border-[#261B42]">
+              <span className="text-[11px] uppercase font-mono text-zinc-400 font-bold tracking-wider">
+                Operations Menu
+              </span>
+              <button
+                onClick={() => setIsMobileNavOpen(false)}
+                className="p-1 text-zinc-400 hover:text-white"
+                title="Close Menu"
+              >
+                ✕
+              </button>
+            </div>
+
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-none text-xs font-mono transition-all text-left cursor-pointer ${
+                    isActive
+                      ? 'bg-[#180E30] border-l-2 border-[#8B5CF6] text-white font-bold'
+                      : 'border-l-2 border-transparent text-zinc-400 hover:bg-[#110A24] hover:text-white hover:border-[#4C2889]'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#8B5CF6]' : 'text-zinc-400'}`} />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="px-4 text-[11px] font-mono text-zinc-500 border-t border-[#1F143D] pt-3">
+            <div className="flex items-center gap-2 text-zinc-400">
+              <span className="w-2 h-2 rounded bg-[#10B981] shrink-0" />
+              <span>Engine Status: Online</span>
+            </div>
+            <div className="text-[10px] text-zinc-600 mt-1">Portaldot Network V3.0</div>
+          </div>
+        </aside>
+
+        {/* Desktop Sidebar Hotkey Rail */}
+        <aside
+          className={`hidden md:flex ${
             isSidebarCollapsed ? 'w-16' : 'w-56'
-          } border-r border-[#261B42] bg-[#0A0515] flex flex-col justify-between py-4 select-none shrink-0 pb-12 transition-all duration-200`}
+          } border-r border-[#261B42] bg-[#0A0515] flex-col justify-between py-4 select-none shrink-0 pb-12 transition-all duration-200`}
         >
           <div className="space-y-1 px-2">
             {/* Operations Navigation Header & Collapse/Expand Toggle */}
@@ -217,8 +278,8 @@ export const App: React.FC = () => {
         <main
           className={`flex-1 ${
             activeTab === 'canvas'
-              ? 'p-2.5 pb-10 overflow-hidden flex flex-col'
-              : 'p-6 pb-48 overflow-y-auto'
+              ? 'p-1 sm:p-2.5 pb-20 md:pb-10 overflow-hidden flex flex-col'
+              : 'p-3 sm:p-5 md:p-6 pb-36 sm:pb-44 md:pb-48 overflow-y-auto'
           } bg-[#080512]`}
         >
           {activeTab === 'dual-vm' && (
@@ -245,6 +306,27 @@ export const App: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* Persistent Mobile Bottom Navigation Bar (1-Thumb Tab Switching) */}
+      <nav className="fixed bottom-0 left-0 right-0 h-14 bg-[#0A0515]/95 backdrop-blur-md border-t border-[#261B42] flex items-center justify-around z-30 md:hidden px-1 select-none shadow-2xl">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex flex-col items-center justify-center flex-1 py-1 px-0.5 text-[10px] font-mono transition-colors ${
+                isActive ? 'text-[#C084FC] font-bold' : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              <Icon className={`w-4 h-4 mb-0.5 ${isActive ? 'text-[#8B5CF6]' : 'text-zinc-500'}`} />
+              <span className="truncate max-w-[58px] text-center text-[9px] sm:text-[10px]">{item.shortLabel}</span>
+              {isActive && <span className="w-1 h-1 rounded-full bg-[#8B5CF6] mt-0.5" />}
+            </button>
+          );
+        })}
+      </nav>
 
       {/* Fixed Diagnostic Terminal Drawer with Multi-Source and Node Filtering */}
       <TerminalDrawer

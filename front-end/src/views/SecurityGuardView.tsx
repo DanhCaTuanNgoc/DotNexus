@@ -96,19 +96,19 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={handleRotateKeys}
             disabled={rotating}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white font-bold border border-[#8B5CF6] transition-colors cursor-pointer"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white font-bold border border-[#8B5CF6] transition-colors cursor-pointer"
           >
             <Key className={`w-3.5 h-3.5 ${rotating ? 'animate-spin' : ''}`} />
-            <span>ROTATE KEYS (SESSION N+2)</span>
+            <span>ROTATE KEYS (N+2)</span>
           </button>
           <button
             onClick={handleFailover}
             disabled={switching}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[#1A0B10] hover:bg-[#2A0E17] active:bg-[#3D1421] border border-[#EF4444] text-[#EF4444] font-bold transition-colors cursor-pointer"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[#1A0B10] hover:bg-[#2A0E17] active:bg-[#3D1421] border border-[#EF4444] text-[#EF4444] font-bold transition-colors cursor-pointer"
           >
             <ArrowRightLeft className={`w-3.5 h-3.5 ${switching ? 'animate-spin' : ''}`} />
             <span>TRIGGER FAILOVER</span>
@@ -117,12 +117,12 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
       </div>
 
       {/* 1. Dead Man's Switch Fencing Timeline (10s < 12s < 15s) */}
-      <div className="p-4 bg-[#0F0A1D] border border-[#261B42] space-y-3">
+      <div className="p-3 sm:p-4 bg-[#0F0A1D] border border-[#261B42] space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Clock className="w-3.5 h-3.5 text-[#8B5CF6]" />
             <span className="text-xs font-mono font-bold text-white tracking-wider">
-              DEAD MAN&apos;S SWITCH TIMING INVARIANT: T_fence(10s) &lt; T_ttl(12s) &lt; T_takeover(15s)
+              DEAD MAN&apos;S SWITCH: T_fence(10s) &lt; T_ttl(12s) &lt; T_takeover(15s)
             </span>
           </div>
           <div className="flex items-center gap-2 font-mono text-[11px]">
@@ -137,15 +137,18 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
         <div className="p-3 bg-[#080512] border border-[#1F143D] space-y-3 font-mono">
           {/* Segmented Timeline */}
           <div className="space-y-1">
-            <div className="flex justify-between text-[10px] text-zinc-500">
-              <span>0.0s [LEASE_START]</span>
-              <span className="text-amber-400 font-bold">10.0s [SELF-FENCE CLIFF]</span>
-              <span className="text-zinc-400">12.0s [LEASE EXPIRED]</span>
-              <span className="text-[#8B5CF6] font-bold">15.0s [TAKEOVER GATE]</span>
+            <div className="flex flex-wrap justify-between text-[10px] text-zinc-500 gap-1">
+              <span>0.0s [LEASE]</span>
+              <span className="text-amber-400 font-bold">10.0s [SELF-FENCE]</span>
+              <span className="text-zinc-400">12.0s [TTL EXPIRED]</span>
+              <span className="text-[#8B5CF6] font-bold">15.0s [TAKEOVER]</span>
             </div>
 
             {/* Segment blocks */}
-            <div className="grid grid-cols-30 gap-1 h-3 bg-[#0B0616] p-0.5 border border-[#261B42]">
+            <div 
+              className="grid gap-0.5 sm:gap-1 h-3 bg-[#0B0616] p-0.5 border border-[#261B42]"
+              style={{ gridTemplateColumns: `repeat(${totalSlots}, minmax(0, 1fr))` }}
+            >
               {Array.from({ length: totalSlots }).map((_, i) => {
                 const isFilled = i < filledSlots;
                 // Markers at slot 20 (10s), slot 24 (12s), slot 30 (15s)
@@ -177,10 +180,10 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
           </div>
 
           {/* Telemetry Status Bar */}
-          <div className="flex flex-wrap items-center justify-between text-[11px] pt-2 border-t border-[#1F143D] gap-2">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between text-[11px] pt-2 border-t border-[#1F143D] gap-2">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <span>
-                ELAPSED LEASE: <strong className="text-white tabular-nums">{simulatedElapsedSeconds.toFixed(1)}s</strong> / 12.0s
+                ELAPSED: <strong className="text-white tabular-nums">{simulatedElapsedSeconds.toFixed(1)}s</strong> / 12.0s
               </span>
               <span className="text-zinc-600">|</span>
               <span>
@@ -188,13 +191,13 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <span className={`px-2 py-0.5 text-[10px] font-bold border ${
                 isSelfFenced
                   ? 'border-[#EF4444] bg-[#2A0E17] text-[#EF4444]'
                   : 'border-[#10B981]/50 bg-[#0E2820]/40 text-[#10B981]'
               }`}>
-                {isSelfFenced ? '[KEYSTORE FENCED - EQUIVOCATION IMPOSSIBLE]' : '[SIGNING LEASE VALID - DUAL-LOCK ACQUIRED]'}
+                {isSelfFenced ? '[KEYSTORE FENCED]' : '[LEASE VALID - DUAL-LOCK]'}
               </span>
 
               <button
@@ -202,7 +205,7 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
                 disabled={simulatingMiss}
                 className="px-2.5 py-1 text-[10px] bg-[#140C2B] hover:bg-[#1E113E] border border-[#4C2889] text-[#C084FC] hover:text-white cursor-pointer transition-colors"
               >
-                +1 Sim Missed Heartbeat
+                +1 Sim Miss
               </button>
             </div>
           </div>

@@ -58,7 +58,8 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
   };
 
   const setHeight = (h: number) => {
-    const clamped = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, Math.round(h)));
+    const maxAllowed = typeof window !== 'undefined' ? Math.min(MAX_HEIGHT, Math.floor(window.innerHeight * 0.7)) : MAX_HEIGHT;
+    const clamped = Math.max(MIN_HEIGHT, Math.min(maxAllowed, Math.round(h)));
     setHeightState(clamped);
     storage.setTerminalHeight(clamped);
   };
@@ -75,10 +76,11 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
       setIsOpen(true);
       return;
     }
-    if (height >= EXPANDED_HEIGHT - 20) {
+    const maxAllowed = typeof window !== 'undefined' ? Math.min(EXPANDED_HEIGHT, Math.floor(window.innerHeight * 0.7)) : EXPANDED_HEIGHT;
+    if (height >= maxAllowed - 30) {
       setHeight(DEFAULT_HEIGHT);
     } else {
-      setHeight(EXPANDED_HEIGHT);
+      setHeight(maxAllowed);
     }
   };
 
@@ -154,11 +156,11 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isTall = height >= EXPANDED_HEIGHT - 20;
+  const isTall = height >= EXPANDED_HEIGHT - 30;
 
   return (
     <div 
-      className={`fixed bottom-0 left-0 right-0 z-40 border-t border-[#261B42] bg-[#080512]/95 backdrop-blur-md shadow-2xl shadow-black/80 transition-shadow ${
+      className={`fixed bottom-14 md:bottom-0 left-0 right-0 z-40 border-t border-[#261B42] bg-[#080512]/95 backdrop-blur-md shadow-2xl shadow-black/80 transition-shadow ${
         isResizing ? 'select-none pointer-events-auto' : ''
       }`}
     >
@@ -181,24 +183,24 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
       {/* Bar header & Controls */}
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className="h-8 px-4 bg-[#0E071F]/90 flex items-center justify-between cursor-pointer select-none hover:bg-[#150B2E] border-b border-[#261B42]/70"
+        className="h-8 px-3 sm:px-4 bg-[#0E071F]/90 flex items-center justify-between cursor-pointer select-none hover:bg-[#150B2E] border-b border-[#261B42]/70"
       >
-        <div className="flex items-center gap-2.5 text-xs font-mono text-zinc-300">
-          <Terminal className="w-3.5 h-3.5 text-[#8B5CF6]" />
-          <span className="font-semibold tracking-wide hidden sm:inline">DIAGNOSTIC TERMINAL & EVENT STREAM</span>
-          <span className="font-semibold tracking-wide sm:hidden">TERMINAL</span>
+        <div className="flex items-center gap-2 sm:gap-2.5 text-xs font-mono text-zinc-300 min-w-0">
+          <Terminal className="w-3.5 h-3.5 text-[#8B5CF6] shrink-0" />
+          <span className="font-semibold tracking-wide hidden sm:inline truncate">DIAGNOSTIC TERMINAL & EVENT STREAM</span>
+          <span className="font-semibold tracking-wide sm:hidden truncate">TERMINAL</span>
           
-          <span className="text-[10px] px-2 py-0.2 rounded-none border border-[#3B2564] bg-[#1E113E] text-[#C084FC] tabular-nums font-bold">
-            {filteredLogs.length} events
+          <span className="text-[10px] px-1.5 sm:px-2 py-0.2 rounded-none border border-[#3B2564] bg-[#1E113E] text-[#C084FC] tabular-nums font-bold shrink-0">
+            {filteredLogs.length}
           </span>
 
-          <span className="hidden md:inline-flex items-center gap-1.5 text-[10px] font-mono text-[#10B981] ml-1">
+          <span className="hidden md:inline-flex items-center gap-1.5 text-[10px] font-mono text-[#10B981] ml-1 shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
             LIVE FEED
           </span>
 
           {isOpen && (
-            <span className="hidden lg:inline text-[9px] font-mono text-zinc-500 tabular-nums">
+            <span className="hidden lg:inline text-[9px] font-mono text-zinc-500 tabular-nums shrink-0">
               ({height}px)
             </span>
           )}
@@ -210,17 +212,17 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
                 e.stopPropagation();
                 onClearNodeFilter?.();
               }}
-              className="flex items-center gap-1 px-1.5 py-0.2 bg-[#581C87] border border-[#C084FC] text-[9px] font-mono text-white cursor-pointer hover:bg-rose-950 hover:border-rose-500 transition-colors"
+              className="flex items-center gap-1 px-1.5 py-0.2 bg-[#581C87] border border-[#C084FC] text-[9px] font-mono text-white cursor-pointer hover:bg-rose-950 hover:border-rose-500 transition-colors shrink-0"
               title="Filter active: Click to clear node filter"
             >
               <Filter className="w-2.5 h-2.5 text-[#C084FC]" />
-              <span>Node: {selectedNodeId}</span>
+              <span className="truncate max-w-[80px] sm:max-w-none">Node: {selectedNodeId}</span>
               <span className="text-zinc-300 hover:text-white font-bold ml-0.5">✕</span>
             </div>
           )}
         </div>
 
-        {/* Center Tabs (Visible when open) */}
+        {/* Center Desktop Tabs (Visible when open) */}
         {isOpen && (
           <div 
             onClick={(e) => e.stopPropagation()} 
@@ -244,7 +246,7 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
         )}
 
         {/* Right Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {isOpen && (
             <>
               {/* Copy logs */}
@@ -303,10 +305,37 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
 
       {/* Terminal Content (Dynamic Height) */}
       {isOpen && (
-        <div 
-          style={{ height: `${height}px` }}
-          className="overflow-y-auto p-3 font-mono text-[11px] space-y-1 bg-[#06030D]/95 border-b border-[#261B42]/50 transition-[height] duration-75"
-        >
+        <>
+          {/* Mobile Tab Selector Strip */}
+          <div className="sm:hidden flex items-center justify-between px-3 py-1 bg-[#0A0516] border-b border-[#261B42]/70 overflow-x-auto gap-1">
+            <div className="flex items-center gap-1">
+              {(['ALL', 'DAG', 'SECURITY', 'SYSTEM'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTab(tab);
+                  }}
+                  className={`px-2 py-0.5 text-[9px] font-mono font-bold uppercase transition-colors shrink-0 ${
+                    activeTab === tab
+                      ? 'bg-[#8B5CF6] text-white border border-[#8B5CF6]'
+                      : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+                  }`}
+                >
+                  {tab === 'DAG' ? 'DAG' : tab}
+                </button>
+              ))}
+            </div>
+            <span className="text-[9px] font-mono text-zinc-500 shrink-0 tabular-nums">
+              {filteredLogs.length} events
+            </span>
+          </div>
+
+          <div 
+            style={{ height: `${height}px` }}
+            className="overflow-y-auto p-3 font-mono text-[11px] space-y-1 bg-[#06030D]/95 border-b border-[#261B42]/50 transition-[height] duration-75"
+          >
           {filteredLogs.length === 0 ? (
             <div className="text-zinc-600 italic py-2">
               {selectedNodeId
@@ -350,7 +379,8 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
               <div ref={endRef} />
             </>
           )}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

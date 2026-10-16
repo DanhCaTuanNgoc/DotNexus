@@ -260,22 +260,22 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
           Inject real simulated attack vectors to prove that memory exhaustion (OOM), batch floods, and storage scans are neutralized.
         </p>
 
-        <div className="flex flex-wrap gap-2.5">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2.5">
           <button
             onClick={() => handleSimulateAttack('HEAVY_GETLOGS')}
             disabled={simulating}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs bg-[#1A0B10] hover:bg-[#2A0E17] active:bg-[#3D1421] border border-[#EF4444] text-[#EF4444] font-bold cursor-pointer transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 sm:py-1.5 text-xs bg-[#1A0B10] hover:bg-[#2A0E17] active:bg-[#3D1421] border border-[#EF4444] text-[#EF4444] font-bold cursor-pointer transition-colors"
           >
-            <ShieldAlert className="w-3.5 h-3.5" />
+            <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
             <span>TEST HEAVY eth_getLogs (500k BLOCKS)</span>
           </button>
 
           <button
             onClick={() => handleSimulateAttack('RATE_LIMIT_BURST')}
             disabled={simulating}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs bg-[#140C2B] hover:bg-[#1E113E] active:bg-[#2B1758] border border-[#8B5CF6] text-[#C084FC] hover:text-white font-bold cursor-pointer transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 sm:py-1.5 text-xs bg-[#140C2B] hover:bg-[#1E113E] active:bg-[#2B1758] border border-[#8B5CF6] text-[#C084FC] hover:text-white font-bold cursor-pointer transition-colors"
           >
-            <Zap className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <Zap className="w-3.5 h-3.5 shrink-0" />
             <span>TEST RATE LIMIT BURST (&gt; 60 REQ/MIN)</span>
           </button>
         </div>

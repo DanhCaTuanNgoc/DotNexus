@@ -16,7 +16,9 @@ import {
   Terminal,
   Globe,
   Gauge,
-  CornerDownRight
+  CornerDownRight,
+  Menu,
+  X
 } from 'lucide-react';
 import { ThreeCanvas } from '../components/ThreeCanvas';
 import { 
@@ -41,6 +43,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   nposData,
   shieldData
 }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="relative min-h-screen bg-[#080512] text-[#E2E8F0] selection:bg-[#8B5CF6] selection:text-white overflow-x-hidden font-sans">
       {/* Background Cybernetic Grid & Ambient Lighting Orbs */}
@@ -54,7 +58,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <div className="glow-orb-cyan w-[600px] h-[600px] top-60 -right-60 z-0 animate-pulse-glow" style={{ animationDelay: '4s' }} />
 
       {/* Top Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[#261B42]/90 bg-[#080512]/90 backdrop-blur-md px-6 flex items-center justify-between shadow-2xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[#261B42]/90 bg-[#080512]/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-none bg-[#8B5CF6]/20 border border-[#8B5CF6] flex items-center justify-center text-[#8B5CF6] shadow-lg shadow-[#8B5CF6]/30">
             <Zap className="w-4 h-4 fill-[#8B5CF6]" />
@@ -72,7 +76,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
 
-        {/* Center Nav Links */}
+        {/* Center Nav Links (Desktop) */}
         <div className="hidden md:flex items-center gap-6 text-xs font-mono text-zinc-400">
           <a href="#pillars" className="hover:text-[#C084FC] transition-colors flex items-center gap-1">
             <span>The 4 Pillars</span>
@@ -82,35 +86,77 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <a href="#roadmap" className="hover:text-[#C084FC] transition-colors">Roadmap</a>
         </div>
 
-        {/* Right CTA */}
-        <div className="flex items-center gap-3">
+        {/* Right CTA & Mobile Toggle */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={onLaunchApp}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-lg shadow-[#8B5CF6]/30 hover:scale-[1.02] cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-lg shadow-[#8B5CF6]/30 hover:scale-[1.02] cursor-pointer"
           >
-            <span>Launch Control Center</span>
+            <span>Launch Console</span>
             <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-zinc-400 hover:text-white hover:bg-[#1E113E] border border-[#261B42]"
+            title="Toggle Menu"
+          >
+            {isMobileMenuOpen ? <X className="w-4 h-4 text-[#C084FC]" /> : <Menu className="w-4 h-4" />}
           </button>
         </div>
       </nav>
 
+      {/* Mobile Nav Dropdown Sheet */}
+      {isMobileMenuOpen && (
+        <div className="fixed top-16 left-0 right-0 z-40 bg-[#0A0515]/98 border-b border-[#261B42] p-4 flex flex-col space-y-3 font-mono text-xs md:hidden shadow-2xl backdrop-blur-md">
+          <a
+            href="#pillars"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] transition-colors"
+          >
+            → The 4 Pillars
+          </a>
+          <a
+            href="#dag-canvas"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] transition-colors"
+          >
+            → Visual DAG Automation Canvas
+          </a>
+          <a
+            href="#comparison"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] transition-colors"
+          >
+            → Why DotNexus Stands Apart
+          </a>
+          <a
+            href="#roadmap"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] transition-colors"
+          >
+            → Hackathon Delivery Timeline
+          </a>
+        </div>
+      )}
+
       {/* Hero Section */}
-      <section className="relative min-h-[100vh] pt-28 pb-16 flex items-center justify-center px-6 overflow-hidden z-10">
+      <section className="relative min-h-[100vh] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6 overflow-hidden z-10">
         {/* 3D Background: Three.js Dual-VM Cyber Mesh */}
         <ThreeCanvas />
 
         {/* Foreground Hero Content */}
-        <div className="relative z-20 max-w-5xl mx-auto text-center space-y-8">
+        <div className="relative z-20 max-w-5xl mx-auto text-center space-y-6 sm:space-y-8">
           {/* Track Chip */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-none border border-[#4C2889] bg-[#110A24]/90 backdrop-blur-md text-xs font-mono text-[#C084FC] shadow-lg shadow-[#8B5CF6]/20 pointer-events-auto">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-none border border-[#4C2889] bg-[#110A24]/90 backdrop-blur-md text-[10px] sm:text-xs font-mono text-[#C084FC] shadow-lg shadow-[#8B5CF6]/20 pointer-events-auto">
             <span className="w-2 h-2 rounded bg-[#10B981] animate-ping" />
-            <span className="font-semibold tracking-wider">PORTALDOT HACKER HOUSE 2026 • NODE OPERATIONS & TOOLING</span>
+            <span className="font-semibold tracking-wider">PORTALDOT HACKER HOUSE 2026 • NODE OPERATIONS &amp; TOOLING</span>
           </div>
 
           {/* Main Title */}
           <div className="space-y-4">
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08]">
-              The Visual Control Plane & <br />
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+              The Visual Control Plane &amp; <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] via-[#C084FC] to-[#38BDF8] drop-shadow-md">
                 Automated Security Operations Engine
               </span>
@@ -118,10 +164,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Action CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2 pointer-events-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2 pointer-events-auto">
             <button
               onClick={onLaunchApp}
-              className="tech-corner-accent flex items-center gap-2.5 px-7 py-3.5 text-sm font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/35 hover:scale-[1.02] cursor-pointer"
+              className="w-full sm:w-auto tech-corner-accent flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/35 hover:scale-[1.02] cursor-pointer"
             >
               <Zap className="w-4 h-4 fill-white" />
               <span>Launch Live Control Center</span>
@@ -129,7 +175,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <a
               href="#pillars"
-              className="flex items-center gap-2 px-7 py-3.5 text-sm font-mono rounded-none bg-[#110A24]/90 hover:bg-[#180F33] border border-[#2D1F52] hover:border-[#8B5CF6] text-zinc-200 transition-all backdrop-blur-md"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-none bg-[#110A24]/90 hover:bg-[#180F33] border border-[#2D1F52] hover:border-[#8B5CF6] text-zinc-200 transition-all backdrop-blur-md"
             >
               <Layers className="w-4 h-4 text-[#8B5CF6]" />
               <span>Explore The 4 Pillars</span>
@@ -138,7 +184,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Live Floating Cluster Ticker Strip */}
           <div className="pt-6 pointer-events-auto">
-            <div className="tech-corner-accent max-w-4xl mx-auto p-4 rounded-none border border-[#2D1F52] bg-[#110A24]/95 backdrop-blur-md grid grid-cols-2 sm:grid-cols-4 gap-3 text-left font-mono shadow-2xl">
+            <div className="tech-corner-accent max-w-4xl mx-auto p-3 sm:p-4 rounded-none border border-[#2D1F52] bg-[#110A24]/95 backdrop-blur-md grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-left font-mono shadow-2xl">
               <div className="p-3.5 rounded-none bg-[#080512] border border-[#261B42] relative overflow-hidden group">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-500 font-bold">WASM BEST BLOCK</span>
@@ -509,36 +555,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           <div className="space-y-4 font-mono text-xs">
-            <div className="p-4 rounded-none border border-[#261B42] bg-[#110A24] flex items-center justify-between">
+            <div className="p-4 rounded-none border border-[#261B42] bg-[#110A24] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
               <div>
-                <span className="text-[#C084FC] font-bold">Oct 14, 2026</span> — Official Kick-off Meeting & Workshop
+                <span className="text-[#C084FC] font-bold">Oct 14, 2026</span> — Official Kick-off Meeting &amp; Workshop
                 <div className="text-[11px] text-zinc-400 mt-0.5">Architecture finalized, Dual-VM Engine baseline created.</div>
               </div>
-              <span className="px-2 py-0.5 rounded-none bg-[#10B981]/20 text-[#10B981] font-bold">READY</span>
+              <span className="self-start sm:self-auto px-2 py-0.5 rounded-none bg-[#10B981]/20 text-[#10B981] font-bold">READY</span>
             </div>
 
-            <div className="p-4 rounded-none border border-[#8B5CF6]/50 bg-[#180E30] flex items-center justify-between shadow-lg shadow-[#8B5CF6]/15">
+            <div className="p-4 rounded-none border border-[#8B5CF6]/50 bg-[#180E30] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 shadow-lg shadow-[#8B5CF6]/15">
               <div>
                 <span className="text-[#C084FC] font-bold">Oct 24, 2026 (12:00 UTC)</span> — DoraHacks Check-in Deadline
-                <div className="text-[11px] text-zinc-300 mt-0.5">Dual-Engine Tracker, Slashing Guard & Working Prototype demo.</div>
+                <div className="text-[11px] text-zinc-300 mt-0.5">Dual-Engine Tracker, Slashing Guard &amp; Working Prototype demo.</div>
               </div>
-              <span className="px-2 py-0.5 rounded-none bg-[#8B5CF6]/30 text-[#C084FC] font-bold">CHECK-IN TARGET</span>
+              <span className="self-start sm:self-auto px-2 py-0.5 rounded-none bg-[#8B5CF6]/30 text-[#C084FC] font-bold">CHECK-IN TARGET</span>
             </div>
 
-            <div className="p-4 rounded-none border border-[#261B42] bg-[#110A24] flex items-center justify-between">
+            <div className="p-4 rounded-none border border-[#261B42] bg-[#110A24] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
               <div>
-                <span className="text-zinc-400 font-bold">Nov 06, 2026 (04:00 UTC)</span> — Code Freeze & Final Submission
-                <div className="text-[11px] text-zinc-500 mt-0.5">Complete code package, pitch deck & judge verification.</div>
+                <span className="text-zinc-400 font-bold">Nov 06, 2026 (04:00 UTC)</span> — Code Freeze &amp; Final Submission
+                <div className="text-[11px] text-zinc-500 mt-0.5">Complete code package, pitch deck &amp; judge verification.</div>
               </div>
-              <span className="px-2 py-0.5 rounded-none bg-zinc-800 text-zinc-400">UPCOMING</span>
+              <span className="self-start sm:self-auto px-2 py-0.5 rounded-none bg-zinc-800 text-zinc-400">UPCOMING</span>
             </div>
 
-            <div className="p-4 rounded-none border border-[#261B42] bg-[#110A24] flex items-center justify-between">
+            <div className="p-4 rounded-none border border-[#261B42] bg-[#110A24] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
               <div>
-                <span className="text-zinc-400 font-bold">Nov 07 – 08, 2026</span> — Live Demo Day & Foundation Review
+                <span className="text-zinc-400 font-bold">Nov 07 – 08, 2026</span> — Live Demo Day &amp; Foundation Review
                 <div className="text-[11px] text-zinc-500 mt-0.5">Live demonstration with Portaldot Network judges.</div>
               </div>
-              <span className="px-2 py-0.5 rounded-none bg-zinc-800 text-zinc-400">UPCOMING</span>
+              <span className="self-start sm:self-auto px-2 py-0.5 rounded-none bg-zinc-800 text-zinc-400">UPCOMING</span>
             </div>
           </div>
         </div>

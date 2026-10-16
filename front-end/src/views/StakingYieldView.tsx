@@ -205,14 +205,14 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
         </div>
 
         {/* Stake Rebalance Action Bar */}
-        <div className="p-3 bg-[#080512] border border-[#1F143D] flex flex-wrap items-center justify-between gap-3">
+        <div className="p-3 bg-[#080512] border border-[#1F143D] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-400">STAKING AMOUNT:</span>
+            <span className="text-xs text-zinc-400 shrink-0">STAKING AMOUNT:</span>
             <input
               type="number"
               value={stakeInput}
               onChange={(e) => setStakeInput(Number(e.target.value))}
-              className="w-36 bg-[#140C2B] border border-[#4C2889] text-white px-3 py-1 text-xs tabular-nums focus:outline-none focus:border-[#8B5CF6]"
+              className="w-32 sm:w-36 bg-[#140C2B] border border-[#4C2889] text-white px-3 py-1 text-xs tabular-nums focus:outline-none focus:border-[#8B5CF6]"
             />
             <span className="text-xs text-[#C084FC] font-bold">POT</span>
           </div>
@@ -220,10 +220,10 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           <button
             onClick={handleRebalance}
             disabled={isCalculating}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white border border-[#8B5CF6] cursor-pointer transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white border border-[#8B5CF6] cursor-pointer transition-colors"
           >
             <Send className={`w-3.5 h-3.5 ${isCalculating ? 'animate-spin' : ''}`} />
-            <span>SIMULATE &amp; SIGN NOMINATE(16 TARGETS)</span>
+            <span>SIMULATE &amp; SIGN NOMINATE (16 TARGETS)</span>
           </button>
         </div>
 

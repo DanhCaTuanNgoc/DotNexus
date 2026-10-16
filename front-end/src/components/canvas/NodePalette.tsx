@@ -29,6 +29,7 @@ import { storage } from '../../services/storage';
 
 interface NodePaletteProps {
   onAddNode: (template: NodeTemplate) => void;
+  onClose?: () => void;
 }
 
 const ICON_MAP: Record<string, React.FC<any>> = {
@@ -56,7 +57,7 @@ const ICON_MAP: Record<string, React.FC<any>> = {
 
 const CATEGORIES: ('ALL' | NodeCategory)[] = ['ALL', 'INFRA', 'WATCHER', 'SECURITY', 'ACTION', 'STAKING'];
 
-export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode }) => {
+export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode, onClose }) => {
   const [selectedCategory, setSelectedCategoryState] = useState<'ALL' | NodeCategory>(
     () => storage.getPaletteCategory('ALL') as 'ALL' | NodeCategory
   );
@@ -84,10 +85,21 @@ export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode }) => {
     <div className="w-72 h-full max-h-full border-r border-[#261B42] bg-[#0A0515] flex flex-col shrink-0 select-none overflow-hidden">
       <div className="p-2.5 border-b border-[#261B42] shrink-0">
         <div className="text-[10px] uppercase font-mono text-[#C084FC] font-bold tracking-wider mb-1.5 flex items-center justify-between">
-          <span>Ops Node Toolbox</span>
-          <span className="text-[9px] px-1.5 py-0.2 bg-[#1E113E] border border-[#3B2564] text-zinc-300">
-            {NODE_TEMPLATES.length} NODES
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span>Ops Node Toolbox</span>
+            <span className="text-[9px] px-1.5 py-0.2 bg-[#1E113E] border border-[#3B2564] text-zinc-300">
+              {NODE_TEMPLATES.length}
+            </span>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="lg:hidden text-zinc-400 hover:text-white p-0.5 text-xs font-mono"
+              title="Close Toolbox"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
         {/* Search */}

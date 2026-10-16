@@ -31,7 +31,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
   };
 
   return (
-    <div className="w-80 h-full max-h-full border-l border-[#261B42] bg-[#0E071F]/95 backdrop-blur-md flex flex-col justify-between p-4 z-20 shadow-2xl overflow-y-auto shrink-0">
+    <div className="w-full sm:w-80 h-full max-h-full absolute right-0 top-0 bottom-0 z-30 lg:relative lg:z-auto border-l border-[#261B42] bg-[#0E071F]/95 backdrop-blur-md flex flex-col justify-between p-4 shadow-2xl overflow-y-auto shrink-0">
       <div>
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#261B42]">

@@ -161,6 +161,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     () => !!(savedCanvas && (savedCanvas.nodes.length > 0 || savedCanvas.selectedRunbookId === 'custom-blank'))
   );
 
+  const [isPaletteOpen, setIsPaletteOpen] = useState<boolean>(false);
+
   // Flow Connect Mode (Handle / Pin Visibility)
   const [flowConnectMode, setFlowConnectMode] = useState<boolean>(() =>
     storage.getFlowConnectMode(false)
@@ -736,6 +738,20 @@ if __name__ == "__main__":
             <option value="custom-blank">[CUSTOM] Blank Canvas</option>
           </select>
 
+          {/* Toolbox toggle button */}
+          <button
+            onClick={() => setIsPaletteOpen(!isPaletteOpen)}
+            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono border transition-colors cursor-pointer ${
+              isPaletteOpen
+                ? 'border-[#8B5CF6] bg-[#8B5CF6]/30 text-white font-bold'
+                : 'border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E]'
+            }`}
+            title={isPaletteOpen ? 'Close Node Toolbox' : 'Open Node Toolbox'}
+          >
+            <Workflow className="w-3 h-3 text-[#8B5CF6]" />
+            <span>Toolbox</span>
+          </button>
+
           {/* Reset button */}
           <button
             onClick={handleResetCanvas}
@@ -748,7 +764,7 @@ if __name__ == "__main__":
           {/* Export JSON */}
           <button
             onClick={handleExportJSON}
-            className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
+            className="hidden xs:flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
             title="Export DAG as JSON"
           >
             <Download className="w-3 h-3 text-[#8B5CF6]" />
@@ -796,8 +812,30 @@ if __name__ == "__main__":
 
       {/* 3-Section Main Workspace: [Palette | Interactive Canvas | Inspector] */}
       <div className="relative flex-1 min-h-[500px] h-[calc(100vh-175px)] flex border border-[#261B42] bg-[#06030D] overflow-hidden shadow-2xl">
-        {/* Left: Node Toolbox Palette - Fixed height & strictly internal scroll */}
-        <NodePalette onAddNode={handleAddNodeFromTemplate} />
+        {/* Mobile Palette Overlay Backdrop */}
+        {isPaletteOpen && (
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs z-25 lg:hidden"
+            onClick={() => setIsPaletteOpen(false)}
+          />
+        )}
+
+        {/* Left: Node Toolbox Palette - Desktop inline / Mobile slide-over drawer */}
+        <div
+          className={`${
+            isPaletteOpen ? 'flex' : 'hidden lg:flex'
+          } absolute lg:relative inset-y-0 left-0 z-30 lg:z-auto shrink-0 shadow-2xl lg:shadow-none h-full`}
+        >
+          <NodePalette
+            onAddNode={(tpl) => {
+              handleAddNodeFromTemplate(tpl);
+              if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                setIsPaletteOpen(false);
+              }
+            }}
+            onClose={() => setIsPaletteOpen(false)}
+          />
+        </div>
 
         {/* Center: Interactive 60-120fps Flow Canvas */}
         <div className="flex-1 min-w-0 h-full relative overflow-hidden flex flex-col">

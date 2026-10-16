@@ -70,7 +70,7 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
     switch (category) {
       case 'SECURITY':
         return {
-          icon: <ShieldCheck className="w-3.5 h-3.5 text-[#8B5CF6]" />,
+          icon: <ShieldCheck className="w-3 h-3 text-[#8B5CF6]" />,
           text: 'SECURITY',
           border: 'border-[#8B5CF6]/50',
           bg: 'bg-[#18102E]',
@@ -78,24 +78,24 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
         };
       case 'TELEMETRY':
         return {
-          icon: <Activity className="w-3.5 h-3.5 text-[#10B981]" />,
-          text: 'TELEMETRY & BOTS',
+          icon: <Activity className="w-3 h-3 text-[#10B981]" />,
+          text: 'TELEMETRY',
           border: 'border-[#10B981]/50',
           bg: 'bg-[#0E2820]',
           color: 'text-[#10B981]',
         };
       case 'STAKING':
         return {
-          icon: <TrendingUp className="w-3.5 h-3.5 text-[#F59E0B]" />,
-          text: 'NPOS STAKING',
+          icon: <TrendingUp className="w-3 h-3 text-[#F59E0B]" />,
+          text: 'STAKING',
           border: 'border-[#F59E0B]/50',
           bg: 'bg-[#2B1B0E]',
           color: 'text-[#F59E0B]',
         };
       default:
         return {
-          icon: <Workflow className="w-3.5 h-3.5 text-[#38BDF8]" />,
-          text: 'CUSTOM FLOW',
+          icon: <Workflow className="w-3 h-3 text-[#38BDF8]" />,
+          text: 'CUSTOM',
           border: 'border-[#38BDF8]/50',
           bg: 'bg-[#0C1F2E]',
           color: 'text-[#38BDF8]',
@@ -149,63 +149,6 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
         </div>
       </div>
 
-      {/* 1. DAG Cluster Fleet Ribbon (Matching Dual-VM Module Style) */}
-      <div className="bg-[#0B0813] border border-[#201538] font-mono">
-        {/* Module Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 border-b border-[#201538] bg-[#0E091B]">
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#8B5CF6] font-bold">SYS::PIPELINE</span>
-            <span className="text-zinc-600">/</span>
-            <span className="text-zinc-300 font-bold tracking-wider">ACTIVE AUTOMATION FLEET</span>
-          </div>
-
-          <div className="flex items-center gap-3 text-[11px]">
-            <span className="text-zinc-400">
-              FLEET_COUNT: <strong className="text-zinc-200 tabular-nums">{workflows.length}</strong>
-            </span>
-            <span className="text-zinc-700">|</span>
-            <span className="px-2 py-0.5 text-[10px] font-bold border uppercase tracking-wider bg-emerald-950/40 text-emerald-400 border-emerald-800/60">
-              ● {activeCount} ARMED &amp; STREAMING
-            </span>
-          </div>
-        </div>
-
-        {/* Telemetry Stats Rail */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#201538] text-xs bg-[#090612]">
-          <div className="p-3 bg-[#0A0516] flex items-center justify-between">
-            <div>
-              <div className="text-[10px] text-zinc-500 font-bold uppercase">Total Workflows</div>
-              <div className="text-base font-bold text-white tabular-nums mt-0.5">{workflows.length} Configured</div>
-            </div>
-            <Workflow className="w-4 h-4 text-zinc-600" />
-          </div>
-
-          <div className="p-3 bg-[#0A0516] flex items-center justify-between">
-            <div>
-              <div className="text-[10px] text-zinc-500 font-bold uppercase">24/7 Active Daemons</div>
-              <div className="text-base font-bold text-emerald-400 tabular-nums mt-0.5">{activeCount} Running</div>
-            </div>
-            <Bot className="w-4 h-4 text-emerald-500" />
-          </div>
-
-          <div className="p-3 bg-[#0A0516] flex items-center justify-between">
-            <div>
-              <div className="text-[10px] text-zinc-500 font-bold uppercase">Slashing Defense</div>
-              <div className="text-base font-bold text-[#8B5CF6] tabular-nums mt-0.5">100% Zero-Loss</div>
-            </div>
-            <ShieldCheck className="w-4 h-4 text-[#8B5CF6]" />
-          </div>
-
-          <div className="p-3 bg-[#0A0516] flex items-center justify-between">
-            <div>
-              <div className="text-[10px] text-zinc-500 font-bold uppercase">Target Dual-VM</div>
-              <div className="text-base font-bold text-[#38BDF8] tabular-nums mt-0.5">WASM (:9944) + EVM</div>
-            </div>
-            <Layers className="w-4 h-4 text-[#38BDF8]" />
-          </div>
-        </div>
-      </div>
-
       {/* Search & Category Filter Toolbar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-[#0B0813] border border-[#201538]">
         <div className="relative flex-1 max-w-md">
@@ -238,53 +181,45 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
         </div>
       </div>
 
-      {/* Workflows Cards Grid */}
+      {/* Workflows Cards Grid - 4 cards per row */}
       {filteredWorkflows.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           {filteredWorkflows.map((workflow) => {
             const badge = getCategoryBadge(workflow.category);
             const is24_7 = workflow.id === 'runbook-health-bot';
-            
-            // Find key trigger and action nodes
-            const triggerNode = workflow.nodes.find(
-              (n) => n.data.category === 'INFRA' || n.data.category === 'WATCHER'
-            );
-            const actionNode = workflow.nodes.find(
-              (n) => n.data.category === 'ACTION' || n.data.category === 'SECURITY'
-            );
 
             return (
               <div
                 key={workflow.id}
                 onClick={() => onOpenWorkflow(workflow.id)}
-                className="tech-corner-accent flex flex-col justify-between border border-[#201538] bg-[#0E091B] hover:border-[#8B5CF6]/70 transition-all p-4 space-y-3 group shadow-xl relative cursor-pointer"
+                className="tech-corner-accent flex flex-col justify-between border border-[#201538] bg-[#0E091B]/95 hover:border-[#8B5CF6] hover:bg-[#130C24] transition-all p-3.5 space-y-3 group shadow-lg relative cursor-pointer"
               >
-                {/* Card Top: Badges & Actions */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold border ${badge.border} ${badge.bg} ${badge.color}`}>
+                {/* Top: Category Badge & Quick Actions */}
+                <div className="flex items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-bold border ${badge.border} ${badge.bg} ${badge.color}`}>
                       {badge.icon}
                       <span>{badge.text}</span>
                     </span>
                     {workflow.isCustom && (
-                      <span className="px-1.5 py-0.5 text-[9px] bg-zinc-800 text-zinc-300 border border-zinc-700">
-                        USER CANVAS
+                      <span className="px-1 py-0.5 text-[8px] bg-zinc-800 text-zinc-300 border border-zinc-700">
+                        USER
                       </span>
                     )}
                   </div>
 
-                  {/* Card Context Buttons */}
-                  <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                  {/* Context Actions */}
+                  <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         onCreateWorkflow(`${workflow.name} (Clone)`, 'duplicate');
                       }}
-                      className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#1A1033] border border-transparent hover:border-[#3B2564]"
+                      className="p-1 text-zinc-400 hover:text-white hover:bg-[#1A1033] border border-transparent hover:border-[#3B2564]"
                       title="Duplicate Canvas"
                     >
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-3 h-3" />
                     </button>
 
                     <button
@@ -293,10 +228,10 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
                         e.stopPropagation();
                         setEditingWorkflow(workflow);
                       }}
-                      className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#1A1033] border border-transparent hover:border-[#3B2564]"
+                      className="p-1 text-zinc-400 hover:text-white hover:bg-[#1A1033] border border-transparent hover:border-[#3B2564]"
                       title="Rename Canvas"
                     >
-                      <Edit3 className="w-3.5 h-3.5" />
+                      <Edit3 className="w-3 h-3" />
                     </button>
 
                     <button
@@ -305,10 +240,10 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
                         e.stopPropagation();
                         onExportWorkflow(workflow);
                       }}
-                      className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#1A1033] border border-transparent hover:border-[#3B2564]"
+                      className="p-1 text-zinc-400 hover:text-white hover:bg-[#1A1033] border border-transparent hover:border-[#3B2564]"
                       title="Export JSON"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <Download className="w-3 h-3" />
                     </button>
 
                     {workflow.isCustom && workflows.length > 1 && (
@@ -320,65 +255,41 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
                             onDeleteWorkflow(workflow.id);
                           }
                         }}
-                        className="p-1.5 text-zinc-400 hover:text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-800"
+                        className="p-1 text-zinc-400 hover:text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-800"
                         title="Delete Canvas"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     )}
                   </div>
                 </div>
 
-                {/* Title & Description */}
+                {/* Title & Short Description */}
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-white group-hover:text-[#C084FC] transition-colors flex items-center gap-2">
-                    <span>{workflow.name}</span>
+                  <h3 className="text-xs font-bold text-white group-hover:text-[#C084FC] transition-colors truncate" title={workflow.name}>
+                    {workflow.name}
                   </h3>
-                  <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">
+                  <p className="text-[11px] text-zinc-400 leading-snug line-clamp-2">
                     {workflow.description || 'Configured DAG automation runbook for Portaldot validator nodes.'}
                   </p>
                 </div>
 
-                {/* Operational Topology Mini-Card */}
-                <div className="p-2.5 bg-[#080512] border border-[#201538] text-[11px] space-y-1">
-                  <div className="flex items-center justify-between text-zinc-400">
-                    <span>Trigger:</span>
-                    <span className="text-zinc-200 font-bold truncate max-w-[170px]">
-                      {triggerNode?.data.label || 'Substrate / EVM Sensor'}
+                {/* Bottom Stats & Launch Prompt */}
+                <div className="pt-2 border-t border-[#1F143D] flex items-center justify-between text-[10px]">
+                  <div className="flex items-center gap-1.5 text-zinc-500">
+                    <span className="tabular-nums font-semibold text-zinc-300">
+                      {workflow.nodes.length}N · {workflow.edges.length}W
+                    </span>
+                    <span>·</span>
+                    <span className={is24_7 ? 'text-emerald-400' : 'text-[#8B5CF6]'}>
+                      {is24_7 ? '24/7' : 'ARMED'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-zinc-400">
-                    <span>Action:</span>
-                    <span className="text-emerald-400 font-bold truncate max-w-[170px]">
-                      {actionNode?.data.label || 'Discord / Ops Alert'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-zinc-500 pt-1 border-t border-[#1F143D]">
-                    <span>Density:</span>
-                    <span className="text-white tabular-nums">
-                      {workflow.nodes.length} nodes · {workflow.edges.length} wires
-                    </span>
-                  </div>
-                </div>
 
-                {/* Card Bottom CTA */}
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[10px] text-zinc-500 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>{is24_7 ? '24/7 Daemon Ready' : 'Armed & Verified'}</span>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8B5CF6] group-hover:text-white transition-colors">
+                    <span>Open</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                   </span>
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenWorkflow(workflow.id);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold border border-[#8B5CF6]/50 bg-[#8B5CF6]/20 hover:bg-[#8B5CF6] text-white transition-all cursor-pointer group-hover:border-[#8B5CF6]"
-                  >
-                    <span>Open Canvas Studio</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
                 </div>
               </div>
             );

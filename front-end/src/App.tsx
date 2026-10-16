@@ -204,7 +204,7 @@ export const App: React.FC = () => {
           {/* Sidebar Footer info */}
           <div className={`px-3 text-[11px] font-mono text-zinc-500 ${isSidebarCollapsed ? 'text-center' : ''}`}>
             <div className={`flex items-center gap-1.5 text-zinc-400 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
-              <span className="w-2 h-2 rounded-none bg-[#10B981] shrink-0" title="Engine Status: Online" />
+              <span className="w-2 h-2 rounded bg-[#10B981] shrink-0" title="Engine Status: Online" />
               {!isSidebarCollapsed && <span>Engine Status: Online</span>}
             </div>
             {!isSidebarCollapsed && (

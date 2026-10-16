@@ -128,7 +128,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
 
             {/* Center Local Node */}
             <div className="absolute z-10 flex flex-col items-center">
-              <span className="w-3 h-3 bg-[#8B5CF6] border-2 border-white shadow-[0_0_8px_#8B5CF6]" />
+              <span className="w-3.5 h-3.5 rounded-full bg-[#8B5CF6] border-2 border-white shadow-[0_0_10px_#8B5CF6]" />
               <span className="text-[9px] font-mono font-bold text-white mt-1">LOCAL VALIDATOR</span>
             </div>
 
@@ -147,7 +147,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
                   style={{ transform: `translate(${x}px, ${y}px)` }}
                   className="absolute z-20 cursor-pointer group"
                 >
-                  <div className={`w-3 h-3 transition-transform group-hover:scale-150 ${
+                  <div className={`w-3 h-3 rounded-full transition-transform group-hover:scale-150 ${
                     p.is_malicious
                       ? 'bg-[#EF4444] animate-ping shadow-[0_0_8px_#EF4444]'
                       : p.role.includes('Authority')
@@ -164,13 +164,13 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
 
           <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 px-1">
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-[#10B981]" /> Authority Validator Peers
+              <span className="w-2 h-2 rounded-full bg-[#10B981]" /> Authority Validator Peers
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-[#6366F1]" /> Full RPC Nodes
+              <span className="w-2 h-2 rounded-full bg-[#6366F1]" /> Full RPC Nodes
             </span>
             <span className="flex items-center gap-1.5 text-[#EF4444]">
-              <span className="w-2 h-2 bg-[#EF4444]" /> Flagged Malicious Peer
+              <span className="w-2 h-2 rounded-full bg-[#EF4444]" /> Flagged Malicious Peer
             </span>
           </div>
         </div>

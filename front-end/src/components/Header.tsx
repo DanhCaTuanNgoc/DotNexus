@@ -65,7 +65,6 @@ export const Header: React.FC<HeaderProps> = ({
           <span className={`font-semibold ${isHealthy ? 'text-[#10B981]' : 'text-[#F59E0B]'}`}>
             {delta} {delta === 1 ? 'blk' : 'blks'}
           </span>
-          <span className="w-1.5 h-1.5 rounded-none bg-[#10B981] animate-ping" />
         </div>
 
         {/* Node Active Indicator */}
@@ -87,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         )}
         <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400">
-          <span className="w-2 h-2 rounded-none bg-[#10B981]" />
+          <span className="w-2 h-2 rounded bg-[#10B981]" />
           <span>SOCKET 9944</span>
         </div>
       </div>

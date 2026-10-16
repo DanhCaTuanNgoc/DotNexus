@@ -49,36 +49,27 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
     const timer = setInterval(() => {
       const sec = (Date.now() / 1000) % 6.0;
       setSlotElapsed(sec);
-    }, 60);
+    }, 100);
     return () => clearInterval(timer);
   }, []);
 
   const slotPercent = Math.min(100, Math.floor((slotElapsed / 6.0) * 100));
 
-  // Determine current block authoring phase
-  let phaseName = 'EXTRINSICS PACKING';
-  let phaseDesc = 'Collecting extrinsics from Mempool';
-  let phaseColor = 'text-[#C084FC] border-[#C084FC]/30 bg-[#C084FC]/10';
-  let phaseIndex = 1;
-
+  // Pure terminal phase calculation
+  let phaseTag = 'PACKING';
+  let phaseDetail = 'Gathering extrinsics';
   if (slotElapsed >= 4.8) {
-    phaseName = 'SEALING & IMPORT';
-    phaseDesc = 'Sealing block header & broadcasting to peers';
-    phaseColor = 'text-[#10B981] border-[#10B981]/30 bg-[#10B981]/10';
-    phaseIndex = 4;
+    phaseTag = 'SEAL_BROADCAST';
+    phaseDetail = 'Importing to block tree';
   } else if (slotElapsed >= 3.6) {
-    phaseName = 'BABE VRF PRE-SEAL';
-    phaseDesc = 'Evaluating VRF threshold & authoring claim';
-    phaseColor = 'text-[#F59E0B] border-[#F59E0B]/30 bg-[#F59E0B]/10';
-    phaseIndex = 3;
+    phaseTag = 'BABE_VRF';
+    phaseDetail = 'Alice VRF pre-seal claim';
   } else if (slotElapsed >= 1.8) {
-    phaseName = 'WASM STATE TRANSITION';
-    phaseDesc = 'Executing contract pallets & calculating state root';
-    phaseColor = 'text-[#E6007A] border-[#E6007A]/30 bg-[#E6007A]/10';
-    phaseIndex = 2;
+    phaseTag = 'STATE_EXEC';
+    phaseDetail = 'Calculating WASM state root';
   }
 
-  // 4 historical/active blocks + 1 candidate block currently being forged
+  // 4 confirmed historical blocks + 1 candidate block currently authoring
   const wasmBlocks = [
     substrate.best_block - 3,
     substrate.best_block - 2,
@@ -125,274 +116,190 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
         </button>
       </div>
 
-      {/* 1. Dual-Block Ribbon Stream (Visual Phase-Lock Stream) */}
-      <div className="p-4 bg-[#110A24] border border-[#261B42] space-y-4">
-        {/* Top Status Header */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1F143D] pb-3">
-          <div className="flex items-center gap-2">
-            <Activity className="w-3.5 h-3.5 text-[#C084FC]" />
-            <span className="text-xs font-mono font-bold text-white tracking-wider">
-              DUAL-STREAM BLOCK PIPELINE & PHASE-LOCK STATUS
-            </span>
+      {/* 1. Dual-Block Ribbon Stream (Minimalist Pure-Tech Terminal Pipeline) */}
+      <div className="bg-[#0B0813] border border-[#201538] font-mono">
+        {/* Module Header Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 border-b border-[#201538] bg-[#0E091B]">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-[#8B5CF6] font-bold">SYS::PIPELINE</span>
+            <span className="text-zinc-600">/</span>
+            <span className="text-zinc-300 font-bold tracking-wider">DUAL-STREAM PHASE-LOCK BUS</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono text-zinc-300 bg-[#160E2E] border border-[#3A2466]">
-              <Clock className="w-3 h-3 text-[#C084FC]" />
-              Slot: <span className="text-[#C084FC] font-bold tabular-nums">{(6.0 - slotElapsed).toFixed(1)}s</span> remaining
+          <div className="flex items-center gap-3 text-[11px]">
+            <span className="text-zinc-400">
+              SLOT_TICK: <strong className="text-zinc-200 tabular-nums">{slotElapsed.toFixed(1)}s</strong><span className="text-zinc-600">/6.0s</span>
             </span>
-
-            <span className={`px-2 py-0.5 text-[10px] font-mono font-bold tracking-wider uppercase border flex items-center gap-1.5 ${
+            <span className="text-zinc-700">|</span>
+            <span className={`px-2 py-0.5 text-[10px] font-bold border uppercase tracking-wider ${
               isHealthy
-                ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30'
-                : 'bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/30'
+                ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60'
+                : 'bg-rose-950/40 text-rose-400 border-rose-800/60'
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isHealthy ? 'bg-[#10B981] animate-ping' : 'bg-[#EF4444]'}`} />
-              {isHealthy ? '100% LOCKSTEP PARITY' : `DESYNC: ${delta} BLOCKS LAG`}
+              {isHealthy ? '● LOCKSTEP_PARITY' : `▲ DESYNC_${delta}_BLOCKS`}
             </span>
           </div>
         </div>
 
-        {/* Live BABE Slot Countdown & Sub-phase Progress Bar */}
-        <div className="bg-[#0A0618] border border-[#261B42] p-3 space-y-2">
-          <div className="flex items-center justify-between text-[11px] font-mono">
-            <div className="flex items-center gap-2">
-              <span className="text-zinc-500 text-[10px]">CURRENT BABE SLOT:</span>
-              <span className={`px-1.5 py-0.5 text-[10px] font-bold border ${phaseColor}`}>
-                PHASE {phaseIndex}/4: {phaseName}
-              </span>
-              <span className="text-zinc-400 text-[10px] hidden md:inline">({phaseDesc})</span>
-            </div>
-            <div className="text-zinc-400 tabular-nums font-bold">
-              <span className="text-[#E6007A]">{slotPercent}%</span> <span className="text-zinc-600">/ 6.0s</span>
-            </div>
+        {/* Slot Progress Ticker Rail (ASCII Style) */}
+        <div className="px-3 py-2 border-b border-[#1A122E] bg-[#090612] flex flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-400">
+          <div className="flex items-center gap-2">
+            <span className="text-zinc-500 text-[10px]">STAGE:</span>
+            <span className="text-zinc-200 font-bold bg-[#140D26] px-1.5 py-0.5 border border-[#2B1B47]">
+              [{phaseTag}]
+            </span>
+            <span className="text-zinc-500 text-[10px] hidden sm:inline">:: {phaseDetail}</span>
           </div>
 
-          {/* High-tech Multi-stage Progress Track */}
-          <div className="relative h-2 bg-[#120B24] border border-[#2E1E54] overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-[#8B5CF6] via-[#E6007A] to-[#10B981] transition-all duration-75 relative"
-              style={{ width: `${slotPercent}%` }}
-            >
-              <div className="absolute right-0 top-0 bottom-0 w-2 bg-white shadow-[0_0_8px_#FFFFFF]" />
-            </div>
-            {/* 4 stage division notches */}
-            <div className="absolute inset-0 flex justify-between pointer-events-none px-[30%]">
-              <div className="w-[1px] h-full bg-[#3A2466]" />
-            </div>
-            <div className="absolute inset-0 flex justify-between pointer-events-none px-[60%]">
-              <div className="w-[1px] h-full bg-[#3A2466]" />
-            </div>
-            <div className="absolute inset-0 flex justify-between pointer-events-none px-[80%]">
-              <div className="w-[1px] h-full bg-[#3A2466]" />
-            </div>
-          </div>
-
-          <div className="flex justify-between text-[9px] font-mono text-zinc-500 pt-0.5">
-            <span className={phaseIndex === 1 ? 'text-[#C084FC] font-bold' : ''}>0.0s Ingest</span>
-            <span className={phaseIndex === 2 ? 'text-[#E6007A] font-bold' : ''}>1.8s State Execute</span>
-            <span className={phaseIndex === 3 ? 'text-[#F59E0B] font-bold' : ''}>3.6s VRF Pre-Seal</span>
-            <span className={phaseIndex === 4 ? 'text-[#10B981] font-bold' : ''}>4.8s Seal & Broadcast</span>
-            <span>6.0s</span>
+          {/* Clean Segmented ASCII Progress Track */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-zinc-500 text-[10px]">CYCLE:</span>
+            <span className="text-emerald-400 tracking-wider">
+              [
+              {Array.from({ length: 16 }).map((_, idx) => (
+                <span
+                  key={idx}
+                  className={idx < Math.floor((slotPercent / 100) * 16) ? 'text-emerald-400 font-bold' : 'text-zinc-800'}
+                >
+                  {idx < Math.floor((slotPercent / 100) * 16) ? '=' : '-'}
+                </span>
+              ))}
+              ]
+            </span>
+            <span className="tabular-nums text-zinc-300 font-bold w-9 text-right">{slotPercent}%</span>
           </div>
         </div>
 
-        {/* Parallel Streams Graphic */}
-        <div className="space-y-3 bg-[#080512] p-4 border border-[#1F143D]">
-          {/* Substrate WASM Stream */}
-          <div className="flex items-center gap-3">
-            <div className="w-32 shrink-0 space-y-1">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-[#E6007A]" />
-                <span className="text-[11px] font-mono font-bold text-zinc-200">WASM (:9944)</span>
-              </div>
-              <div className="text-[9px] font-mono text-zinc-500">Substrate Runtime</div>
+        {/* Main Streams Container */}
+        <div className="p-3 space-y-2 bg-[#08050F]">
+          {/* WASM Stream Row */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[10px] text-zinc-500 px-1">
+              <span className="flex items-center gap-1.5 text-zinc-300 font-bold">
+                <span className="w-1.5 h-1.5 bg-[#E6007A]" />
+                WASM_RUNTIME (:9944)
+              </span>
+              <span>STATE_ROOT: 0x5eec...a3f0</span>
             </div>
 
-            <div className="flex-1 grid grid-cols-5 gap-2">
-              {/* Blocks N-3, N-2, N-1 (Past Confirmed) */}
+            <div className="grid grid-cols-5 gap-1.5">
+              {/* Blocks N-3, N-2, N-1 */}
               {wasmBlocks.slice(0, 3).map((blk, idx) => (
                 <div
                   key={`wasm-${blk}`}
-                  className="p-2 border border-[#261B42] bg-[#110A24] font-mono text-center text-zinc-400 relative overflow-hidden group"
+                  className="p-2 border border-[#1F1633] bg-[#0D091A] text-left"
                 >
-                  <div className="flex items-center justify-between text-[9px] text-zinc-500 mb-0.5">
-                    <span>{idx === 0 ? 'T-18s' : idx === 1 ? 'T-12s' : 'T-6s'}</span>
-                    <ShieldCheck className="w-2.5 h-2.5 text-zinc-500" />
+                  <div className="flex items-center justify-between text-[9px] text-zinc-500">
+                    <span>{idx === 0 ? '-18s' : idx === 1 ? '-12s' : '-6s'}</span>
+                    <span className="text-zinc-600">FIN</span>
                   </div>
-                  <div className="text-[10px] text-zinc-500">FINALIZED</div>
-                  <div className="text-xs font-bold tabular-nums text-zinc-300">#{blk.toLocaleString()}</div>
+                  <div className="text-xs font-bold tabular-nums text-zinc-300 mt-0.5">#{blk.toLocaleString()}</div>
+                  <div className="text-[9px] text-zinc-600 mt-1 uppercase">Finalized</div>
                 </div>
               ))}
 
-              {/* Block N: Latest Imported Best Block */}
-              <div className="p-2 border border-[#E6007A] bg-[#E6007A]/15 font-mono text-center text-white relative shadow-[0_0_12px_rgba(230,0,122,0.2)]">
-                <div className="flex items-center justify-between text-[9px] text-[#E6007A] mb-0.5 font-bold">
+              {/* Block N: Best Head Block */}
+              <div className="p-2 border border-[#E6007A]/60 bg-[#160B22] text-left">
+                <div className="flex items-center justify-between text-[9px] text-[#E6007A] font-bold">
+                  <span>HEAD</span>
                   <span>BEST</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E6007A] animate-ping" />
                 </div>
-                <div className="text-[10px] text-pink-300">IMPORTED</div>
-                <div className="text-xs font-bold tabular-nums text-white">#{substrate.best_block.toLocaleString()}</div>
+                <div className="text-xs font-bold tabular-nums text-white mt-0.5">#{substrate.best_block.toLocaleString()}</div>
+                <div className="text-[9px] text-emerald-400 mt-1 uppercase">● Imported</div>
               </div>
 
-              {/* Block N+1: CANDIDATE FORGING BLOCK (ACTIVE ANIMATION) */}
-              <div className="p-2 border font-mono text-center relative overflow-hidden animate-block-forge bg-[#170B2E]">
-                {/* Sweeping scanline */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#C084FC]/25 to-transparent pointer-events-none animate-scanline-sweep" />
-
-                <div className="flex items-center justify-between text-[9px] text-[#C084FC] mb-0.5 font-bold relative z-10">
-                  <span className="flex items-center gap-1">
-                    <Sparkles className="w-2.5 h-2.5 text-[#C084FC] animate-spin" />
-                    FORGING
-                  </span>
-                  <span className="text-[9px] tabular-nums text-pink-300">{slotPercent}%</span>
+              {/* Block N+1: Authoring Candidate Block (Pure Tech Monospace) */}
+              <div className="p-2 border border-emerald-500/50 bg-[#0C1518] text-left relative overflow-hidden">
+                <div className="flex items-center justify-between text-[9px] text-emerald-400 font-bold">
+                  <span className="animate-pulse">▶ AUTHORING</span>
+                  <span className="tabular-nums">#{candidateWasm.toLocaleString()}</span>
                 </div>
-
-                <div className="text-[10px] text-[#C084FC] font-bold tracking-wider relative z-10 flex items-center justify-center gap-1">
-                  <span>CANDIDATE</span>
+                <div className="text-xs font-bold tabular-nums text-emerald-300 mt-0.5 flex items-center gap-1">
+                  <span>SLOT #{Math.floor(slotPercent * 0.16 + 1)}/16</span>
+                  <span className="inline-block w-1 h-3 bg-emerald-400 animate-pulse ml-0.5" />
                 </div>
-
-                <div className="text-xs font-extrabold tabular-nums text-white relative z-10 flex items-center justify-center gap-1">
-                  <span>#{candidateWasm.toLocaleString()}</span>
-                </div>
-
-                {/* Live mini progress tracker inside block */}
-                <div className="mt-1 h-1 bg-[#2D1B54] rounded-none overflow-hidden relative z-10">
-                  <div
-                    className="h-full bg-gradient-to-r from-[#E6007A] to-[#C084FC] transition-all duration-75"
-                    style={{ width: `${slotPercent}%` }}
-                  />
+                <div className="text-[9px] text-zinc-400 mt-1 flex items-center justify-between">
+                  <span>PACK: {mempool.wasm_extrinsics} txs</span>
+                  <span className="text-zinc-500">Alice</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Phase Lock Laser Connector Grid (SVG Conduit) */}
-          <div className="flex items-center gap-3">
-            <div className="w-32 shrink-0 flex items-center justify-end pr-3">
-              <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider flex items-center gap-1">
-                <GitCommit className="w-3 h-3 text-[#8B5CF6]" />
-                fc-sync
+          {/* Hardware Bus Conduit Bar (Minimalist 1px Data Path) */}
+          <div className="relative py-1">
+            <div className="border-t border-dashed border-[#23183D] w-full" />
+            <div className="flex items-center justify-between text-[9px] text-zinc-500 px-2 py-0.5">
+              <span>┌── fc-mapping-sync BUS LINK</span>
+              <span className="text-zinc-400 tracking-wider">
+                {isHealthy ? 'TRANSMISSION: NOMINAL (0.12ms)' : 'WARNING: BUFFER DESYNC'}
               </span>
+              <span>STREAM TO EVM ──┐</span>
             </div>
-
-            <div className="flex-1 relative h-7">
-              <svg className="w-full h-full" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="laserGradSync" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#E6007A" stopOpacity="0.8" />
-                    <stop offset="50%" stopColor="#8B5CF6" stopOpacity="1" />
-                    <stop offset="100%" stopColor="#6366F1" stopOpacity="0.8" />
-                  </linearGradient>
-                  <linearGradient id="laserGradDesync" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#EF4444" stopOpacity="0.9" />
-                    <stop offset="100%" stopColor="#B91C1C" stopOpacity="0.9" />
-                  </linearGradient>
-                </defs>
-
-                {/* 5 Column Vertical Conduits */}
-                {[10, 30, 50, 70, 90].map((xPercent, idx) => (
-                  <g key={`laser-col-${idx}`}>
-                    {/* Background track line */}
-                    <line
-                      x1={`${xPercent}%`}
-                      y1="0"
-                      x2={`${xPercent}%`}
-                      y2="100%"
-                      stroke="#261B42"
-                      strokeWidth="1.5"
-                      strokeDasharray="2 2"
-                    />
-                    {/* Active flowing laser beam */}
-                    <line
-                      x1={`${xPercent}%`}
-                      y1="0"
-                      x2={`${xPercent}%`}
-                      y2="100%"
-                      stroke={idx === 4 ? 'url(#laserGradSync)' : isHealthy ? 'url(#laserGradSync)' : 'url(#laserGradDesync)'}
-                      strokeWidth={idx === 4 ? "2" : idx === 3 ? "2" : "1"}
-                      className={idx === 4 ? "animate-laser-flow-fast" : "animate-laser-flow"}
-                    />
-                  </g>
-                ))}
-              </svg>
-
-              {/* Center Status Chip */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className={`px-2 py-0.5 text-[9px] font-mono tracking-wider border shadow-sm flex items-center gap-1.5 ${
-                  isHealthy
-                    ? 'bg-[#0E0824]/90 text-zinc-300 border-[#4C2889]'
-                    : 'bg-[#2A0812]/90 text-[#EF4444] border-[#EF4444]/40'
-                }`}>
-                  <Zap className={`w-2.5 h-2.5 ${isHealthy ? 'text-[#10B981]' : 'text-[#EF4444] animate-bounce'}`} />
-                  {isHealthy ? 'fc-mapping-sync: PHASE-LOCK ACTIVE' : 'DESYNC SLIPPAGE DETECTED'}
-                </span>
-              </div>
-            </div>
+            <div className="border-b border-dashed border-[#23183D] w-full" />
           </div>
 
           {/* EVM Stream Row */}
-          <div className="flex items-center gap-3">
-            <div className="w-32 shrink-0 space-y-1">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-[#6366F1]" />
-                <span className="text-[11px] font-mono font-bold text-zinc-200">EVM (:8545)</span>
-              </div>
-              <div className="text-[9px] font-mono text-zinc-500">Frontier Mapping DB</div>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[10px] text-zinc-500 px-1">
+              <span className="flex items-center gap-1.5 text-zinc-300 font-bold">
+                <span className="w-1.5 h-1.5 bg-[#6366F1]" />
+                EVM_ENGINE (:8545)
+              </span>
+              <span>BASE_FEE: {evm.base_fee_gwei ?? evm.gas_price_gwei} GWEI</span>
             </div>
 
-            <div className="flex-1 grid grid-cols-5 gap-2">
-              {/* Blocks N-3, N-2, N-1 (Past Executed) */}
+            <div className="grid grid-cols-5 gap-1.5">
+              {/* Blocks N-3, N-2, N-1 */}
               {evmBlocks.slice(0, 3).map((blk, idx) => (
                 <div
                   key={`evm-${blk}`}
-                  className="p-2 border border-[#261B42] bg-[#110A24] font-mono text-center text-zinc-400 relative"
+                  className="p-2 border border-[#1F1633] bg-[#0D091A] text-left"
                 >
-                  <div className="flex items-center justify-between text-[9px] text-zinc-500 mb-0.5">
-                    <span>{idx === 0 ? 'T-18s' : idx === 1 ? 'T-12s' : 'T-6s'}</span>
-                    <CheckCircle2 className="w-2.5 h-2.5 text-zinc-500" />
+                  <div className="flex items-center justify-between text-[9px] text-zinc-500">
+                    <span>{idx === 0 ? '-18s' : idx === 1 ? '-12s' : '-6s'}</span>
+                    <span className="text-zinc-600">EXEC</span>
                   </div>
-                  <div className="text-[10px] text-zinc-500">EXECUTED</div>
-                  <div className="text-xs font-bold tabular-nums text-zinc-300">#{blk.toLocaleString()}</div>
+                  <div className="text-xs font-bold tabular-nums text-zinc-300 mt-0.5">#{blk.toLocaleString()}</div>
+                  <div className="text-[9px] text-zinc-600 mt-1 uppercase">Executed</div>
                 </div>
               ))}
 
-              {/* Block N: EVM Head Block */}
-              <div className="p-2 border border-[#6366F1] bg-[#6366F1]/15 font-mono text-center text-white relative shadow-[0_0_12px_rgba(99,102,241,0.2)]">
-                <div className="flex items-center justify-between text-[9px] text-[#818CF8] mb-0.5 font-bold">
-                  <span>LATEST</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#6366F1] animate-ping" />
+              {/* Block N: EVM Best Block */}
+              <div className="p-2 border border-[#6366F1]/60 bg-[#100E26] text-left">
+                <div className="flex items-center justify-between text-[9px] text-indigo-400 font-bold">
+                  <span>HEAD</span>
+                  <span>SYNC</span>
                 </div>
-                <div className="text-[10px] text-indigo-300">INDEXED</div>
-                <div className="text-xs font-bold tabular-nums text-white">#{evm.block_number.toLocaleString()}</div>
+                <div className="text-xs font-bold tabular-nums text-white mt-0.5">#{evm.block_number.toLocaleString()}</div>
+                <div className="text-[9px] text-indigo-400 mt-1 uppercase">● Indexed</div>
               </div>
 
-              {/* Block N+1: EVM Ingestion / Awaiting State */}
-              <div className="p-2 border border-dashed border-[#6366F1]/50 bg-[#0E0C26] font-mono text-center relative overflow-hidden">
-                <div className="flex items-center justify-between text-[9px] text-indigo-400 mb-0.5">
-                  <span className="flex items-center gap-1">
-                    <Database className="w-2.5 h-2.5" />
-                    fc-db
-                  </span>
-                  <span className="text-[9px] text-zinc-500 tabular-nums">~{evm.base_fee_gwei ?? evm.gas_price_gwei} Gwei</span>
+              {/* Block N+1: EVM Ingestion Buffer */}
+              <div className="p-2 border border-[#231D38] bg-[#0A0714] text-left">
+                <div className="flex items-center justify-between text-[9px] text-zinc-500">
+                  <span>QUEUE</span>
+                  <span className="tabular-nums">#{candidateEvm.toLocaleString()}</span>
                 </div>
-                <div className="text-[10px] text-indigo-400">PENDING MAP</div>
-                <div className="text-xs font-bold tabular-nums text-zinc-400">#{candidateEvm.toLocaleString()}</div>
-                <div className="mt-1 text-[8px] text-zinc-500 uppercase tracking-wider">Awaiting WASM</div>
+                <div className="text-xs font-bold tabular-nums text-zinc-400 mt-0.5">PENDING</div>
+                <div className="text-[9px] text-zinc-600 mt-1 uppercase">Wait State Root</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom Detailed Metrics Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono text-zinc-400 px-1 pt-1 border-t border-[#1F143D]">
-          <span className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse" />
-            BABE Slot: <strong className="text-zinc-200">~6.0s</strong> | Max Permissible Delta: <strong className="text-zinc-200">&le; {sync.threshold} blocks</strong>
-          </span>
+        {/* Telemetry Footer Metadata */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-1.5 border-t border-[#1A122E] bg-[#0A0614] text-[10px] text-zinc-500">
           <div className="flex items-center gap-3">
-            <span className="text-zinc-500">Authority: <strong className="text-emerald-400 font-bold">Alice (Dev Authority)</strong></span>
-            <span className="text-zinc-500">Finality Lag: <strong className="text-[#C084FC] tabular-nums font-bold">{substrate.finality_lag} blocks</strong></span>
+            <span>BABE_SLOT: <strong className="text-zinc-300">6.0s</strong></span>
+            <span className="text-zinc-700">|</span>
+            <span>MAX_DELTA: <strong className="text-zinc-300">&le; {sync.threshold} BLOCKS</strong></span>
+            <span className="text-zinc-700">|</span>
+            <span>FINALITY_LAG: <strong className="text-zinc-300 tabular-nums">{substrate.finality_lag}</strong></span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span>VALIDATOR: <strong className="text-emerald-400">Alice (Authority)</strong></span>
           </div>
         </div>
       </div>

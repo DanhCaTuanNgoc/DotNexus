@@ -52,12 +52,9 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
         <div>
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-[#8B5CF6]" />
-            <h2 className="text-sm font-bold font-mono text-white tracking-wider uppercase">
+            <h2 className="text-sm sm:text-base font-bold font-mono text-white tracking-wider uppercase">
               RPC REVERSE PROXY &amp; ACTIVE P2P SWARM SONAR
             </h2>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 border border-[#4C2889] bg-[#140C2B] text-[#C084FC]">
-              PORT :30333 / :8545
-            </span>
           </div>
         </div>
 

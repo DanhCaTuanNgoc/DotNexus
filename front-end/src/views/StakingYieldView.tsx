@@ -64,16 +64,10 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
         <div>
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-[#8B5CF6]" />
-            <h2 className="text-sm font-bold text-white tracking-wider uppercase">
+            <h2 className="text-sm sm:text-base font-bold font-mono text-white tracking-wider uppercase">
               NPOS PHRAGMÉN SIMULATOR &amp; DYNAMIC RE-NOMINATION
             </h2>
-            <span className="text-[10px] px-1.5 py-0.2 border border-[#4C2889] bg-[#140C2B] text-[#C084FC]">
-              ELECTION ALGORITHM
-            </span>
           </div>
-          <p className="text-xs text-zinc-400 mt-1">
-            Predicts on-chain Sequential Phragmén election, avoids oversubscribed validators, and executes pre-flight checks.
-          </p>
         </div>
 
         <div className="flex items-center gap-2 text-xs text-[#C084FC] bg-[#140C2B] px-3 py-1.5 border border-[#4C2889]">

@@ -96,15 +96,14 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
   return (
     <div className="space-y-6">
       {/* View Header */}
-      <div className="flex items-center justify-between border-b border-[#261B42] pb-4">
+      <div className="flex flex-wrap items-center justify-between border-b border-[#261B42] pb-3 gap-3">
         <div>
-          <h2 className="text-base font-semibold text-white tracking-tight flex items-center gap-2">
-            <Layers className="w-4 h-4 text-[#8B5CF6]" />
-            Dual-Engine State Tracker & 3-Tier Root-Cause Isolation
+          <div className="flex items-center gap-2">
+          <Layers className="w-4 h-4 text-[#8B5CF6]" />
+            <h2 className="text-sm sm:text-base font-bold font-mono text-white tracking-wider uppercase">
+            DUAL-ENGINE STATE
           </h2>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            Realtime synchronicity telemetry between Substrate WASM (:9944) and Frontier EVM JSON-RPC (:8545).
-          </p>
+          </div>
         </div>
         <button
           onClick={onRefresh}

@@ -84,16 +84,10 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
         <div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#8B5CF6]" />
-            <h2 className="text-sm font-bold font-mono text-white tracking-wider uppercase">
+            <h2 className="text-sm sm:text-base font-bold font-mono text-white tracking-wider uppercase">
               ANTI-EQUIVOCATION GUARD &amp; FAILOVER CONTROLLER
             </h2>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 border border-[#4C2889] bg-[#140C2B] text-[#C084FC]">
-              INVARIANT: 10s &lt; 12s &lt; 15s
-            </span>
           </div>
-          <p className="text-xs font-mono text-zinc-400 mt-1">
-            Dead Man&apos;s Switch self-fencing, distributed mutex leasing, and SCALE Metadata V14 session keys decomposer.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">

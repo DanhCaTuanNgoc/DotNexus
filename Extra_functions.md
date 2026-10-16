@@ -109,3 +109,53 @@ Nếu bạn muốn thêm một tính năng nhỏ trên giao diện `CanvasBoard.
 
 
 * **Tại sao tính năng này cực kỳ thông minh?** Bạn biến chính công cụ thử nghiệm của mình thành một tính năng **Chaos Engineering (Kiểm thử sức chịu đựng hạ tầng)** giống như Netflix Chaos Monkey! Người vận hành Node ngoài đời thực rất cần tính năng này để diễn tập phòng cháy chữa cháy (Fire Drill) cho hệ thống Validator của họ trước khi lên Mainnet.
+
+---
+
+### PHẦN 4: NÂNG CẤP KIẾN TRÚC MÃ NGUỒN CHUẨN PRODUCTION (ROADMAP)
+
+Dưới đây là 2 hạng mục cốt lõi cần tối ưu hóa trong cấu trúc mã nguồn để đưa DotNexus từ mức Prototype/Hackathon lên chuẩn Enterprise Production:
+
+#### 1. Tách nhỏ và Module hóa bộ Test Suite (`tests/` $\rightarrow$ `unit/` & `integration/`)
+* **Hiện trạng & Vấn đề:** Toàn bộ 21 test cases (từ config, telemetry, slashing guard, dead man's switch đến webhook limiter) đang dồn trong một file duy nhất `tests/test_engine.py` (hơn 420 dòng). Thời gian chạy kiểm thử hiện mất ~24.5s do chứa các bài test về rate-limiting và timeout/sleep liên tiếp.
+* **Giải pháp tái cấu trúc:**
+  * Chia nhỏ thành cấu trúc phân lớp rõ ràng:
+    ```txt
+    tests/
+    ├── conftest.py                # Fixtures & mock RPC context dùng chung
+    ├── unit/
+    │   ├── test_config.py         # Kiểm tra schema Pydantic, SS58 (42), Decimals (14/18)
+    │   ├── test_dual_tracker.py   # Kiểm tra telemetry, Causal Lag Index, 3-tier isolation
+    │   ├── test_slash_guard.py    # Kiểm tra Dead Man's Switch, Monotonic Epoch, Mutex
+    │   ├── test_rpc_shield.py     # Kiểm tra 256KB socket ceiling, batch limit, query parser
+    │   └── test_npos_optimizer.py # Kiểm tra Sequential Phragmén, PAO risk scoring
+    └── integration/
+        ├── test_dag_engine.py     # Kiểm tra pipeline DAG execution, Kahn's cycle detection
+        ├── test_worker_daemon.py  # Kiểm tra Token bucket webhook dispatch & audit logs
+        └── test_server_api.py     # Kiểm tra REST API Gateway & Prometheus exporter
+    ```
+  * **Lợi ích:** Cho phép chạy kiểm thử độc lập từng module trong lúc dev (`pytest tests/unit/test_slash_guard.py`), cô lập môi trường test, và hỗ trợ chạy song song (`pytest -n auto`) giúp giảm thời gian chạy từ 25s xuống dưới 3s.
+
+#### 2. Tối ưu Frontend Bundle & Code Splitting (`React.lazy()` / `Suspense`)
+* **Hiện trạng & Vấn đề:** Khi đóng gói bản production (`npm run build`), Vite đưa ra cảnh báo kích thước chunk `index-*.js` vượt quá **948 kB** do tải đồng loạt Three.js, Lucide Icons, Canvas Board và toàn bộ các View ngay từ lần đầu truy cập.
+* **Giải pháp tối ưu:**
+  * **Dynamic Import & Lazy Loading:** Sử dụng `React.lazy()` kết hợp `Suspense` cho các màn hình có đồ họa nặng hoặc chỉ xuất hiện khi chuyển tab trong `App.tsx`:
+    * `CanvasBoard.tsx` (DAG Flow kéo-thả)
+    * `TopologyRadarView.tsx` (P2P Network Radar)
+    * `ThreeCanvas.tsx` (Hiệu ứng 3D Three.js nền)
+    * `LandingPage.tsx`
+  * **Manual Chunk Splitting trong `vite.config.ts`:** Cấu hình Rollup để bóc tách các thư viện bên thứ ba thành vendor chunks riêng:
+    ```ts
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-three': ['three'],
+            'vendor-icons': ['lucide-react'],
+            'vendor-react': ['react', 'react-dom']
+          }
+        }
+      }
+    }
+    ```
+  * **Lợi ích:** Giảm tải trang ban đầu (First Contentful Paint) xuống dưới 150 kB, tối ưu hiệu năng bộ nhớ trình duyệt cho các máy vận hành node và triệt tiêu hoàn toàn cảnh báo build chunk size của Vite.

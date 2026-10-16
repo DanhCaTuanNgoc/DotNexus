@@ -46,7 +46,7 @@ class EngineConfig(BaseModel):
 
     # Web Engine & Gateway
     engine_host: str = "0.0.0.0"
-    engine_port: int = 5050
+    engine_port: int = int(os.getenv("PORT", "5050"))
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]
     auth_api_token: str = Field(
         default=os.getenv("DOTNEXUS_AUTH_TOKEN", "nexus-ops-secret-key-2026"),

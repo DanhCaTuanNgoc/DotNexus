@@ -27,9 +27,10 @@ import {
   NPoSRecommendation, 
   ShieldStatus 
 } from '../services/api';
+import { TabType } from '../services/storage';
 
 interface LandingPageProps {
-  onLaunchApp: () => void;
+  onLaunchApp: (tab?: TabType) => void;
   dualData?: DualTelemetryState | null;
   secData?: SecurityDashboardState | null;
   nposData?: NPoSRecommendation | null;
@@ -89,7 +90,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* Right CTA & Mobile Toggle */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
-            onClick={onLaunchApp}
+            onClick={() => onLaunchApp()}
             className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-lg shadow-[#8B5CF6]/30 hover:scale-[1.02] cursor-pointer"
           >
             <span>Launch Console</span>
@@ -166,7 +167,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Action CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2 pointer-events-auto">
             <button
-              onClick={onLaunchApp}
+              onClick={() => onLaunchApp('dual-vm')}
               className="w-full sm:w-auto tech-corner-accent flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/35 hover:scale-[1.02] cursor-pointer"
             >
               <Zap className="w-4 h-4 fill-white" />
@@ -303,6 +304,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </span>
                 </div>
               </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  onClick={() => onLaunchApp('dual-vm')}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[#E6007A] hover:text-white px-3 py-1.5 border border-[#E6007A]/40 hover:bg-[#E6007A]/20 transition-all cursor-pointer font-bold"
+                >
+                  <span>Launch Telemetry</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
             </div>
 
             {/* Pillar 2 */}
@@ -336,6 +347,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span>Failover Threshold:</span>
                   <span className="text-white font-bold">2 Consecutive Missed Blocks</span>
                 </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  onClick={() => onLaunchApp('slashing')}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[#8B5CF6] hover:text-white px-3 py-1.5 border border-[#8B5CF6]/40 hover:bg-[#8B5CF6]/20 transition-all cursor-pointer font-bold"
+                >
+                  <span>Launch Slashing Guard</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
               </div>
             </div>
 
@@ -371,6 +392,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="text-emerald-400 font-bold">+1.16% APY Gain</span>
                 </div>
               </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  onClick={() => onLaunchApp('staking')}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[#C084FC] hover:text-white px-3 py-1.5 border border-[#C084FC]/40 hover:bg-[#C084FC]/20 transition-all cursor-pointer font-bold"
+                >
+                  <span>Launch NPoS Optimizer</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
             </div>
 
             {/* Pillar 4 */}
@@ -404,6 +435,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span>P2P Peer Topology:</span>
                   <span className="text-zinc-200 font-bold">Mesh Anomaly Detection</span>
                 </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  onClick={() => onLaunchApp('shield')}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[#38BDF8] hover:text-white px-3 py-1.5 border border-[#38BDF8]/40 hover:bg-[#38BDF8]/20 transition-all cursor-pointer font-bold"
+                >
+                  <span>Launch RPC Shield</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
               </div>
             </div>
           </div>
@@ -472,7 +513,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <div className="flex justify-center pt-2">
               <button
-                onClick={onLaunchApp}
+                onClick={() => onLaunchApp('canvas')}
                 className="flex items-center gap-2 px-6 py-3 text-xs font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/35 cursor-pointer hover:scale-[1.02]"
               >
                 <Workflow className="w-4 h-4" />

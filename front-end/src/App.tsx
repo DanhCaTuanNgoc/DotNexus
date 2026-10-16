@@ -27,25 +27,52 @@ import {
   NPoSRecommendation, 
   ShieldStatus 
 } from './services/api';
-import { storage, ViewMode, TabType } from './services/storage';
+import { storage, TabType } from './services/storage';
+import { parseCurrentRoute, navigateTo, RouteState } from './services/router';
 
 export const App: React.FC = () => {
-  // Restore view mode, active tab, and sidebar state from localStorage
-  const [viewMode, setViewModeState] = useState<ViewMode>(() => storage.getViewMode('landing'));
-  const [activeTab, setActiveTabState] = useState<TabType>(() => storage.getActiveTab('dual-vm'));
+  // URL Route is the single source of truth for navigation & deep-linking
+  const [routeState, setRouteState] = useState<RouteState>(() => parseCurrentRoute());
+  const viewMode = routeState.viewMode;
+  const activeTab = routeState.activeTab;
+
   const [isSidebarCollapsed, setIsSidebarCollapsedState] = useState<boolean>(() => storage.getSidebarCollapsed(false));
   const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const setViewMode = (mode: ViewMode) => {
-    setViewModeState(mode);
-    storage.setViewMode(mode);
+  // Sync state whenever URL or browser history changes (Back/Forward buttons)
+  useEffect(() => {
+    const handleSyncRoute = () => {
+      setRouteState(parseCurrentRoute());
+    };
+
+    // Normalize route if user accessed root alias like /app or /control
+    const currentPath = window.location.pathname.toLowerCase().replace(/^\/+|\/+$/g, '');
+    if (routeState.viewMode === 'console' && (currentPath === 'control' || currentPath === 'app' || currentPath === 'console')) {
+      navigateTo('console', routeState.activeTab, true);
+    }
+
+    window.addEventListener('popstate', handleSyncRoute);
+    window.addEventListener('dotnexus:routechange', handleSyncRoute);
+
+    return () => {
+      window.removeEventListener('popstate', handleSyncRoute);
+      window.removeEventListener('dotnexus:routechange', handleSyncRoute);
+    };
+  }, []);
+
+  const handleLaunchApp = (targetTab?: TabType) => {
+    const tab = targetTab || activeTab || 'dual-vm';
+    navigateTo('console', tab);
   };
 
-  const setActiveTab = (tab: TabType) => {
-    setActiveTabState(tab);
-    storage.setActiveTab(tab);
+  const handleSelectTab = (tab: TabType) => {
+    navigateTo('console', tab);
     setIsMobileNavOpen(false);
+  };
+
+  const handleNavigateHome = () => {
+    navigateTo('landing');
   };
 
   const setIsSidebarCollapsed = (val: boolean | ((prev: boolean) => boolean)) => {
@@ -126,7 +153,7 @@ export const App: React.FC = () => {
   if (viewMode === 'landing') {
     return (
       <LandingPage
-        onLaunchApp={() => setViewMode('console')}
+        onLaunchApp={handleLaunchApp}
         dualData={dualData}
         secData={secData}
         nposData={nposData}
@@ -146,7 +173,7 @@ export const App: React.FC = () => {
         delta={dualData?.sync?.delta_blocks || 1}
         syncStatus={dualData?.sync?.status || 'SYNCED'}
         activeNode={secData?.active_node || 'PRIMARY'}
-        onNavigateHome={() => setViewMode('landing')}
+        onNavigateHome={handleNavigateHome}
         isMobileNavOpen={isMobileNavOpen}
         onToggleMobileNav={() => setIsMobileNavOpen((prev) => !prev)}
       />
@@ -187,7 +214,7 @@ export const App: React.FC = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => handleSelectTab(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-none text-xs font-mono transition-all text-left cursor-pointer ${
                     isActive
                       ? 'bg-[#180E30] border-l-2 border-[#8B5CF6] text-white font-bold'
@@ -245,7 +272,7 @@ export const App: React.FC = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => handleSelectTab(item.id)}
                   title={isSidebarCollapsed ? item.label : undefined}
                   className={`w-full flex items-center ${
                     isSidebarCollapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3'

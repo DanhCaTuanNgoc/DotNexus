@@ -35,6 +35,7 @@ export interface DualTelemetryState {
     block_number: number;
     chain_id: number;
     gas_price_gwei: number;
+    base_fee_gwei?: number;
     latency_ms: number;
     pending_transactions: number;
     execution_engine: string;

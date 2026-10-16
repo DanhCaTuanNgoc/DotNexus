@@ -274,3 +274,72 @@ body {
   animation: flowDash 750ms linear infinite;
   transition: stroke 0.25s ease, filter 0.25s ease;
 }
+
+/* Cyber Block Forging & Pipeline Animations */
+@keyframes laserBeamMove {
+  from {
+    stroke-dashoffset: 40;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-laser-flow {
+  stroke-dasharray: 6 6;
+  animation: laserBeamMove 1s linear infinite;
+}
+
+.animate-laser-flow-fast {
+  stroke-dasharray: 4 4;
+  animation: laserBeamMove 0.5s linear infinite;
+}
+
+@keyframes scanlineSweepH {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(200%);
+    opacity: 0;
+  }
+}
+
+.animate-scanline-sweep {
+  animation: scanlineSweepH 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes blockForgeBlink {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(230, 0, 122, 0.2), inset 0 0 15px rgba(230, 0, 122, 0.1);
+    border-color: rgba(230, 0, 122, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(192, 132, 252, 0.4), inset 0 0 20px rgba(192, 132, 252, 0.2);
+    border-color: rgba(192, 132, 252, 0.9);
+  }
+}
+
+.animate-block-forge {
+  animation: blockForgeBlink 2s ease-in-out infinite;
+}
+
+@keyframes shimmerConduit {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer-conduit {
+  background: linear-gradient(90deg, transparent 0%, rgba(192, 132, 252, 0.15) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmerConduit 3s linear infinite;
+}
+

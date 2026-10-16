@@ -41,18 +41,18 @@ wget https://raw.githubusercontent.com/portaldotVolunteer/Portaldot-node/main/po
 # 3. Giải nén file nén
 tar -xvf portaldot-testnet-ubuntu.tar.gz
 
-# 4. Kiểm tra file sau khi giải nén
+# 4. Di chuyển vào thư mục đã giải nén
+cd portaldot-testnet-ubuntu
 ls -la
 ```
 
-Sau khi giải nén, bạn sẽ thấy file thực thi node (thường có tên `portaldot_dev` hoặc `portaldot`).
+Sau khi giải nén, file thực thi `portaldot_dev` nằm bên trong thư mục `portaldot-testnet-ubuntu/`.
 
 ---
 
 ### Bước 2: Cấp quyền thực thi cho Binary
 ```bash
 chmod +x portaldot_dev
-# (Nếu file tên là portaldot thì chạy: chmod +x portaldot)
 ```
 
 ---
@@ -66,7 +66,9 @@ Chạy lệnh với đầy đủ tham số để mở cổng cho cả Substrate 
   --dev \
   --tmp \
   --alice \
-  --rpc-port 9944 \
+  --ws-port 9944 \
+  --ws-external \
+  --rpc-port 9933 \
   --rpc-cors all \
   --rpc-methods unsafe \
   --rpc-external
@@ -125,8 +127,9 @@ Do bạn đã xóa môi trường Linux cũ trên máy Windows, bạn có thể 
 mkdir -p ~/portaldot-node && cd ~/portaldot-node && \
 wget https://raw.githubusercontent.com/portaldotVolunteer/Portaldot-node/main/portaldot-testnet-ubuntu.tar.gz && \
 tar -xvf portaldot-testnet-ubuntu.tar.gz && \
+cd portaldot-testnet-ubuntu && \
 chmod +x portaldot_dev && \
-./portaldot_dev --dev --tmp --alice --rpc-port 9944 --rpc-cors all --rpc-methods unsafe --rpc-external
+./portaldot_dev --dev --tmp --alice --ws-port 9944 --ws-external --rpc-port 9933 --rpc-cors all --rpc-methods unsafe --rpc-external
 ```
 
 ---

@@ -50,7 +50,7 @@ class DualEngineTracker:
             self.substrate_client = SubstrateInterface(
                 url=self.substrate_url,
                 ss58_format=CONFIG.ss58_format,
-                type_registry_preset='default'
+                type_registry_preset='substrate-node-template'
             )
             # Dynamic decimals resolution from runtime properties (strictly adhering to dynamic decimals policy)
             props = getattr(self.substrate_client, 'properties', {}) or {}
@@ -89,13 +89,27 @@ class DualEngineTracker:
 
         if self._init_substrate():
             try:
-                head_hash = self.substrate_client.get_chain_head()
-                header = self.substrate_client.get_block_header(head_hash)
-                best_block = int(header['header']['number'])
+                # Query header directly via raw RPC to avoid DigestItem scale-codec decoding errors on Portaldot dev node
+                head_res = self.substrate_client.rpc_request("chain_getHeader", [])
+                if head_res and head_res.get('result') and 'number' in head_res['result']:
+                    best_block = int(head_res['result']['number'], 16)
+                else:
+                    head_hash = self.substrate_client.get_chain_head()
+                    header = self.substrate_client.get_block_header(head_hash)
+                    best_block = int(header['header']['number'])
 
-                finalized_hash = self.substrate_client.get_chain_finalised_head()
-                finalized_header = self.substrate_client.get_block_header(finalized_hash)
-                finalized_block = int(finalized_header['header']['number'])
+                fin_res = self.substrate_client.rpc_request("chain_getFinalisedHead", [])
+                fin_hash = fin_res.get('result') if fin_res else None
+                if fin_hash:
+                    fin_hdr = self.substrate_client.rpc_request("chain_getHeader", [fin_hash])
+                    if fin_hdr and fin_hdr.get('result') and 'number' in fin_hdr['result']:
+                        finalized_block = int(fin_hdr['result']['number'], 16)
+                    else:
+                        finalized_block = max(0, best_block - 1)
+                else:
+                    finalized_block = max(0, best_block - 1)
+
+                self._last_live_sub_block = best_block
 
                 # Fetch pending extrinsics from author
                 try:
@@ -109,7 +123,7 @@ class DualEngineTracker:
                     peers_res = self.substrate_client.rpc_request("system_peers", [])
                     peers_count = len(peers_res.get('result', []))
                 except Exception:
-                    peers_count = 8
+                    peers_count = 0
 
                 # Query system_syncState for P2P stall diagnosis
                 try:
@@ -209,15 +223,19 @@ class DualEngineTracker:
                 self.web3_client = None
 
         # Fallback simulation
-        now = time.time()
-        if now - self._mock_last_tick > 6.0:
-            self._mock_evm_block = self._mock_substrate_block - 1  # 1 block lag simulated
+        if getattr(self, '_last_live_sub_block', None) is not None:
+            evm_sim_block = max(1, self._last_live_sub_block - 1)
+        else:
+            now = time.time()
+            if now - self._mock_last_tick > 6.0:
+                self._mock_evm_block = self._mock_substrate_block - 1  # 1 block lag simulated
+            evm_sim_block = self._mock_substrate_block - 1
 
         return {
             "is_connected": False,
             "is_live_chain": False,
             "endpoint": self.evm_url,
-            "block_number": self._mock_substrate_block - 1,
+            "block_number": evm_sim_block,
             "chain_id": 9944,
             "gas_price_gwei": 21.5,
             "base_fee_gwei": 18.0,

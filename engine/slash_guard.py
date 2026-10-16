@@ -192,7 +192,11 @@ class SlashingGuard:
 
         if SubstrateInterface is not None:
             try:
-                client = SubstrateInterface(url=self.substrate_url, ss58_format=CONFIG.ss58_format)
+                client = SubstrateInterface(
+                    url=self.substrate_url,
+                    ss58_format=CONFIG.ss58_format,
+                    type_registry_preset='substrate-node-template'
+                )
                 res = client.rpc_request("author_rotateKeys", [])
                 if "result" in res and res["result"]:
                     session_keys_hex = res["result"]

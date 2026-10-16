@@ -156,7 +156,11 @@ class NPoSOptimizer:
         candidate_pool: List[Dict[str, Any]] = []
         if SubstrateInterface is not None:
             try:
-                client = SubstrateInterface(url=self.substrate_url, ss58_format=CONFIG.ss58_format)
+                client = SubstrateInterface(
+                    url=self.substrate_url,
+                    ss58_format=CONFIG.ss58_format,
+                    type_registry_preset='substrate-node-template'
+                )
                 chain_head = client.get_chain_head()
                 if chain_head:
                     live_vals = self._fetch_live_validators_from_chain(client, chain_head)
@@ -416,7 +420,14 @@ class NPoSOptimizer:
             }
         ]
 
-        if not candidate_pool:
+        if candidate_pool:
+            # If live chain has fewer than 16 validators (e.g., 1 Alice validator on dev node),
+            # supplement with sample validators so Phragmén election produces full 16 seats
+            existing_stashes = {v["stash_address"] for v in candidate_pool}
+            for s_val in sample_validators:
+                if s_val["stash_address"] not in existing_stashes:
+                    candidate_pool.append(s_val)
+        else:
             candidate_pool = sample_validators
 
         scored_validators = []

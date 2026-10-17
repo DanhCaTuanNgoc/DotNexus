@@ -62,6 +62,27 @@ export interface DualTelemetryState {
     message: string;
     recommended_action: string;
   };
+  causal_lag_index?: {
+    cli_score: number;
+    raw_cli: number;
+    classification: 'NOMINAL_PARITY' | 'FRONTIER_DB_LOCK' | 'EVM_GAS_SATURATION' | 'SUBSTRATE_P2P_STALL' | 'ELEVATED_SKEW';
+    diagnosis_message: string;
+    vector_breakdown: {
+      block_lag_vector: number;
+      mempool_skew_vector: number;
+      latency_skew_vector: number;
+      block_delta: number;
+      evm_pending: number;
+      wasm_pending: number;
+      evm_latency_ms: number;
+      wasm_latency_ms: number;
+    };
+    weights: {
+      w1_block_lag: number;
+      w2_mempool: number;
+      w3_latency: number;
+    };
+  };
   decimal_normalization?: {
     substrate_balance_planck: string;
     evm_balance_wei: string;
@@ -131,6 +152,8 @@ export interface NPoSRecommendation {
   apy_boost_pct: number;
   targets: string[];
   election_algorithm?: string;
+  pao_phragmen_active?: boolean;
+  pao_algorithm_name?: string;
   validators: Array<{
     stash_address: string;
     identity: string;
@@ -143,6 +166,18 @@ export interface NPoSRecommendation {
     estimated_apy: number;
     health_score: number;
     recommendation: string;
+    risk_warning?: string | null;
+    pao_metrics?: {
+      pao_score: number;
+      safety_margin_mvu: number;
+      safety_margin_rating: string;
+      net_apy: number;
+      margin_factor_tanh: number;
+      is_rugpull_risk: boolean;
+      rugpull_penalty: number;
+      min_rewarded_stake_pot: number;
+      median_stake_pot: number;
+    };
   }>;
   extrinsic_call: string;
 }

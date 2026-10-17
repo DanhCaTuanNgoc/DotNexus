@@ -303,6 +303,100 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
         </div>
       </div>
 
+      {/* 1.5. Algorithmic Cross-VM Causal Lag Index (CLI) Heuristic Diagnostics */}
+      {data.causal_lag_index && (
+        <div className="p-4 bg-[#110A24] border border-[#261B42] space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1F143D] pb-2.5">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#C084FC]" />
+              <span className="text-xs font-mono font-bold text-white tracking-wider">
+                CROSS-VM CAUSAL LAG INDEX (CLI) — HEURISTIC DIAGNOSTIC ENGINE
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] font-mono font-bold px-2.5 py-0.5 border ${
+                data.causal_lag_index.classification === 'NOMINAL_PARITY'
+                  ? 'bg-emerald-950/40 text-[#10B981] border-emerald-800/40'
+                  : data.causal_lag_index.classification === 'FRONTIER_DB_LOCK'
+                  ? 'bg-amber-950/40 text-[#F59E0B] border-amber-800/40'
+                  : data.causal_lag_index.classification === 'EVM_GAS_SATURATION'
+                  ? 'bg-purple-950/40 text-[#C084FC] border-purple-800/40'
+                  : 'bg-red-950/40 text-[#EF4444] border-red-800/40'
+              }`}>
+                [{data.causal_lag_index.classification}]
+              </span>
+              <span className="text-xs font-mono font-bold text-white tabular-nums bg-[#080512] px-2 py-0.5 border border-[#261B42]">
+                CLI SCORE: {data.causal_lag_index.cli_score} / 100
+              </span>
+            </div>
+          </div>
+
+          <p className="text-[11px] font-mono text-zinc-300">
+            {data.causal_lag_index.diagnosis_message}
+          </p>
+
+          {/* 3 Orthogonal Vectors Display */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+            {/* Vector 1: Block Lag */}
+            <div className="p-2.5 bg-[#080512] border border-[#1F143D] space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-mono">
+                <span className="text-zinc-400">VECTOR 1 (w₁ = 0.50): BLOCK LAG</span>
+                <span className="text-white font-bold tabular-nums">
+                  {data.causal_lag_index.vector_breakdown.block_delta} blk (v₁: {data.causal_lag_index.vector_breakdown.block_lag_vector})
+                </span>
+              </div>
+              <div className="w-full bg-[#160B22] h-1.5 overflow-hidden border border-[#261B42]">
+                <div
+                  className="bg-[#E6007A] h-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, data.causal_lag_index.vector_breakdown.block_lag_vector * 100)}%` }}
+                />
+              </div>
+              <div className="text-[9px] font-mono text-zinc-500">
+                Frontier/Revive fc-db mapping lag ratio
+              </div>
+            </div>
+
+            {/* Vector 2: Mempool Skew */}
+            <div className="p-2.5 bg-[#080512] border border-[#1F143D] space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-mono">
+                <span className="text-zinc-400">VECTOR 2 (w₂ = 0.30): MEMPOOL SKEW</span>
+                <span className="text-white font-bold tabular-nums">
+                  {data.causal_lag_index.vector_breakdown.evm_pending} EVM / {data.causal_lag_index.vector_breakdown.wasm_pending} WASM
+                </span>
+              </div>
+              <div className="w-full bg-[#160B22] h-1.5 overflow-hidden border border-[#261B42]">
+                <div
+                  className="bg-[#6366F1] h-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, (data.causal_lag_index.vector_breakdown.mempool_skew_vector / 5.0) * 100)}%` }}
+                />
+              </div>
+              <div className="text-[9px] font-mono text-zinc-500">
+                Solidity VM gas saturation vs Extrinsic pool
+              </div>
+            </div>
+
+            {/* Vector 3: Latency Skew */}
+            <div className="p-2.5 bg-[#080512] border border-[#1F143D] space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-mono">
+                <span className="text-zinc-400">VECTOR 3 (w₃ = 0.20): TRANSPORT SKEW</span>
+                <span className="text-white font-bold tabular-nums">
+                  {data.causal_lag_index.vector_breakdown.evm_latency_ms}ms / {data.causal_lag_index.vector_breakdown.wasm_latency_ms}ms
+                </span>
+              </div>
+              <div className="w-full bg-[#160B22] h-1.5 overflow-hidden border border-[#261B42]">
+                <div
+                  className="bg-[#10B981] h-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, (data.causal_lag_index.vector_breakdown.latency_skew_vector / 3.0) * 100)}%` }}
+                />
+              </div>
+              <div className="text-[9px] font-mono text-zinc-500">
+                JSON-RPC :8545 vs Substrate WS :9944 I/O
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 2. 3-Tier Root-Cause Isolation Funnel Matrix */}
       <div className="p-4 bg-[#110A24] border border-[#261B42] space-y-4">
         <div className="flex items-center justify-between">

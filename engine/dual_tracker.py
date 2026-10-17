@@ -300,6 +300,91 @@ class DualEngineTracker:
             "recommended_action": "System operating normally."
         }
 
+    def compute_causal_lag_index(
+        self,
+        sub_telemetry: Dict[str, Any],
+        evm_telemetry: Dict[str, Any],
+        w1: float = 0.50,
+        w2: float = 0.30,
+        w3: float = 0.20,
+        delta_b_max: int = 5,
+        epsilon: float = 1.0
+    ) -> Dict[str, Any]:
+        """
+        Cross-VM Causal Lag Index (CLI) Mathematical Formulation:
+        CLI = w1 * ((B_WASM - B_EVM) / DeltaB_max)
+            + w2 * (TxPool_EVM / (TxPool_WASM + epsilon))
+            + w3 * (Latency_8545 / max(1.0, Latency_9944))
+
+        Evaluates 3 real-time orthogonal vectors:
+        - Vector 1 (Block Lag): Identifies Frontier/Revive fc-db mapping sync delay.
+        - Vector 2 (Mempool Pressure): Identifies EVM VM gas saturation vs Substrate transaction pool.
+        - Vector 3 (Transport Latency): Identifies network interface or HTTP/WS thread contention.
+
+        Heuristic Diagnostics:
+        - If Vector 1 spikes while Vector 2 is normal -> FRONTIER_DB_LOCK
+        - If Vector 2 & Vector 3 spike while delta ~ 0 -> EVM_GAS_SATURATION
+        - If Substrate peers drop or Substrate latency spikes -> SUBSTRATE_P2P_STALL
+        - Else -> NOMINAL_PARITY
+        """
+        sub_block = sub_telemetry.get("best_block", 0)
+        evm_block = evm_telemetry.get("block_number", 0)
+        sub_pending = max(0, sub_telemetry.get("pending_extrinsics", 0))
+        evm_pending = max(0, evm_telemetry.get("pending_transactions", 0))
+        sub_latency = max(1.0, float(sub_telemetry.get("latency_ms", 15.0)))
+        evm_latency = max(1.0, float(evm_telemetry.get("latency_ms", 18.0)))
+        peers = sub_telemetry.get("peers_count", 8)
+        highest_sub = sub_telemetry.get("highest_block", sub_block)
+
+        # 1. Vector Calculations
+        block_delta = sub_block - evm_block
+        v1_block_lag = max(0.0, block_delta / float(delta_b_max))
+        v2_mempool_skew = float(evm_pending) / float(sub_pending + epsilon)
+        v3_latency_skew = float(evm_latency) / float(sub_latency)
+
+        # 2. Composite CLI Index Calculation
+        raw_cli = (w1 * v1_block_lag) + (w2 * min(v2_mempool_skew, 5.0) / 5.0) + (w3 * min(v3_latency_skew, 5.0) / 5.0)
+        cli_score = round(min(100.0, raw_cli * 100.0), 2)
+
+        # 3. Automated Heuristic Classification
+        if (highest_sub - sub_block > CONFIG.p2p_stall_block_lag) or (peers < CONFIG.p2p_min_peers):
+            classification = "SUBSTRATE_P2P_STALL"
+            diagnosis_msg = f"CLI {cli_score}: Substrate Libp2p network stall detected (peers: {peers}, lag: {highest_sub - sub_block})."
+        elif v1_block_lag >= 0.4:  # >= 2 blocks desync
+            classification = "FRONTIER_DB_LOCK"
+            diagnosis_msg = f"CLI {cli_score}: Substrate-to-EVM mapping bottleneck (delta: {block_delta} blocks). Check fc-mapping-sync or RocksDB locks."
+        elif v2_mempool_skew >= 3.0 and evm_pending > 50:
+            classification = "EVM_GAS_SATURATION"
+            diagnosis_msg = f"CLI {cli_score}: EVM gas saturation detected. Mempool ratio is {round(v2_mempool_skew, 1)}x Substrate pool."
+        elif cli_score > 35.0:
+            classification = "ELEVATED_SKEW"
+            diagnosis_msg = f"CLI {cli_score}: Elevated cross-VM skew across latency or mempool distribution."
+        else:
+            classification = "NOMINAL_PARITY"
+            diagnosis_msg = f"CLI {cli_score}: Cross-VM causal synchronization is in nominal lockstep."
+
+        return {
+            "cli_score": cli_score,
+            "raw_cli": round(raw_cli, 4),
+            "classification": classification,
+            "diagnosis_message": diagnosis_msg,
+            "vector_breakdown": {
+                "block_lag_vector": round(v1_block_lag, 3),
+                "mempool_skew_vector": round(v2_mempool_skew, 3),
+                "latency_skew_vector": round(v3_latency_skew, 3),
+                "block_delta": block_delta,
+                "evm_pending": evm_pending,
+                "wasm_pending": sub_pending,
+                "evm_latency_ms": round(evm_latency, 1),
+                "wasm_latency_ms": round(sub_latency, 1)
+            },
+            "weights": {
+                "w1_block_lag": w1,
+                "w2_mempool": w2,
+                "w3_latency": w3
+            }
+        }
+
     def normalize_pot_balance(self, raw_substrate_balance: int, raw_evm_balance: int) -> Dict[str, Any]:
         """
         Safely normalizes token balance between Substrate (14 decimals - Planck)
@@ -363,6 +448,9 @@ class DualEngineTracker:
         wasm_ratio = round((wasm_pending / total_pending * 100), 1) if total_pending > 0 else 50.0
         evm_ratio = round((evm_pending / total_pending * 100), 1) if total_pending > 0 else 50.0
 
+        # Algorithmic Cross-VM Causal Lag Index
+        cli_telemetry = self.compute_causal_lag_index(sub_telemetry, evm_telemetry)
+
         # Sample safe BigInt balance check (100 POT in Planck vs Wei)
         sample_planck = 100 * (10 ** self.decimals)
         sample_wei = 100 * (10 ** CONFIG.evm_standard_decimals)
@@ -381,6 +469,7 @@ class DualEngineTracker:
                 "is_synced": delta <= CONFIG.max_desync_block_delta
             },
             "root_cause_diagnosis": diagnosis,
+            "causal_lag_index": cli_telemetry,
             "decimal_normalization": decimal_norm,
             "mempool": {
                 "total_pending": total_pending,

@@ -235,14 +235,19 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
 
       {/* 3. Optimal Top 16 Candidate Grid */}
       <div className="p-4 bg-[#0F0A1D] border border-[#261B42] space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1F143D] pb-2">
           <span className="text-xs font-bold text-white tracking-wider flex items-center gap-2">
             <Award className="w-3.5 h-3.5 text-[#8B5CF6]" />
-            OPTIMAL 16 CANDIDATES SELECTED BY SEQUENTIAL PHRAGMÉN
+            OPTIMAL 16 CANDIDATES SELECTED BY PAO-PHRAGMÉN
           </span>
-          <span className="text-[10px] text-zinc-400">
-            [100% Commission &amp; Oversubscribed nodes quarantined]
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-[#10B981] bg-[#0E2820]/40 px-2 py-0.5 border border-[#10B981]/40 font-bold">
+              [PAO-PHRAGMÉN: ACTIVE]
+            </span>
+            <span className="text-[10px] text-zinc-400">
+              tanh(α·Mᵥ) objective with rug-pull gating
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
@@ -252,12 +257,34 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               className="p-2.5 bg-[#080512] border border-[#1F143D] hover:border-[#8B5CF6] transition-colors space-y-1.5"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-[#C084FC]">
+                <span className="text-[10px] font-bold text-[#C084FC] truncate max-w-[130px]">
                   #{idx + 1 < 10 ? `0${idx + 1}` : idx + 1} {val.identity}
                 </span>
                 <span className="text-[10px] text-[#10B981] font-bold">{val.estimated_apy}% APY</span>
               </div>
               <div className="text-[10px] text-zinc-500 truncate">{val.stash_address}</div>
+
+              {/* PAO-Phragmén Safety Margin & Objective Score */}
+              {val.pao_metrics && (
+                <div className="p-1.5 bg-[#120B22] border border-[#261B42] text-[9px] font-mono space-y-0.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-400">PAO SCORE:</span>
+                    <span className="text-white font-bold tabular-nums">{val.pao_metrics.pao_score}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-400">MARGIN Mᵥ(u):</span>
+                    <span className={`font-bold tabular-nums ${
+                      val.pao_metrics.safety_margin_mvu > 0.5 ? 'text-emerald-400' : 'text-amber-400'
+                    }`}>
+                      {val.pao_metrics.safety_margin_mvu}
+                    </span>
+                  </div>
+                  <div className="text-[8px] truncate text-[#818CF8]">
+                    [{val.pao_metrics.safety_margin_rating.replace(/_/g, ' ')}]
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-between text-[10px] text-zinc-400 pt-1 border-t border-[#1F143D]">
                 <span>COMM: <strong className="text-white">{val.commission_pct}%</strong></span>
                 <span>UPTIME: <strong className="text-white">{val.uptime_pct}%</strong></span>

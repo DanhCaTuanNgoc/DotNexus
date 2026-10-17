@@ -64,6 +64,37 @@ class TestDualTrackerUnit(unittest.TestCase):
         self.assertEqual(large_norm["pot_readable"], 100_000_000.0)
         self.assertEqual(large_norm["substrate_balance_planck"], str(massive_pot_planck))
 
+    def test_causal_lag_index_formulation_and_diagnostics(self):
+        """Verifies Cross-VM Causal Lag Index mathematical formula and heuristic diagnostics"""
+        # 1. Nominal Parity Case (Sync delta 0, low queues)
+        sub_nominal = {"best_block": 1000, "highest_block": 1000, "peers_count": 8, "pending_extrinsics": 4, "latency_ms": 15.0}
+        evm_nominal = {"block_number": 1000, "pending_transactions": 6, "latency_ms": 18.0}
+        cli_nominal = self.dual_tracker.compute_causal_lag_index(sub_nominal, evm_nominal)
+        self.assertEqual(cli_nominal["classification"], "NOMINAL_PARITY")
+        self.assertLess(cli_nominal["cli_score"], 35.0)
+        self.assertEqual(cli_nominal["vector_breakdown"]["block_lag_vector"], 0.0)
+
+        # 2. Frontier Mapping DB Lock Case (Block lag = 3 blocks)
+        sub_lag = {"best_block": 1005, "highest_block": 1005, "peers_count": 8, "pending_extrinsics": 2, "latency_ms": 15.0}
+        evm_lag = {"block_number": 1002, "pending_transactions": 3, "latency_ms": 20.0}
+        cli_lag = self.dual_tracker.compute_causal_lag_index(sub_lag, evm_lag)
+        self.assertEqual(cli_lag["classification"], "FRONTIER_DB_LOCK")
+        self.assertGreaterEqual(cli_lag["vector_breakdown"]["block_lag_vector"], 0.4)
+        self.assertIn("Substrate-to-EVM mapping bottleneck", cli_lag["diagnosis_message"])
+
+        # 3. EVM Gas Saturation Case (Delta = 0, EVM mempool spike = 80 txs)
+        sub_congested = {"best_block": 2000, "highest_block": 2000, "peers_count": 8, "pending_extrinsics": 5, "latency_ms": 15.0}
+        evm_congested = {"block_number": 2000, "pending_transactions": 85, "latency_ms": 35.0}
+        cli_gas = self.dual_tracker.compute_causal_lag_index(sub_congested, evm_congested)
+        self.assertEqual(cli_gas["classification"], "EVM_GAS_SATURATION")
+        self.assertGreaterEqual(cli_gas["vector_breakdown"]["mempool_skew_vector"], 3.0)
+
+        # 4. Verified in get_dual_state() output
+        state = self.dual_tracker.get_dual_state()
+        self.assertIn("causal_lag_index", state)
+        self.assertIn("cli_score", state["causal_lag_index"])
+        self.assertIn("vector_breakdown", state["causal_lag_index"])
+
 
 if __name__ == "__main__":
     unittest.main()

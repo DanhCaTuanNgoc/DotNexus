@@ -89,6 +89,62 @@ class TestNPoSOptimizerUnit(unittest.TestCase):
         self.assertEqual(v0["total_stake_pot"], 1250000.0)
         self.assertEqual(v0["era_points"], 19500)
 
+    def test_pao_phragmen_algorithm_and_rugpull_detection(self):
+        """Verifies PAO-Phragmén Stake Safety Margin M_v(u), Rug-Pull penalty, and objective score"""
+        # 1. High Headroom Safe Validator
+        safe_val = {
+            "identity": "Secure-Whale-Proof-Node",
+            "commission_pct": 2.0,
+            "estimated_apy": 15.0,
+            "slash_count": 0,
+            "min_rewarded_stake_pot": 100.0,
+            "median_stake_pot": 5000.0,
+            "commission_history": [2.0, 2.0, 2.0],
+            "is_oversubscribed": False
+        }
+        pao_safe = self.npos_optimizer.compute_pao_phragmen_score(safe_val, user_stake_pot=10000.0)
+        self.assertGreater(pao_safe["safety_margin_mvu"], 1.5)
+        self.assertEqual(pao_safe["safety_margin_rating"], "SECURE_WHALE_RESISTANT")
+        self.assertFalse(pao_safe["is_rugpull_risk"])
+        self.assertGreater(pao_safe["pao_score"], 10.0)
+
+        # 2. Critical Eviction Risk (User stake below minimum rewarded threshold)
+        small_stake_val = {
+            "identity": "Whale-Heavy-Node",
+            "commission_pct": 2.0,
+            "estimated_apy": 15.0,
+            "slash_count": 0,
+            "min_rewarded_stake_pot": 500.0,
+            "median_stake_pot": 8000.0,
+            "commission_history": [2.0, 2.0],
+            "is_oversubscribed": False
+        }
+        pao_small = self.npos_optimizer.compute_pao_phragmen_score(small_stake_val, user_stake_pot=200.0)
+        self.assertLessEqual(pao_small["safety_margin_mvu"], 0.0)
+        self.assertEqual(pao_small["safety_margin_rating"], "CRITICAL_EVICTION_RISK")
+        self.assertEqual(pao_small["pao_score"], 0.0)
+
+        # 3. Commission Rug-Pull Detection (Node bait-and-switch: 0% -> 25% or 100%)
+        rugpull_val = {
+            "identity": "Bait-And-Switch-Validator",
+            "commission_pct": 25.0,
+            "estimated_apy": 15.0,
+            "slash_count": 0,
+            "min_rewarded_stake_pot": 100.0,
+            "median_stake_pot": 5000.0,
+            "commission_history": [0.0, 0.0, 25.0],
+            "is_oversubscribed": False
+        }
+        pao_rug = self.npos_optimizer.compute_pao_phragmen_score(rugpull_val, user_stake_pot=10000.0)
+        self.assertTrue(pao_rug["is_rugpull_risk"])
+        self.assertGreaterEqual(pao_rug["rugpull_penalty"], 0.85)
+
+        # 4. Verified in Top 16 recommendation payload
+        rec = self.npos_optimizer.get_top_16_recommendation()
+        self.assertTrue(rec.get("pao_phragmen_active"))
+        self.assertIn("pao_algorithm_name", rec)
+        self.assertIn("pao_metrics", rec["validators"][0])
+
 
 if __name__ == "__main__":
     unittest.main()

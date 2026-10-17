@@ -486,17 +486,111 @@ class NPoSOptimizer:
         elif total_score < 75.0:
             recommendation = "ACCEPTABLE_BACKUP"
 
+        # Calculate PAO-Phragmén objective score and safety margin
+        pao_data = self.compute_pao_phragmen_score(v)
+
         return {
             "health_score": total_score,
             "is_oversubscribed": is_oversubscribed,
-            "risk_warning": warning,
-            "recommendation": recommendation,
+            "risk_warning": warning or ("Commission Rug-Pull Risk" if pao_data.get("is_rugpull_risk") else None),
+            "recommendation": recommendation if not pao_data.get("is_rugpull_risk") else "REJECT_UNFAVORABLE",
+            "pao_metrics": pao_data,
             "subscores": {
                 "uptime": round(uptime_score, 1),
                 "commission": round(comm_score, 1),
                 "slashing": round(slash_score, 1),
                 "oversubscription": round(oversub_score, 1)
             }
+        }
+
+    def compute_pao_phragmen_score(
+        self,
+        v: Dict[str, Any],
+        user_stake_pot: float = 5000.0,
+        alpha: float = 1.5,
+        current_phase_is_off: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Predictive Anti-Oversubscription Phragmén (PAO-Phragmén) Algorithm:
+        
+        1. Stake Safety Margin:
+           M_v(u) = (Stake_u - Stake_min_rewarded(v)) / Stake_median(v)
+        
+        2. Commission Rug-Pull Penalty:
+           Evaluates first derivative & volatility of commission history. If a validator
+           reduced commission to 0% to bait stakers and then jacked it up to >= 20%, or
+           jumped abruptly, flag as Rug-Pull Risk.
+        
+        3. Objective Function:
+           Score(v) = APY_net(v) * tanh(alpha * max(0.0, M_v(u))) * (1 - P_slash) * II(CurrentPhase == Off) * (1 - RugPull_Penalty)
+        """
+        noms = v.get("nominator_count", 100)
+        tot_stake = v.get("total_stake_pot", 1_000_000.0)
+
+        min_rewarded = v.get("min_rewarded_stake_pot")
+        if min_rewarded is None:
+            min_rewarded = max(50.0, (tot_stake / max(1, noms)) * 0.15)
+
+        median_stake = v.get("median_stake_pot")
+        if median_stake is None:
+            median_stake = max(min_rewarded * 2.0, (tot_stake / max(1, noms)) * 0.8)
+
+        # 1. Stake Safety Margin M_v(u)
+        safety_margin = (user_stake_pot - min_rewarded) / max(1.0, median_stake)
+
+        # 2. Commission Rug-Pull Volatility Detection
+        current_comm = v.get("commission_pct", 2.0)
+        comm_hist = v.get("commission_history")
+        if not comm_hist:
+            comm_hist = [0.0, 0.0, 100.0] if current_comm >= 100.0 else [current_comm, current_comm]
+        
+        is_rugpull_risk = False
+        rugpull_penalty = 0.0
+        if current_comm >= 100.0:
+            is_rugpull_risk = True
+            rugpull_penalty = 1.0
+        elif len(comm_hist) >= 2:
+            latest_delta = comm_hist[-1] - comm_hist[0]
+            if latest_delta >= 15.0 or (min(comm_hist) <= 1.0 and current_comm >= 10.0):
+                is_rugpull_risk = True
+                rugpull_penalty = 0.85
+        elif current_comm >= 20.0:
+            rugpull_penalty = 0.50
+
+        # 3. Objective Function Calculation
+        nominal_apy = v.get("estimated_apy", 14.5)
+        net_apy = nominal_apy * max(0.0, (1.0 - (current_comm / 100.0)))
+        
+        p_slash = 1.0 if v.get("slash_count", 0) > 0 else 0.0
+        election_phase_factor = 1.0 if current_phase_is_off else 0.0
+
+        if safety_margin <= 0.0 or v.get("is_oversubscribed", False):
+            margin_factor = 0.0
+            margin_rating = "CRITICAL_EVICTION_RISK"
+        else:
+            margin_factor = math.tanh(alpha * safety_margin)
+            if safety_margin < 0.25:
+                margin_rating = "HIGH_OVERSUB_RISK"
+            elif safety_margin < 0.75:
+                margin_rating = "MODERATE_HEADROOM"
+            else:
+                margin_rating = "SECURE_WHALE_RESISTANT"
+
+        objective_score = round(
+            net_apy * margin_factor * (1.0 - p_slash) * election_phase_factor * (1.0 - rugpull_penalty),
+            2
+        )
+
+        return {
+            "pao_score": objective_score,
+            "safety_margin_mvu": round(safety_margin, 3),
+            "safety_margin_rating": margin_rating,
+            "net_apy": round(net_apy, 2),
+            "margin_factor_tanh": round(margin_factor, 3),
+            "is_rugpull_risk": is_rugpull_risk,
+            "rugpull_penalty": round(rugpull_penalty, 2),
+            "min_rewarded_stake_pot": round(min_rewarded, 2),
+            "median_stake_pot": round(median_stake, 2)
         }
 
     def simulate_phragmen_election(self, candidates: List[Dict[str, Any]], target_seats: int = 16) -> List[Dict[str, Any]]:
@@ -516,11 +610,12 @@ class NPoSOptimizer:
         for _ in range(target_seats):
             if not remaining:
                 break
-            # Pick best candidate balancing highest health score with lowest oversubscription
+            # Pick best candidate balancing highest health score with lowest oversubscription and PAO objective
             best_idx = 0
             best_weight = -1.0
             for i, cand in enumerate(remaining):
-                sim_weight = cand["health_score"] * (1.0 + (cand.get("era_points", 18000) / 20000.0))
+                pao_score = cand.get("pao_metrics", {}).get("pao_score", 0.0)
+                sim_weight = (cand["health_score"] * 0.5 + pao_score * 0.5) * (1.0 + (cand.get("era_points", 18000) / 20000.0))
                 if sim_weight > best_weight:
                     best_weight = sim_weight
                     best_idx = i
@@ -632,6 +727,8 @@ class NPoSOptimizer:
             "targets": targets,
             "validators": top_16,
             "election_algorithm": "Client-Side Sequential Phragmén Simulator",
+            "pao_phragmen_active": True,
+            "pao_algorithm_name": "Predictive Anti-Oversubscription Phragmén (PAO-Phragmén)",
             "extrinsic_call": f"staking.nominate(targets={targets[:3]}... [{len(targets)} total])"
         }
 

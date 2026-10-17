@@ -13,13 +13,27 @@ import {
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { TerminalDrawer } from './components/TerminalDrawer';
-import { DualEngineView } from './views/DualEngineView';
-import { SecurityGuardView } from './views/SecurityGuardView';
-import { StakingYieldView } from './views/StakingYieldView';
-import { TopologyRadarView } from './views/TopologyRadarView';
-import { CanvasBoard } from './views/CanvasBoard';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { LandingPage } from './views/LandingPage';
+
+// Dynamic Code Splitting via React.lazy for optimized initial bundle
+const DualEngineView = React.lazy(() => import('./views/DualEngineView').then(m => ({ default: m.DualEngineView })));
+const SecurityGuardView = React.lazy(() => import('./views/SecurityGuardView').then(m => ({ default: m.SecurityGuardView })));
+const StakingYieldView = React.lazy(() => import('./views/StakingYieldView').then(m => ({ default: m.StakingYieldView })));
+const TopologyRadarView = React.lazy(() => import('./views/TopologyRadarView').then(m => ({ default: m.TopologyRadarView })));
+const CanvasBoard = React.lazy(() => import('./views/CanvasBoard').then(m => ({ default: m.CanvasBoard })));
+const LandingPage = React.lazy(() => import('./views/LandingPage').then(m => ({ default: m.LandingPage })));
+
+const ViewLoadingFallback: React.FC = () => (
+  <div className="flex-1 h-full min-h-[300px] flex flex-col items-center justify-center p-6 bg-[#080512]">
+    <div className="relative flex items-center justify-center mb-4">
+      <div className="w-10 h-10 rounded-full border-2 border-[#E6007A]/20 border-t-[#E6007A] animate-spin" />
+      <div className="absolute w-5 h-5 rounded-full border-2 border-[#6366F1]/30 border-b-[#6366F1] animate-spin" style={{ animationDirection: 'reverse' }} />
+    </div>
+    <span className="text-[12px] font-mono tracking-wider text-zinc-400 uppercase select-none">
+      Initializing View Module...
+    </span>
+  </div>
+);
 import { 
   api, 
   DualTelemetryState, 
@@ -162,13 +176,15 @@ export const App: React.FC = () => {
   // Semantic HTML/React Landing Page with Three.js Background
   if (viewMode === 'landing') {
     return (
-      <LandingPage
-        onLaunchApp={handleLaunchApp}
-        dualData={dualData}
-        secData={secData}
-        nposData={nposData}
-        shieldData={shieldData}
-      />
+      <React.Suspense fallback={<ViewLoadingFallback />}>
+        <LandingPage
+          onLaunchApp={handleLaunchApp}
+          dualData={dualData}
+          secData={secData}
+          nposData={nposData}
+          shieldData={shieldData}
+        />
+      </React.Suspense>
     );
   }
 
@@ -319,30 +335,32 @@ export const App: React.FC = () => {
               : 'p-3 sm:p-5 md:p-6 pb-36 sm:pb-44 md:pb-48 overflow-y-auto'
           } bg-[#080512]`}
         >
-          {activeTab === 'dual-vm' && (
-            <DualEngineView data={dualData} onRefresh={fetchAllData} isLoading={isLoading} />
-          )}
-          {activeTab === 'slashing' && (
-            <SecurityGuardView data={secData} onRefresh={fetchAllData} />
-          )}
-          {activeTab === 'staking' && (
-            <StakingYieldView data={nposData} onRefresh={fetchAllData} />
-          )}
-          {activeTab === 'shield' && (
-            <TopologyRadarView data={shieldData} onRefresh={fetchAllData} />
-          )}
-          {activeTab === 'canvas' && (
-            <ErrorBoundary fallbackTitle="Visual DAG Canvas Interrupted">
-              <CanvasBoard
-                onLog={handleAppendLog}
-                selectedNodeId={selectedCanvasNodeId}
-                onSelectNode={setSelectedCanvasNodeId}
-                onRequestOpenTerminal={() => handleToggleTerminal(true)}
-                subRoute={routeState.subRoute}
-                onNavigateSubRoute={(sub) => navigateTo('console', 'canvas', sub)}
-              />
-            </ErrorBoundary>
-          )}
+          <React.Suspense fallback={<ViewLoadingFallback />}>
+            {activeTab === 'dual-vm' && (
+              <DualEngineView data={dualData} onRefresh={fetchAllData} isLoading={isLoading} />
+            )}
+            {activeTab === 'slashing' && (
+              <SecurityGuardView data={secData} onRefresh={fetchAllData} />
+            )}
+            {activeTab === 'staking' && (
+              <StakingYieldView data={nposData} onRefresh={fetchAllData} />
+            )}
+            {activeTab === 'shield' && (
+              <TopologyRadarView data={shieldData} onRefresh={fetchAllData} />
+            )}
+            {activeTab === 'canvas' && (
+              <ErrorBoundary fallbackTitle="Visual DAG Canvas Interrupted">
+                <CanvasBoard
+                  onLog={handleAppendLog}
+                  selectedNodeId={selectedCanvasNodeId}
+                  onSelectNode={setSelectedCanvasNodeId}
+                  onRequestOpenTerminal={() => handleToggleTerminal(true)}
+                  subRoute={routeState.subRoute}
+                  onNavigateSubRoute={(sub) => navigateTo('console', 'canvas', sub)}
+                />
+              </ErrorBoundary>
+            )}
+          </React.Suspense>
         </main>
       </div>
 

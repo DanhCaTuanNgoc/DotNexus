@@ -230,4 +230,14 @@ LINK API DOC: https://portaldot-dev.readthedocs.io/ (Lưu ý: URL trực tiếp 
 ### 6. Độ lệch phiên bản quan trọng giữa Docs v1 và Hackathon V3.0
 - Docs ReadTheDocs hiện tại là **V1** (tập trung 100% vào Substrate Native + ink! WASM).
 - Chưa có tài liệu hướng dẫn EVM Chain ID, RPC JSON-RPC của Ethereum (Frontier/Revive) trên ReadTheDocs.
-- Tuy nhiên Hackathon V3.0 yêu cầu/khuyến khích Dual-VM (EVM + WASM). Do đó, các công cụ tooling phải hỗ trợ cả hai, đồng thời thiết kế kiến trúc theo dạng adapter linh hoạt.
+- Tuy nhiên Hackathon V3.0 yêu cầu/khuyến khích Dual-VM (EVM + WASM). Do đó, các công cụ tooling phải hỗ trợ cả hai, đồng thời thiết kế kiến trúc theo dạng adapter linh hoạt.
+
+
+10/17/2026 - Update từ Ban tổ chức & Core Dev:
+- **Testnet RPC Update & Airdrop tPOT**:
+  - Testnet RPC đã được cập nhật lại sau sự cố mất kết nối trước đó.
+  - Token testnet (`tPOT`) sẽ được gửi trong tuần này tới các ví **native POT** (SS58: 42, địa chỉ bắt đầu bằng `5...`) đã đăng ký trên DoraHacks.
+- **Xác nhận Kiến trúc EVM V3.0 (Crucial)**:
+  - Portaldot V3.0 hỗ trợ Solidity smart contracts thông qua **`revive` (`pallet-revive`)** thay vì Frontier cũ.
+  - Tương thích với các công cụ EVM tiêu chuẩn: MetaMask, Hardhat, Foundry.
+  - EVM JSON-RPC URL và Chain ID chính thức đang được `@Titus` (Core Team) xác nhận và sẽ công bố ngay khi hoàn tất cấu hình.

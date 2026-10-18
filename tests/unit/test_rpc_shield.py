@@ -1,8 +1,10 @@
 """
 Unit Tests for RPC Shield & Reverse Proxy Defense
-Verifies heavy eth_getLogs defense, rate limiting, batch limits, safe block tags, socket ceiling, and Prometheus metrics.
+Verifies heavy eth_getLogs defense, rate limiting, batch limits, safe block tags,
+socket ceiling, IP ban lifecycles, and Prometheus metrics.
 """
 
+import time
 import unittest
 from engine.config import CONFIG
 from engine.rpc_shield import RPCShield
@@ -12,81 +14,184 @@ class TestRPCShieldUnit(unittest.TestCase):
     def setUp(self):
         self.rpc_shield = RPCShield()
 
-    def test_rpc_shield_heavy_getlogs_defense(self):
-        """Verifies archival query filter prevents memory exhaustion"""
-        res_normal = self.rpc_shield.inspect_request(
+    def test_parse_safe_block_none_returns_latest(self):
+        """Verifies None block parameter returns cached latest EVM block"""
+        self.assertEqual(
+            self.rpc_shield.parse_safe_block_number(None),
+            self.rpc_shield.cached_latest_evm_block
+        )
+
+    def test_parse_safe_block_latest_tag(self):
+        """Verifies 'latest' tag returns cached latest EVM block"""
+        self.assertEqual(
+            self.rpc_shield.parse_safe_block_number("latest"),
+            self.rpc_shield.cached_latest_evm_block
+        )
+
+    def test_parse_safe_block_finalized_tag(self):
+        """Verifies 'finalized' tag returns cached latest EVM block"""
+        self.assertEqual(
+            self.rpc_shield.parse_safe_block_number("finalized"),
+            self.rpc_shield.cached_latest_evm_block
+        )
+
+    def test_parse_safe_block_earliest_tag(self):
+        """Verifies 'earliest' tag returns block 0"""
+        self.assertEqual(self.rpc_shield.parse_safe_block_number("earliest"), 0)
+
+    def test_parse_safe_block_hex_string(self):
+        """Verifies 0x hex string is parsed to integer value"""
+        self.assertEqual(self.rpc_shield.parse_safe_block_number("0x20"), 32)
+        self.assertEqual(self.rpc_shield.parse_safe_block_number("0x100"), 256)
+
+    def test_parse_safe_block_integer(self):
+        """Verifies plain integer is returned directly"""
+        self.assertEqual(self.rpc_shield.parse_safe_block_number(12345), 12345)
+
+    def test_parse_safe_block_invalid_string_fallback(self):
+        """Verifies unrecognized string tags fall back safely without raising ValueError"""
+        res = self.rpc_shield.parse_safe_block_number("corrupted_block_tag_xyz")
+        self.assertEqual(res, self.rpc_shield.cached_latest_evm_block)
+
+    def test_getlogs_safe_span_allowed(self):
+        """Verifies eth_getLogs with block span <= 2000 is ALLOWED"""
+        res = self.rpc_shield.inspect_request(
             client_ip="1.2.3.4",
             method="eth_getLogs",
-            params=[{"fromBlock": "0x10", "toBlock": "0x20"}]
+            params=[{"fromBlock": 1000, "toBlock": 1500}]
         )
-        self.assertEqual(res_normal["decision"], "ALLOWED")
+        self.assertEqual(res["decision"], "ALLOWED")
 
-        res_heavy = self.rpc_shield.inspect_request(
+    def test_getlogs_heavy_span_blocked(self):
+        """Verifies eth_getLogs with block span > 2000 is BLOCKED to prevent node OOM"""
+        res = self.rpc_shield.inspect_request(
             client_ip="1.2.3.4",
             method="eth_getLogs",
-            params=[{"fromBlock": "0x1", "toBlock": "0x5000"}]
+            params=[{"fromBlock": 1000, "toBlock": 3500}]  # 2500 span > 2000
         )
-        self.assertEqual(res_heavy["decision"], "BLOCKED")
-        self.assertIn("exceeds max safe limit", res_heavy["reason"])
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertIn("exceeds max safe limit", res["reason"])
 
-    def test_rpc_shield_rate_limiting(self):
-        """Verifies sliding-window rate limiter throttles abusive IPs (60 req/min)"""
-        test_ip = "9.9.9.9"
+    def test_getlogs_heavy_span_bans_ip(self):
+        """Verifies abusive archival getLogs query bans the offending client IP"""
+        ip = "185.220.101.5"
+        self.rpc_shield.inspect_request(
+            client_ip=ip,
+            method="eth_getLogs",
+            params=[{"fromBlock": 0, "toBlock": 100000}]
+        )
+        self.assertIn(ip, self.rpc_shield.blocked_ips)
+
+    def test_getlogs_empty_params_allowed(self):
+        """Verifies eth_getLogs with empty or missing params dict handles gracefully"""
+        res = self.rpc_shield.inspect_request(client_ip="1.2.3.4", method="eth_getLogs", params=[])
+        self.assertEqual(res["decision"], "ALLOWED")
+
+    def test_active_ban_rejects_subsequent_request(self):
+        """Verifies banned IP is immediately rejected with 403 status code"""
+        banned_ip = "192.0.2.1"
+        self.rpc_shield.ban_ip(banned_ip, duration_seconds=60)
+        res = self.rpc_shield.inspect_request(client_ip=banned_ip, method="eth_blockNumber")
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertEqual(res["status_code"], 403)
+        self.assertIn("banned", res["reason"].lower())
+
+    def test_manual_ban_and_unban_ip(self):
+        """Verifies programmatic ban and unban functions"""
+        ip = "198.51.100.99"
+        self.rpc_shield.ban_ip(ip, duration_seconds=120)
+        self.assertIn(ip, self.rpc_shield.blocked_ips)
+        self.rpc_shield.unban_ip(ip)
+        self.assertNotIn(ip, self.rpc_shield.blocked_ips)
+
+    def test_ban_expiration_allows_request(self):
+        """Verifies expired IP ban allows normal requests again"""
+        ip = "198.51.100.77"
+        self.rpc_shield.blocked_ips[ip] = time.time() - 1.0  # Already expired
+        res = self.rpc_shield.inspect_request(client_ip=ip, method="eth_blockNumber")
+        self.assertEqual(res["decision"], "ALLOWED")
+        self.assertNotIn(ip, self.rpc_shield.blocked_ips)
+
+    def test_rate_limiter_allows_up_to_limit(self):
+        """Verifies sliding-window rate limiter allows up to 60 requests per minute"""
+        ip = "10.0.0.1"
         for _ in range(CONFIG.rpc_rate_limit_per_minute):
-            self.rpc_shield.inspect_request(client_ip=test_ip, method="eth_blockNumber")
+            res = self.rpc_shield.inspect_request(client_ip=ip, method="eth_blockNumber")
+            self.assertEqual(res["decision"], "ALLOWED")
 
-        res_throttled = self.rpc_shield.inspect_request(client_ip=test_ip, method="eth_blockNumber")
-        self.assertEqual(res_throttled["decision"], "THROTTLED")
-        self.assertEqual(res_throttled["status_code"], 429)
+    def test_rate_limiter_throttles_61st_request(self):
+        """Verifies 61st request within 1 minute is THROTTLED with HTTP 429"""
+        ip = "10.0.0.2"
+        for _ in range(CONFIG.rpc_rate_limit_per_minute):
+            self.rpc_shield.inspect_request(client_ip=ip, method="eth_blockNumber")
+        throttled = self.rpc_shield.inspect_request(client_ip=ip, method="eth_blockNumber")
+        self.assertEqual(throttled["decision"], "THROTTLED")
+        self.assertEqual(throttled["status_code"], 429)
 
-    def test_rpc_shield_batch_and_storage_defense(self):
-        """Verifies batch limits (> 20), safe block tags, and Substrate storage defenses"""
-        # Batch size limit (> 20)
-        res_batch = self.rpc_shield.inspect_request(
-            client_ip="5.5.5.5",
+    def test_batch_size_within_limit_allowed(self):
+        """Verifies batch request with size <= 20 is ALLOWED"""
+        res = self.rpc_shield.inspect_request(
+            client_ip="10.0.0.3",
             method="batch",
             is_batch=True,
-            batch_size=25
+            batch_size=20
         )
-        self.assertEqual(res_batch["decision"], "BLOCKED")
-        self.assertIn("Batch size 25 exceeds", res_batch["reason"])
+        self.assertEqual(res["decision"], "ALLOWED")
 
-        # Safe eth_getLogs block tag parser
-        res_tag = self.rpc_shield.inspect_request(
-            client_ip="5.5.5.5",
-            method="eth_getLogs",
-            params=[{"fromBlock": "earliest", "toBlock": "latest"}]
+    def test_batch_size_exceeding_limit_blocked(self):
+        """Verifies batch request with size > 20 is BLOCKED with JSON-RPC error -32600"""
+        res = self.rpc_shield.inspect_request(
+            client_ip="10.0.0.3",
+            method="batch",
+            is_batch=True,
+            batch_size=21
         )
-        self.assertEqual(res_tag["decision"], "BLOCKED")
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertIn("exceeds maximum safe limit", res["reason"])
 
-        # Substrate storage defense: state_getPairs blocked
-        res_pairs = self.rpc_shield.inspect_request(client_ip="6.6.6.6", method="state_getPairs")
-        self.assertEqual(res_pairs["decision"], "BLOCKED")
-
-    def test_rpc_shield_socket_ceiling_and_prometheus_metrics(self):
-        """Verifies 256KB socket ceiling against JSON-Bomb and Prometheus /metrics text output"""
-        # Socket Ceiling: Reject payload > 256KB
-        large_bytes = 300 * 1024  # 300KB
-        res_bomb = self.rpc_shield.inspect_request(
-            client_ip="7.7.7.7",
+    def test_socket_payload_within_ceiling_allowed(self):
+        """Verifies socket payload <= 256KB is ALLOWED"""
+        res = self.rpc_shield.inspect_request(
+            client_ip="10.0.0.4",
             method="eth_call",
-            raw_payload_bytes=large_bytes
+            raw_payload_bytes=250 * 1024
         )
-        self.assertEqual(res_bomb["decision"], "BLOCKED")
-        self.assertEqual(res_bomb["status_code"], 413)
+        self.assertEqual(res["decision"], "ALLOWED")
 
-        # Sensitive namespaces blocked from public IP
-        res_author = self.rpc_shield.inspect_request(client_ip="7.7.7.7", method="author_insertKey")
-        self.assertEqual(res_author["decision"], "BLOCKED")
+    def test_socket_payload_exceeding_ceiling_blocked(self):
+        """Verifies socket payload > 256KB is BLOCKED with HTTP 413 (Payload Too Large)"""
+        res = self.rpc_shield.inspect_request(
+            client_ip="10.0.0.4",
+            method="eth_call",
+            raw_payload_bytes=260 * 1024
+        )
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertEqual(res["status_code"], 413)
 
-        res_debug = self.rpc_shield.inspect_request(client_ip="7.7.7.7", method="debug_traceTransaction")
-        self.assertEqual(res_debug["decision"], "BLOCKED")
+    def test_substrate_storage_state_getpairs_blocked(self):
+        """Verifies state_getPairs is blocked to prevent node storage memory starvation"""
+        res = self.rpc_shield.inspect_request(client_ip="10.0.0.5", method="state_getPairs")
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertIn("state_getPairs", res["reason"])
 
-        # Prometheus metrics export verification
-        metrics = self.rpc_shield.export_prometheus_metrics()
-        self.assertIn("dotnexus_rpc_requests_total", metrics)
-        self.assertIn("dotnexus_proxy_inspection_overhead_ms", metrics)
-        self.assertIn("dotnexus_rpc_active_banned_ips", metrics)
+    def test_restricted_namespace_author_insertkey_blocked(self):
+        """Verifies author namespace write methods are restricted from public ingress"""
+        res = self.rpc_shield.inspect_request(client_ip="10.0.0.6", method="author_insertKey")
+        self.assertEqual(res["decision"], "BLOCKED")
+
+    def test_restricted_namespace_debug_trace_blocked(self):
+        """Verifies debug_traceTransaction is restricted on production validator nodes"""
+        res = self.rpc_shield.inspect_request(client_ip="10.0.0.7", method="debug_traceTransaction")
+        self.assertEqual(res["decision"], "BLOCKED")
+
+    def test_prometheus_metrics_export_structure(self):
+        """Verifies Prometheus metrics export generates compliant text format with counters"""
+        metrics_text = self.rpc_shield.export_prometheus_metrics()
+        self.assertIn("dotnexus_rpc_requests_total", metrics_text)
+        self.assertIn("dotnexus_proxy_inspection_overhead_ms", metrics_text)
+        self.assertIn("dotnexus_rpc_active_banned_ips", metrics_text)
+        self.assertIn("TYPE", metrics_text)
+        self.assertIn("HELP", metrics_text)
 
 
 if __name__ == "__main__":

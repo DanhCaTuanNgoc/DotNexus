@@ -6,7 +6,7 @@ Manages operational runbooks, node topologies, and automated triggers.
 import time
 import secrets
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from engine.dual_tracker import DUAL_TRACKER
 from engine.slash_guard import SLASH_GUARD
 from engine.npos_optimizer import NPOS_OPTIMIZER
@@ -169,11 +169,20 @@ class DAGCanvasEngine:
     def get_runbooks(self) -> List[Dict[str, Any]]:
         return self.prebuilt_runbooks
 
+    def get_runbook_by_id(self, runbook_id: str) -> Optional[Dict[str, Any]]:
+        return next((r for r in self.prebuilt_runbooks if r["id"] == runbook_id), None)
+
+    def add_custom_runbook(self, runbook_data: Dict[str, Any]) -> bool:
+        if "id" in runbook_data:
+            self.prebuilt_runbooks.append(runbook_data)
+            return True
+        return False
+
     def execute_runbook(self, runbook_id: str) -> Dict[str, Any]:
         """Executes the pipeline steps of a given runbook with actual backend calls"""
-        runbook = next((r for r in self.prebuilt_runbooks if r["id"] == runbook_id), None)
+        runbook = self.get_runbook_by_id(runbook_id)
         if not runbook:
-            return {"success": False, "error": f"Runbook {runbook_id} not found."}
+            return {"status": "FAILED", "success": False, "error": f"Runbook {runbook_id} not found."}
 
         steps_result = []
         t0 = time.time()

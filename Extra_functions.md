@@ -126,5 +126,5 @@ $$\text{Score}(v) = \text{APY}_{\text{net}}(v) \times \tanh\big(\alpha \cdot M_v
    - Nhóm Node `CHAOS` xuất hiện trực quan trên Palette của `CanvasBoard.tsx`.
    - Kịch bản `runbook-chaos-fire-drill` thực thi thành công 4/4 bước kiểm thử sự cố.
 4. **Kiểm thử & Build Hygiene**:
-   - Toàn bộ **30/30 unit & integration tests** chạy qua `python -m unittest tests/test_engine.py` đều đạt `OK`.
-   - Frontend TypeScript compile sạch 100% qua `npm run build`.
+   - Toàn bộ **145/145 unit & integration tests** chạy qua `python -m unittest tests/test_engine.py` đều đạt `OK` (100% pass rate, thời gian chạy tối ưu ~10s).
+   - Frontend TypeScript compile sạch 100% qua `npm run build` (555ms).

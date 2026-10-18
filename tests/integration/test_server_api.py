@@ -1,9 +1,11 @@
 """
 Integration Tests for REST API Gateway & Prometheus Exporter
-Verifies HTTP endpoints, Prometheus metric formats, status responses, and authentication checks.
+Verifies HTTP endpoints, Prometheus metric formats, status responses,
+authentication checks, NPoS pre-flight rebalance, and Chaos Monkey execution.
 """
 
 import unittest
+from engine.config import CONFIG
 from engine.server import app
 
 
@@ -11,6 +13,7 @@ class TestServerAPIIntegration(unittest.TestCase):
     def setUp(self):
         app.config["TESTING"] = True
         self.client = app.test_client()
+        self.auth_headers = {"X-DotNexus-Auth": CONFIG.auth_api_token}
 
     def test_get_prometheus_metrics_endpoint(self):
         """Verifies GET /metrics serves text/plain Prometheus metrics"""
@@ -56,6 +59,54 @@ class TestServerAPIIntegration(unittest.TestCase):
         self.assertIn("fencing_epoch", inner)
         self.assertIn("dead_mans_switch", inner)
 
+    def test_post_slash_guard_rotate_keys_endpoint(self):
+        """Verifies POST /api/slash-guard/rotate-keys returns session keys preview"""
+        res = self.client.post("/api/slash-guard/rotate-keys")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        self.assertIn("keys_struct_v14", data.get("data", {}))
+
+    def test_post_slash_guard_failover_authorized(self):
+        """Verifies POST /api/slash-guard/failover succeeds with valid auth token"""
+        res = self.client.post(
+            "/api/slash-guard/failover",
+            json={"reason": "Integration Test Failover"},
+            headers=self.auth_headers
+        )
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        self.assertIn("fencing_epoch", data.get("data", {}))
+
+    def test_post_slash_guard_failover_unauthorized(self):
+        """Verifies write endpoints reject requests with invalid X-DotNexus-Auth token"""
+        res = self.client.post(
+            "/api/slash-guard/failover",
+            json={"reason": "Unauthorized test attempt"},
+            headers={"X-DotNexus-Auth": "wrong-token-12345"}
+        )
+        self.assertEqual(res.status_code, 401)
+        data = res.get_json()
+        self.assertFalse(data.get("success"))
+        self.assertIn("Unauthorized", data.get("error", ""))
+
+    def test_post_slash_guard_simulate_heartbeat_miss(self):
+        """Verifies POST /api/slash-guard/simulate-missed-heartbeat triggers miss simulation"""
+        res = self.client.post("/api/slash-guard/simulate-missed-heartbeat")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        self.assertIn("missed_heartbeats", data.get("data", {}))
+
+    def test_get_security_audit_log_endpoint(self):
+        """Verifies GET /api/security/audit-log returns immutable audit entries"""
+        res = self.client.get("/api/security/audit-log")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        self.assertIsInstance(data.get("data"), list)
+
     def test_get_npos_recommendation_endpoint(self):
         """Verifies GET /api/npos/top-16 returns top 16 validator targets"""
         res = self.client.get("/api/npos/top-16")
@@ -65,6 +116,47 @@ class TestServerAPIIntegration(unittest.TestCase):
         inner = data.get("data", {})
         self.assertIn("targets", inner)
         self.assertIn("auto_compounded_apy", inner)
+
+    def test_get_npos_all_validators_endpoint(self):
+        """Verifies GET /api/npos/validators lists candidate validators"""
+        res = self.client.get("/api/npos/validators")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        self.assertIsInstance(data.get("data"), list)
+
+    def test_post_npos_rebalance_endpoint(self):
+        """Verifies POST /api/npos/rebalance computes allocation with pre-flight checks"""
+        res = self.client.post(
+            "/api/npos/rebalance",
+            json={"stake_pot": 10000.0},
+            headers=self.auth_headers
+        )
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        self.assertIn("data", data)
+
+    def test_get_rpc_shield_status_endpoint(self):
+        """Verifies GET /api/rpc-shield returns metrics, logs, and peer topology"""
+        res = self.client.get("/api/rpc-shield")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        inner = data.get("data", {})
+        self.assertIn("p2p_topology", inner)
+        self.assertIn("total_inspected", inner)
+
+    def test_post_rpc_shield_simulate_attack_endpoint(self):
+        """Verifies POST /api/rpc-shield/simulate-attack tests heavy getLogs defense"""
+        res = self.client.post(
+            "/api/rpc-shield/simulate-attack",
+            json={"type": "HEAVY_GETLOGS"}
+        )
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        self.assertEqual(data.get("data", {}).get("attack_type"), "HEAVY_GETLOGS")
 
     def test_get_runbooks_endpoint(self):
         """Verifies GET /api/canvas/runbooks lists available DAG automation runbooks"""
@@ -76,17 +168,38 @@ class TestServerAPIIntegration(unittest.TestCase):
         self.assertIsInstance(runbooks, list)
         self.assertGreater(len(runbooks), 0)
 
-    def test_auth_rejection_with_invalid_token(self):
-        """Verifies write endpoints reject requests with invalid X-DotNexus-Auth token"""
+    def test_post_canvas_execute_runbook_endpoint(self):
+        """Verifies POST /api/canvas/runbooks/<id>/execute runs a runbook"""
         res = self.client.post(
-            "/api/slash-guard/failover",
-            json={"reason": "Unauthorized test attempt"},
-            headers={"X-DotNexus-Auth": "wrong-token-12345"}
+            "/api/canvas/runbooks/runbook-slash-guard/execute",
+            json={"dry_run": True},
+            headers=self.auth_headers
         )
-        self.assertEqual(res.status_code, 401)
+        self.assertEqual(res.status_code, 200)
         data = res.get_json()
-        self.assertFalse(data.get("success"))
-        self.assertIn("Unauthorized", data.get("error", ""))
+        self.assertTrue(data.get("success"))
+        self.assertEqual(data.get("data", {}).get("status"), "COMPLETED_SUCCESSFULLY")
+
+    def test_post_worker_execute_endpoint(self):
+        """Verifies POST /api/worker/execute runs Kahn's tiers pipeline"""
+        res = self.client.post(
+            "/api/worker/execute",
+            json={"dry_run": True},
+            headers=self.auth_headers
+        )
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        self.assertEqual(data.get("data", {}).get("status"), "COMPLETED_SUCCESSFULLY")
+
+    def test_get_unified_logs_endpoint(self):
+        """Verifies GET /api/logs serves aggregated stream of chronological security logs"""
+        res = self.client.get("/api/logs")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        self.assertIn("logs", data)
+        self.assertIsInstance(data.get("logs"), list)
 
 
 if __name__ == "__main__":

@@ -247,6 +247,14 @@ class RPCShield:
             "message": "Passed security filters."
         }
 
+    def ban_ip(self, ip: str, duration_seconds: float = 60.0):
+        """Bans an IP address for specified seconds"""
+        self.blocked_ips[ip] = time.time() + duration_seconds
+
+    def unban_ip(self, ip: str):
+        """Unbans an IP address immediately"""
+        self.blocked_ips.pop(ip, None)
+
     def _log_shield_event(self, client_ip: str, method: str, decision: str, code: int, reason: str) -> Dict[str, Any]:
         evt = {
             "id": f"shld-{secrets.token_hex(4)}",

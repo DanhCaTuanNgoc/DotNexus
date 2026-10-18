@@ -5,7 +5,9 @@ Equipped with 3-Tier Root-Cause Isolation and Decimal Mapping Normalizer (10^14 
 """
 
 import time
+import socket
 import logging
+from urllib.parse import urlparse
 from typing import Dict, Any, Optional
 from engine.config import CONFIG
 
@@ -24,6 +26,19 @@ except ImportError:
     Web3 = None
 
 
+def _is_endpoint_alive(url: str, timeout: float = 0.15) -> bool:
+    """Fast pre-flight TCP check to avoid long websocket/http handshake timeouts when node is down"""
+    try:
+        parsed = urlparse(url)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or (9944 if "ws" in (parsed.scheme or "") else 8545)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(timeout)
+            return s.connect_ex((host, port)) == 0
+    except Exception:
+        return False
+
+
 class DualEngineTracker:
     def __init__(self, substrate_url: Optional[str] = None, evm_url: Optional[str] = None):
         self.substrate_url = substrate_url or CONFIG.substrate_ws_url
@@ -31,6 +46,9 @@ class DualEngineTracker:
         self.substrate_client: Optional[Any] = None
         self.web3_client: Optional[Any] = None
         self.decimals: int = CONFIG.default_token_decimals
+        self._last_substrate_probe_time: float = 0.0
+        self._last_evm_probe_time: float = 0.0
+        self._probe_cooldown_seconds: float = 10.0
 
         # Simulation fallback state (in case local node is offline)
         self._mock_substrate_block = 4120912
@@ -45,8 +63,19 @@ class DualEngineTracker:
             return True
         if SubstrateInterface is None:
             return False
+
+        now = time.time()
+        # Circuit-breaker cooldown: do not hammer unreachable socket
+        if now - self._last_substrate_probe_time < self._probe_cooldown_seconds:
+            return False
+        self._last_substrate_probe_time = now
+
+        # Fast pre-check: verify TCP port is open before launching heavy WebSocket handshake
+        if not _is_endpoint_alive(self.substrate_url, timeout=0.15):
+            logger.debug(f"Substrate port unreachable at {self.substrate_url}, using fast simulation fallback.")
+            return False
+
         try:
-            # Set short timeout to avoid blocking if local node is not yet up
             self.substrate_client = SubstrateInterface(
                 url=self.substrate_url,
                 ss58_format=CONFIG.ss58_format,
@@ -67,8 +96,20 @@ class DualEngineTracker:
             return True
         if Web3 is None:
             return False
+
+        now = time.time()
+        # Circuit-breaker cooldown
+        if now - self._last_evm_probe_time < self._probe_cooldown_seconds:
+            return False
+        self._last_evm_probe_time = now
+
+        # Fast pre-check: verify TCP port is open before launching HTTP connection
+        if not _is_endpoint_alive(self.evm_url, timeout=0.15):
+            logger.debug(f"EVM port unreachable at {self.evm_url}, using fast simulation fallback.")
+            return False
+
         try:
-            w3 = Web3(Web3.HTTPProvider(self.evm_url, request_kwargs={'timeout': 2}))
+            w3 = Web3(Web3.HTTPProvider(self.evm_url, request_kwargs={'timeout': 0.5}))
             if w3.is_connected():
                 self.web3_client = w3
                 logger.info(f"EVM JSON-RPC connected at {self.evm_url}")

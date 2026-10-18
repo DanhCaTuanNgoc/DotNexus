@@ -119,32 +119,39 @@ export const App: React.FC = () => {
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
-      const [dualRes, secRes, nposRes, shieldRes, logsRes] = await Promise.all([
-        api.getDualTracker().catch(() => null),
-        api.getSlashGuard().catch(() => null),
-        api.getTop16Validators().catch(() => null),
-        api.getRpcShield().catch(() => null),
-        api.getLogs().catch(() => null)
-      ]);
+      await Promise.allSettled([
+        api.getDualTracker().then(res => {
+          if (res?.success) setDualData(res.data);
+        }).catch(() => null),
 
-      if (dualRes?.success) setDualData(dualRes.data);
-      if (secRes?.success) setSecData(secRes.data);
-      if (nposRes?.success) setNposData(nposRes.data);
-      if (shieldRes?.success) setShieldData(shieldRes.data);
-      if (logsRes?.success) {
-        setLogs((prev) => {
-          // Preserve runtime DAG logs
-          const dagLogs = prev.filter((l) => l.source === 'DAG_ENGINE' || l.source === 'RUNBOOK');
-          const merged = [...dagLogs, ...logsRes.logs];
-          const seen = new Set();
-          return merged.filter((item) => {
-            const key = `${item.time}-${item.source}-${item.text}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          }).sort((a, b) => b.time - a.time).slice(0, 100);
-        });
-      }
+        api.getSlashGuard().then(res => {
+          if (res?.success) setSecData(res.data);
+        }).catch(() => null),
+
+        api.getTop16Validators().then(res => {
+          if (res?.success) setNposData(res.data);
+        }).catch(() => null),
+
+        api.getRpcShield().then(res => {
+          if (res?.success) setShieldData(res.data);
+        }).catch(() => null),
+
+        api.getLogs().then(logsRes => {
+          if (logsRes?.success) {
+            setLogs((prev) => {
+              const dagLogs = prev.filter((l) => l.source === 'DAG_ENGINE' || l.source === 'RUNBOOK');
+              const merged = [...dagLogs, ...logsRes.logs];
+              const seen = new Set();
+              return merged.filter((item) => {
+                const key = `${item.time}-${item.source}-${item.text}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+              }).sort((a, b) => b.time - a.time).slice(0, 100);
+            });
+          }
+        }).catch(() => null)
+      ]);
     } finally {
       setIsLoading(false);
     }

@@ -128,31 +128,31 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
   return (
     <div className="space-y-4 font-mono">
       {/* View Header with Contextual Mission Statement */}
-      <div className="flex flex-wrap items-center justify-between border-b border-[#261B42] pb-3 gap-3">
+      <div className="flex flex-wrap items-center justify-between border-b border-[#1C142E] pb-2.5 gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-[#8B5CF6]" />
-            <h2 className="text-sm sm:text-base font-bold font-mono text-white tracking-wider uppercase">
+            <div className="w-1.5 h-1.5 bg-[#8B5CF6]" />
+            <h2 className="text-xs sm:text-sm font-bold font-mono text-white tracking-widest uppercase">
               NPOS PHRAGMÉN SIMULATOR &amp; DYNAMIC RE-NOMINATION
             </h2>
-            <span className="text-[10px] font-mono px-2 py-0.5 bg-[#8B5CF6]/10 text-[#C084FC] border border-[#8B5CF6]/30">
+            <span className="text-[9px] font-mono px-1.5 py-0.2 bg-[#0E091B] text-[#C084FC] border border-[#2E1F4A]">
               PORTALDOT STAKING
             </span>
           </div>
-          <p className="text-[11px] font-mono text-zinc-400 mt-1">
+          <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
             Automated Phragmén nominator distribution engine protecting validators against whale dilution and oversubscription.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-[#C084FC] bg-[#140C2B] px-3 py-1.5 border border-[#4C2889]">
+        <div className="flex items-center gap-2 text-xs text-[#C084FC] bg-[#0E091B] px-2.5 py-1 border border-[#2E1F4A]">
           <Cpu className="w-3.5 h-3.5 text-[#8B5CF6]" />
           <span>ALGO: {data.election_algorithm || 'Sequential Phragmén Optimization'}</span>
         </div>
       </div>
 
       {/* 1. APY Trajectory & Interactive Yield Curve */}
-      <div className="p-4 bg-[#0F0A1D] border border-[#261B42] space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1C142E] pb-2">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-3.5 h-3.5 text-[#8B5CF6]" />
             <span className="text-xs font-bold text-white tracking-wider">
@@ -161,15 +161,15 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           </div>
 
           {/* Time Selector Buttons */}
-          <div className="flex items-center gap-1 bg-[#080512] p-1 border border-[#261B42] text-[10px]">
+          <div className="flex items-center gap-1 bg-[#06040A] p-0.5 border border-[#1C142E] text-[10px]">
             {[1, 3, 6, 12].map((m) => (
               <button
                 key={`mo-${m}`}
                 onClick={() => setSelectedDurationMonths(m)}
-                className={`px-2.5 py-0.5 transition-colors cursor-pointer ${
+                className={`px-2 py-0.5 transition-colors cursor-pointer ${
                   selectedDurationMonths === m
-                    ? 'bg-[#8B5CF6] text-white font-bold'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-[#1C142E] text-white font-bold'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 [{m}M]
@@ -180,7 +180,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
 
         {/* Visual APY Stats Matrix */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="p-3 bg-[#080512] border border-[#261B42] space-y-1">
+          <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-1">
             <span className="text-[10px] text-zinc-500 font-bold block">SIMPLE NOMINAL PAYOUT</span>
             <div className="text-xl font-bold text-zinc-200 tabular-nums">
               {data.average_nominal_apy}% APY
@@ -190,24 +190,24 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
             </div>
           </div>
 
-          <div className="p-3 bg-[#140C2B] border border-[#8B5CF6] space-y-1">
+          <div className="p-3 bg-[#0E091B] border border-[#2E1F4A] space-y-1">
             <span className="text-[10px] text-[#C084FC] font-bold block">
               AUTO-COMPOUNDED YIELD
             </span>
             <div className="text-xl font-bold text-white tabular-nums">
               {data.auto_compounded_apy}% APY
             </div>
-            <div className="text-xs text-[#10B981] font-bold">
+            <div className="text-xs text-[#00FF9D] font-bold">
               +{compoundReturnPot.toLocaleString()} POT ({surplusPot > 0 ? `+${surplusPot.toLocaleString()} POT bonus` : 'Optimal compounding'})
             </div>
           </div>
 
-          <div className="p-3 bg-[#080512] border border-[#261B42] space-y-1">
+          <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-1">
             <span className="text-[10px] text-zinc-500 font-bold block">ACTIVE SET CAPACITY</span>
             <div className="text-xl font-bold text-white tabular-nums">
               {selectedTargets.length} / {data.target_count} Selected Targets
             </div>
-            <div className="text-xs text-[#10B981]">
+            <div className="text-xs text-[#00FF9D]">
               100% capacity free of oversubscription
             </div>
           </div>
@@ -215,53 +215,53 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
       </div>
 
       {/* 2. Pre-Flight Safety Launchpad (3-Gate Radar) */}
-      <div className="p-4 bg-[#0F0A1D] border border-[#261B42] space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1C142E] pb-2">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
+            <ShieldCheck className="w-3.5 h-3.5 text-[#00FF9D]" />
             <span className="text-xs font-bold text-white tracking-wider">
               PRE-FLIGHT RE-NOMINATION SAFETY GATES
             </span>
           </div>
-          <span className="text-[10px] text-[#10B981] bg-[#0E2820]/40 px-2 py-0.5 border border-[#10B981]/40 font-bold">
+          <span className="text-[10px] text-[#00FF9D] bg-[#00FF9D]/10 px-2 py-0.5 border border-[#00FF9D]/30 font-bold">
             [ALL 3 PRE-FLIGHT CHECKS PASSED]
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Gate 1: Election Window */}
-          <div className="p-3 bg-[#080512] border border-[#261B42] hover:border-[#8B5CF6] transition-colors space-y-1">
+          <div className="p-3 bg-[#06040A] border border-[#1C142E] hover:border-[#2E1F4A] transition-colors space-y-1">
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-zinc-400 font-bold">GATE 1: ELECTION WINDOW</span>
-              <span className="text-[#10B981] font-bold flex items-center gap-1">
+              <span className="text-zinc-500 font-bold">GATE 1: ELECTION WINDOW</span>
+              <span className="text-[#00FF9D] font-bold flex items-center gap-1">
                 <Check className="w-3 h-3" /> [CLEAR]
               </span>
             </div>
             <div className="text-xs font-semibold text-white">ElectionProvider.CurrentPhase</div>
             <p className="text-[11px] text-zinc-400">
-              State: <strong className="text-[#10B981]">Off</strong> (Nomination extrinsic accepted).
+              State: <strong className="text-[#00FF9D]">Off</strong> (Nomination extrinsic accepted).
             </p>
           </div>
 
           {/* Gate 2: Fee Erosion Threshold */}
-          <div className="p-3 bg-[#080512] border border-[#261B42] hover:border-[#8B5CF6] transition-colors space-y-1">
+          <div className="p-3 bg-[#06040A] border border-[#1C142E] hover:border-[#2E1F4A] transition-colors space-y-1">
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-zinc-400 font-bold">GATE 2: FEE EROSION</span>
-              <span className="text-[#10B981] font-bold flex items-center gap-1">
+              <span className="text-zinc-500 font-bold">GATE 2: FEE EROSION</span>
+              <span className="text-[#00FF9D] font-bold flex items-center gap-1">
                 <Check className="w-3 h-3" /> [&gt; 3x FEE]
               </span>
             </div>
             <div className="text-xs font-semibold text-white">Profit vs Extrinsic Fee</div>
             <p className="text-[11px] text-zinc-400">
-              Annual Gain: <strong className="text-[#10B981]">+{surplusPot.toLocaleString()} POT</strong> &gt;&gt; 0.045 POT fee.
+              Annual Gain: <strong className="text-[#00FF9D]">+{surplusPot.toLocaleString()} POT</strong> &gt;&gt; 0.045 POT fee.
             </p>
           </div>
 
           {/* Gate 3: Async Nonce Manager */}
-          <div className="p-3 bg-[#080512] border border-[#261B42] hover:border-[#8B5CF6] transition-colors space-y-1">
+          <div className="p-3 bg-[#06040A] border border-[#1C142E] hover:border-[#2E1F4A] transition-colors space-y-1">
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-zinc-400 font-bold">GATE 3: NONCE MANAGER</span>
-              <span className="text-[#10B981] font-bold flex items-center gap-1">
+              <span className="text-zinc-500 font-bold">GATE 3: NONCE MANAGER</span>
+              <span className="text-[#00FF9D] font-bold flex items-center gap-1">
                 <Check className="w-3 h-3" /> [SYNCED]
               </span>
             </div>
@@ -273,14 +273,14 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
         </div>
 
         {/* Stake Rebalance Action Bar */}
-        <div className="p-3 bg-[#080512] border border-[#1F143D] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-3 bg-[#06040A] border border-[#1C142E] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="text-xs text-zinc-400 shrink-0">STAKING AMOUNT:</span>
             <input
               type="number"
               value={stakeInput}
               onChange={(e) => setStakeInput(Number(e.target.value))}
-              className="w-32 sm:w-36 bg-[#140C2B] border border-[#4C2889] text-white px-3 py-1 text-xs tabular-nums focus:outline-none focus:border-[#8B5CF6]"
+              className="w-32 sm:w-36 bg-[#0E091B] border border-[#2E1F4A] text-white px-3 py-1 text-xs tabular-nums focus:outline-none focus:border-[#8B5CF6]"
             />
             <span className="text-xs text-[#C084FC] font-bold">POT</span>
           </div>
@@ -298,7 +298,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
         </div>
 
         {rebalanceResult && (
-          <div className="p-2.5 bg-[#0E2820]/40 border border-[#10B981] text-xs text-[#10B981] flex flex-wrap items-center justify-between gap-2">
+          <div className="p-2.5 bg-[#00FF9D]/10 border border-[#00FF9D]/40 text-xs text-[#00FF9D] flex flex-wrap items-center justify-between gap-2">
             <span>
               [ALLOCATED: <strong className="text-white">{rebalanceResult.allocated_per_validator_pot} POT</strong> across {rebalanceResult.selected_validators_count} optimal validators]
             </span>
@@ -308,7 +308,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               </span>
               <button
                 onClick={() => setIsDispatchModalOpen(true)}
-                className="px-2 py-0.5 bg-[#8B5CF6] text-white text-[10px] font-bold cursor-pointer hover:bg-[#7C3AED]"
+                className="px-2 py-0.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-[10px] font-bold cursor-pointer transition-colors"
               >
                 OPEN DISPATCH STUDIO
               </button>
@@ -317,26 +317,29 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
         )}
       </div>
 
-      {/* 3. Optimal Top 16 Candidate Grid with Interactive Selection & Modal Trigger */}
-      <div className="p-4 bg-[#0F0A1D] border border-[#261B42] space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1F143D] pb-2">
+      {/* 3. Optimal Top 16 Candidate Market Table (Binance / Polymarket High-Density Architecture) */}
+      <div className="bg-[#08050F] border border-[#1C142E] space-y-0 font-mono">
+        {/* Module Control Header */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 px-3 py-2 border-b border-[#1C142E] bg-[#0B0716]">
           <div className="flex items-center gap-2">
-            <Award className="w-3.5 h-3.5 text-[#8B5CF6]" />
-            <span className="text-xs font-bold text-white tracking-wider">
-              OPTIMAL 16 CANDIDATES SELECTED BY PAO-PHRAGMÉN
+            <div className="w-1.5 h-1.5 bg-[#8B5CF6]" />
+            <span className="text-xs font-bold text-white tracking-widest uppercase">
+              PAO-PHRAGMÉN CANDIDATE LEDGER
             </span>
-            <span className="text-[10px] text-zinc-500 font-normal">
-              (Click card to inspect deep telemetry)
+            <span className="text-[10px] text-zinc-500 hidden sm:inline">
+              // Sequential Optimization Set
             </span>
           </div>
 
-          {/* Quick Filter Buttons & Selection Utilities */}
+          {/* Institutional Market Filters (Binance / Polymarket Style) */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 bg-[#080512] p-0.5 border border-[#261B42] text-[10px]">
+            <div className="flex items-center bg-[#06040A] border border-[#1C142E] p-0.5 text-[10px]">
               <button
                 onClick={() => setCandidateFilter('ALL')}
                 className={`px-2 py-0.5 transition-colors cursor-pointer ${
-                  candidateFilter === 'ALL' ? 'bg-[#8B5CF6] text-white font-bold' : 'text-zinc-400 hover:text-white'
+                  candidateFilter === 'ALL'
+                    ? 'bg-[#1C142E] text-white font-bold'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 ALL (16)
@@ -344,103 +347,182 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               <button
                 onClick={() => setCandidateFilter('OPTIMAL')}
                 className={`px-2 py-0.5 transition-colors cursor-pointer ${
-                  candidateFilter === 'OPTIMAL' ? 'bg-[#8B5CF6] text-white font-bold' : 'text-zinc-400 hover:text-white'
+                  candidateFilter === 'OPTIMAL'
+                    ? 'bg-[#1C142E] text-[#00FF9D] font-bold'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
-                OPTIMAL BUFFER (Mᵥ &ge; 0.5)
+                OPTIMAL (Mᵥ &ge; 0.5)
               </button>
               <button
                 onClick={() => setCandidateFilter('LOW_COMM')}
                 className={`px-2 py-0.5 transition-colors cursor-pointer ${
-                  candidateFilter === 'LOW_COMM' ? 'bg-[#8B5CF6] text-white font-bold' : 'text-zinc-400 hover:text-white'
+                  candidateFilter === 'LOW_COMM'
+                    ? 'bg-[#1C142E] text-[#C084FC] font-bold'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 COMM &le; 3%
               </button>
             </div>
 
-            <button
-              onClick={handleSelectAllTargets}
-              className="text-[10px] text-zinc-400 hover:text-white bg-[#080512] px-2 py-0.5 border border-[#261B42] cursor-pointer"
-            >
-              [Select All 16]
-            </button>
-            <button
-              onClick={handleClearTargets}
-              className="text-[10px] text-zinc-400 hover:text-white bg-[#080512] px-2 py-0.5 border border-[#261B42] cursor-pointer"
-            >
-              [Deselect]
-            </button>
-            <span className="text-[10px] text-[#10B981] bg-[#0E2820]/40 px-2 py-0.5 border border-[#10B981]/40 font-bold">
-              [PAO-PHRAGMÉN: ACTIVE]
-            </span>
+            <div className="flex items-center gap-1 text-[10px]">
+              <button
+                onClick={handleSelectAllTargets}
+                className="text-zinc-400 hover:text-white bg-[#0B0813] px-2 py-0.5 border border-[#1C142E] hover:border-[#2E1F4A] transition-colors cursor-pointer"
+              >
+                SELECT ALL
+              </button>
+              <button
+                onClick={handleClearTargets}
+                className="text-zinc-400 hover:text-white bg-[#0B0813] px-2 py-0.5 border border-[#1C142E] hover:border-[#2E1F4A] transition-colors cursor-pointer"
+              >
+                CLEAR
+              </button>
+              <span className="text-[10px] text-[#00FF9D] bg-[#00FF9D]/5 px-2 py-0.5 border border-[#00FF9D]/30 font-bold">
+                {selectedTargets.length} / 16 TARGETS
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        {/* High-Density Ledger Table Header */}
+        <div className="hidden lg:grid grid-cols-12 gap-2 px-3 py-1.5 border-b border-[#140D24] bg-[#06040A] text-[10px] text-zinc-500 uppercase tracking-wider font-bold">
+          <div className="col-span-1">TARGET</div>
+          <div className="col-span-3">VALIDATOR IDENTITY / SS58</div>
+          <div className="col-span-2 text-right">EST. APY</div>
+          <div className="col-span-2 text-center">PAO SCORE</div>
+          <div className="col-span-2 text-right">COMMISSION</div>
+          <div className="col-span-2 text-right pr-2">UPTIME &amp; SLASHRISK</div>
+        </div>
+
+        {/* Ledger Table Rows */}
+        <div className="divide-y divide-[#140D24]">
           {visibleValidators.map((val, idx) => {
             const isSelected = selectedTargets.includes(val.stash_address);
+            const score = val.pao_metrics?.pao_score || 90;
+            const margin = val.pao_metrics?.safety_margin_mvu ?? 0.72;
+
             return (
               <div
                 key={val.stash_address}
                 onClick={() => setSelectedValidator(val)}
-                className={`p-2.5 bg-[#080512] border cursor-pointer transition-all space-y-1.5 relative group ${
+                className={`grid grid-cols-1 lg:grid-cols-12 gap-2 items-center px-3 py-2 text-xs transition-colors cursor-pointer ${
                   isSelected
-                    ? 'border-[#8B5CF6] hover:border-[#A855F7] shadow-[0_0_12px_rgba(139,92,246,0.15)]'
-                    : 'border-[#1F143D] opacity-60 hover:opacity-100 hover:border-zinc-600'
+                    ? 'bg-[#0E091B] hover:bg-[#130C26]'
+                    : 'bg-[#08050F] opacity-75 hover:opacity-100 hover:bg-[#0C0817]'
                 }`}
               >
-                {/* Card Header with Checkbox and Identity */}
-                <div className="flex items-center justify-between">
+                {/* Checkbox Target Slot */}
+                <div className="col-span-1 flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => handleToggleTarget(val.stash_address, e as any)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="accent-[#8B5CF6] cursor-pointer w-3.5 h-3.5"
+                    title={isSelected ? "Deselect target" : "Select target"}
+                  />
+                  <span className="text-[10px] text-zinc-500 font-bold tabular-nums">
+                    #{idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
+                  </span>
+                </div>
+
+                {/* Identity & Stash Address */}
+                <div className="col-span-3 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={(e) => handleToggleTarget(val.stash_address, e as any)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="accent-[#8B5CF6] cursor-pointer"
-                      title={isSelected ? "Deselect this target" : "Select this target"}
+                    <span className="text-white font-bold truncate text-[11px] hover:text-[#C084FC]">
+                      {val.identity}
+                    </span>
+                    {val.slash_count === 0 && (
+                      <span className="text-[9px] text-[#00FF9D] border border-[#00FF9D]/30 px-1 py-0 bg-[#00FF9D]/5 shrink-0">
+                        CLEAN
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-zinc-500 font-mono truncate">
+                    {val.stash_address.slice(0, 10)}...{val.stash_address.slice(-8)}
+                  </div>
+                </div>
+
+                {/* Yield / APY Rate (Polymarket / Binance High-Contrast Green) */}
+                <div className="col-span-2 flex lg:justify-end items-center justify-between">
+                  <span className="lg:hidden text-zinc-500 text-[10px]">APY:</span>
+                  <div className="text-right">
+                    <span className="text-sm font-bold text-[#00FF9D] tabular-nums">
+                      {val.estimated_apy}%
+                    </span>
+                    <span className="text-[9px] text-zinc-600 block">NOMINAL APY</span>
+                  </div>
+                </div>
+
+                {/* PAO Phragmén Metric Ribbon (Progress bar & Rating) */}
+                <div className="col-span-2 space-y-1">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-zinc-500">SCORE:</span>
+                    <span className="text-zinc-200 font-bold tabular-nums">{score}/100</span>
+                  </div>
+                  <div className="w-full bg-[#110C1E] h-1.5 overflow-hidden border border-[#1C142E]">
+                    <div
+                      className={`h-full transition-all ${
+                        margin >= 0.5 ? 'bg-[#00FF9D]' : 'bg-amber-400'
+                      }`}
+                      style={{ width: `${Math.min(100, (score / 100) * 100)}%` }}
                     />
-                    <span className="text-[10px] font-bold text-[#C084FC] truncate max-w-[120px]">
-                      #{idx + 1 < 10 ? `0${idx + 1}` : idx + 1} {val.identity}
+                  </div>
+                  <div className="text-[9px] text-zinc-500 truncate flex justify-between">
+                    <span>Mᵥ: {margin}</span>
+                    <span className={margin >= 0.5 ? 'text-emerald-400' : 'text-amber-400'}>
+                      {val.pao_metrics?.safety_margin_rating.replace(/_/g, ' ') || 'OPTIMAL'}
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#10B981] font-bold tabular-nums">{val.estimated_apy}% APY</span>
                 </div>
 
-                <div className="text-[10px] text-zinc-500 truncate flex items-center justify-between">
-                  <span>{val.stash_address.slice(0, 8)}...{val.stash_address.slice(-6)}</span>
-                  <span className="text-[9px] text-[#8B5CF6] group-hover:underline">Inspect &gt;</span>
-                </div>
-
-                {/* PAO-Phragmén Safety Margin & Objective Score */}
-                {val.pao_metrics && (
-                  <div className="p-1.5 bg-[#120B22] border border-[#261B42] text-[9px] font-mono space-y-0.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-zinc-400">PAO SCORE:</span>
-                      <span className="text-white font-bold tabular-nums">{val.pao_metrics.pao_score}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-zinc-400">MARGIN Mᵥ(u):</span>
-                      <span className={`font-bold tabular-nums ${
-                        val.pao_metrics.safety_margin_mvu > 0.5 ? 'text-emerald-400' : 'text-amber-400'
-                      }`}>
-                        {val.pao_metrics.safety_margin_mvu}
-                      </span>
-                    </div>
-                    <div className="text-[8px] truncate text-[#818CF8]">
-                      [{val.pao_metrics.safety_margin_rating.replace(/_/g, ' ')}]
-                    </div>
+                {/* Commission Ratio */}
+                <div className="col-span-2 flex lg:justify-end items-center justify-between text-right">
+                  <span className="lg:hidden text-zinc-500 text-[10px]">COMMISSION:</span>
+                  <div>
+                    <span className="text-white font-bold tabular-nums text-xs">
+                      {val.commission_pct}%
+                    </span>
+                    <span className="text-[9px] text-zinc-600 block">NODE FEE</span>
                   </div>
-                )}
+                </div>
 
-                <div className="flex justify-between text-[10px] text-zinc-400 pt-1 border-t border-[#1F143D]">
-                  <span>COMM: <strong className="text-white tabular-nums">{val.commission_pct}%</strong></span>
-                  <span>UPTIME: <strong className="text-white tabular-nums">{val.uptime_pct}%</strong></span>
+                {/* Uptime and Quick Inspect */}
+                <div className="col-span-2 flex items-center justify-between lg:justify-end gap-3 pr-2">
+                  <span className="lg:hidden text-zinc-500 text-[10px]">UPTIME:</span>
+                  <div className="text-right">
+                    <span className="text-zinc-200 font-bold tabular-nums text-xs">
+                      {val.uptime_pct}%
+                    </span>
+                    <span className="text-[9px] text-zinc-600 block">ERA SLOTS</span>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedValidator(val);
+                    }}
+                    className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] text-[#C084FC] hover:text-white bg-[#110C1E] hover:bg-[#1A102E] border border-[#2E1F4A] hover:border-[#8B5CF6] transition-colors"
+                  >
+                    INSPECT
+                  </button>
                 </div>
               </div>
             );
           })}
+        </div>
+
+        {/* Ledger Bottom Summary Bar */}
+        <div className="flex flex-wrap items-center justify-between px-3 py-2 border-t border-[#1C142E] bg-[#06040A] text-[10px] text-zinc-500">
+          <div className="flex items-center gap-3">
+            <span>SHOWING: <strong className="text-white">{visibleValidators.length}</strong> VALIDATORS</span>
+            <span className="text-zinc-700">|</span>
+            <span>ELECTED CAPACITY: <strong className="text-[#00FF9D]">100% PARITY</strong></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span>CLICK ANY ROW TO VIEW FULL STATE &amp; REWARD CURVES</span>
+          </div>
         </div>
       </div>
 

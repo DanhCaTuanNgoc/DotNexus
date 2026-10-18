@@ -31,10 +31,10 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
   };
 
   return (
-    <div className="w-full sm:w-80 h-full max-h-full absolute right-0 top-0 bottom-0 z-30 lg:relative lg:z-auto border-l border-[#261B42] bg-[#0E071F]/95 backdrop-blur-md flex flex-col justify-between p-4 shadow-2xl overflow-y-auto shrink-0">
+    <div className="w-full sm:w-80 h-full max-h-full absolute right-0 top-0 bottom-0 z-30 lg:relative lg:z-auto border-l border-[#1C142E] bg-[#08050F] flex flex-col justify-between p-4 shadow-2xl overflow-y-auto shrink-0 font-mono">
       <div>
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#261B42]">
+        <div className="flex items-center justify-between pb-3 border-b border-[#1C142E]">
           <div className="flex items-center gap-2">
             <Sliders className="w-4 h-4 text-[#8B5CF6]" />
             <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
@@ -43,7 +43,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-zinc-500 hover:text-zinc-200 p-1 rounded-none hover:bg-[#261B42]"
+            className="text-zinc-500 hover:text-zinc-200 p-1 hover:bg-[#110C1E] border border-transparent hover:border-[#1C142E] transition-colors cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -52,7 +52,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         {/* Node Meta */}
         <div className="my-4 space-y-3">
           <div>
-            <span className={`text-[9px] uppercase font-mono px-2 py-0.5 rounded-none border font-bold ${theme.badgeBg}`}>
+            <span className={`text-[9px] uppercase font-mono px-2 py-0.5 border font-bold ${theme.badgeBg}`}>
               {node.data.category}
             </span>
             <h3 className="text-sm font-mono font-bold text-white mt-1.5">{node.data.label}</h3>
@@ -63,7 +63,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
 
           {/* Safety Status for this node */}
           {nodeIssues.length > 0 ? (
-            <div className="p-3 border border-rose-500/60 bg-rose-950/40 space-y-1">
+            <div className="p-3 border border-rose-800/60 bg-rose-950/40 space-y-1">
               <div className="flex items-center gap-1.5 text-rose-400 font-mono text-xs font-bold">
                 <ShieldAlert className="w-4 h-4 shrink-0" />
                 <span>Safety Guard Warning</span>
@@ -75,7 +75,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               ))}
             </div>
           ) : (
-            <div className="p-2 border border-[#10B981]/40 bg-[#0E2820]/40 flex items-center gap-2 text-xs font-mono text-[#10B981]">
+            <div className="p-2 border border-[#00FF9D]/30 bg-[#00FF9D]/10 flex items-center gap-2 text-xs font-mono text-[#00FF9D]">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Topology Guard Verified</span>
             </div>
@@ -96,7 +96,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                   type="text"
                   value={String(val)}
                   onChange={(e) => handleFieldChange(key, e.target.value)}
-                  className="w-full bg-[#06030D] border border-[#261B42] text-xs font-mono text-zinc-200 px-2.5 py-1.5 rounded-none focus:outline-none focus:border-[#8B5CF6]"
+                  className="w-full bg-[#06040A] border border-[#1C142E] text-xs font-mono text-zinc-200 px-2.5 py-1.5 focus:outline-none focus:border-[#8B5CF6]"
                 />
               </div>
             ))}
@@ -111,10 +111,10 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
       </div>
 
       {/* Footer Actions */}
-      <div className="pt-4 border-t border-[#261B42]">
+      <div className="pt-4 border-t border-[#1C142E]">
         <button
           onClick={() => onDeleteNode(node.id)}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-mono text-rose-400 border border-rose-900/60 bg-rose-950/30 hover:bg-rose-900/50 hover:text-white transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-mono text-rose-400 border border-rose-800/60 bg-[#14080D] hover:bg-[#EF4444] hover:text-white transition-colors cursor-pointer font-bold"
         >
           <Trash2 className="w-3.5 h-3.5" />
           <span>Delete Node from DAG</span>

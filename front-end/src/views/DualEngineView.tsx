@@ -349,8 +349,8 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
         <div className="space-y-4">
           {/* 1.5. Algorithmic Cross-VM Causal Lag Index (CLI) Heuristic Diagnostics */}
           {data.causal_lag_index && (
-            <div className="p-4 bg-[#110A24] border border-[#261B42] space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1F143D] pb-2.5">
+            <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1C142E] pb-2.5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-[#C084FC]" />
                   <span className="text-xs font-mono font-bold text-white tracking-wider">
@@ -358,18 +358,18 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-mono font-bold px-2.5 py-0.5 border ${
+                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 border ${
                     data.causal_lag_index.classification === 'NOMINAL_PARITY'
-                      ? 'bg-emerald-950/40 text-[#10B981] border-emerald-800/40'
+                      ? 'bg-[#00FF9D]/10 text-[#00FF9D] border-[#00FF9D]/30'
                       : data.causal_lag_index.classification === 'FRONTIER_DB_LOCK'
-                      ? 'bg-amber-950/40 text-[#F59E0B] border-amber-800/40'
+                      ? 'bg-amber-950/40 text-amber-400 border-amber-800/40'
                       : data.causal_lag_index.classification === 'EVM_GAS_SATURATION'
-                      ? 'bg-purple-950/40 text-[#C084FC] border-purple-800/40'
-                      : 'bg-red-950/40 text-[#EF4444] border-red-800/40'
+                      ? 'bg-[#140D24] text-[#C084FC] border-[#2E1F4A]'
+                      : 'bg-rose-950/40 text-rose-400 border-rose-800/40'
                   }`}>
                     [{data.causal_lag_index.classification}]
                   </span>
-                  <span className="text-xs font-mono font-bold text-white tabular-nums bg-[#080512] px-2 py-0.5 border border-[#261B42]">
+                  <span className="text-xs font-mono font-bold text-white tabular-nums bg-[#06040A] px-2 py-0.5 border border-[#1C142E]">
                     CLI SCORE: {data.causal_lag_index.cli_score} / 100
                   </span>
                 </div>
@@ -382,14 +382,14 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               {/* 3 Orthogonal Vectors Display */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
                 {/* Vector 1: Block Lag */}
-                <div className="p-2.5 bg-[#080512] border border-[#1F143D] space-y-1">
+                <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
                   <div className="flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-zinc-400">VECTOR 1 (w₁ = 0.50): BLOCK LAG</span>
+                    <span className="text-zinc-500">VECTOR 1 (w₁ = 0.50): BLOCK LAG</span>
                     <span className="text-white font-bold tabular-nums">
                       {data.causal_lag_index.vector_breakdown.block_delta} blk (v₁: {data.causal_lag_index.vector_breakdown.block_lag_vector})
                     </span>
                   </div>
-                  <div className="w-full bg-[#160B22] h-1.5 overflow-hidden border border-[#261B42]">
+                  <div className="w-full bg-[#110C1E] h-1.5 overflow-hidden border border-[#1C142E]">
                     <div
                       className="bg-[#E6007A] h-full transition-all duration-300"
                       style={{ width: `${Math.min(100, data.causal_lag_index.vector_breakdown.block_lag_vector * 100)}%` }}
@@ -401,14 +401,14 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                 </div>
 
                 {/* Vector 2: Mempool Skew */}
-                <div className="p-2.5 bg-[#080512] border border-[#1F143D] space-y-1">
+                <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
                   <div className="flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-zinc-400">VECTOR 2 (w₂ = 0.30): MEMPOOL SKEW</span>
+                    <span className="text-zinc-500">VECTOR 2 (w₂ = 0.30): MEMPOOL SKEW</span>
                     <span className="text-white font-bold tabular-nums">
                       {data.causal_lag_index.vector_breakdown.evm_pending} EVM / {data.causal_lag_index.vector_breakdown.wasm_pending} WASM
                     </span>
                   </div>
-                  <div className="w-full bg-[#160B22] h-1.5 overflow-hidden border border-[#261B42]">
+                  <div className="w-full bg-[#110C1E] h-1.5 overflow-hidden border border-[#1C142E]">
                     <div
                       className="bg-[#6366F1] h-full transition-all duration-300"
                       style={{ width: `${Math.min(100, (data.causal_lag_index.vector_breakdown.mempool_skew_vector / 5.0) * 100)}%` }}
@@ -420,16 +420,16 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                 </div>
 
                 {/* Vector 3: Latency Skew */}
-                <div className="p-2.5 bg-[#080512] border border-[#1F143D] space-y-1">
+                <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
                   <div className="flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-zinc-400">VECTOR 3 (w₃ = 0.20): TRANSPORT SKEW</span>
+                    <span className="text-zinc-500">VECTOR 3 (w₃ = 0.20): TRANSPORT SKEW</span>
                     <span className="text-white font-bold tabular-nums">
                       {data.causal_lag_index.vector_breakdown.evm_latency_ms}ms / {data.causal_lag_index.vector_breakdown.wasm_latency_ms}ms
                     </span>
                   </div>
-                  <div className="w-full bg-[#160B22] h-1.5 overflow-hidden border border-[#261B42]">
+                  <div className="w-full bg-[#110C1E] h-1.5 overflow-hidden border border-[#1C142E]">
                     <div
-                      className="bg-[#10B981] h-full transition-all duration-300"
+                      className="bg-[#00FF9D] h-full transition-all duration-300"
                       style={{ width: `${Math.min(100, (data.causal_lag_index.vector_breakdown.latency_skew_vector / 3.0) * 100)}%` }}
                     />
                   </div>
@@ -442,15 +442,15 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
           )}
 
           {/* 2. 3-Tier Root-Cause Isolation Funnel Matrix */}
-          <div className="p-4 bg-[#110A24] border border-[#261B42] space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3">
+            <div className="flex items-center justify-between border-b border-[#1C142E] pb-2">
               <div className="flex items-center gap-2">
                 <Radio className="w-3.5 h-3.5 text-[#8B5CF6]" />
                 <span className="text-xs font-mono font-bold text-white tracking-wider">
                   3-TIER ROOT-CAUSE ISOLATION MATRIX
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-zinc-400">
+              <span className="text-[10px] font-mono text-zinc-500">
                 Click tier to inspect isolation rules
               </span>
             </div>
@@ -459,20 +459,20 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               {/* Tier 1: P2P Network Swarm */}
               <div
                 onClick={() => setSelectedTier(1)}
-                className={`p-3.5 border cursor-pointer transition-all ${
+                className={`p-3 border cursor-pointer transition-all ${
                   diag.tier === 1
-                    ? 'border-[#EF4444] bg-[#EF4444]/10 shadow-[0_0_10px_rgba(239,68,68,0.1)]'
-                    : 'border-[#261B42] bg-[#0E081E] hover:border-[#4C2889]'
+                    ? 'border-[#EF4444] bg-[#14080D]'
+                    : 'border-[#1C142E] bg-[#06040A] hover:border-[#2E1F4A]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono font-bold text-zinc-400">TIER 1 — P2P SWARM</span>
+                  <span className="text-[10px] font-mono font-bold text-zinc-500">TIER 1 — P2P SWARM</span>
                   {diag.tier === 1 ? (
                     <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40 font-bold">
                       STALL DETECTED
                     </span>
                   ) : (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 font-bold">
                       HEALTHY
                     </span>
                   )}
@@ -489,20 +489,20 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               {/* Tier 2: Frontier Mapping Sync Lag */}
               <div
                 onClick={() => setSelectedTier(2)}
-                className={`p-3.5 border cursor-pointer transition-all ${
+                className={`p-3 border cursor-pointer transition-all ${
                   diag.tier === 2
-                    ? 'border-[#F59E0B] bg-[#F59E0B]/10 shadow-[0_0_10px_rgba(245,158,11,0.1)]'
-                    : 'border-[#261B42] bg-[#0E081E] hover:border-[#4C2889]'
+                    ? 'border-[#F59E0B] bg-[#140E06]'
+                    : 'border-[#1C142E] bg-[#06040A] hover:border-[#2E1F4A]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono font-bold text-zinc-400">TIER 2 — FC-DB BRIDGE</span>
+                  <span className="text-[10px] font-mono font-bold text-zinc-500">TIER 2 — FC-DB BRIDGE</span>
                   {diag.tier === 2 ? (
                     <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 font-bold">
                       MAPPING LAG
                     </span>
                   ) : (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 font-bold">
                       IN LOCKSTEP
                     </span>
                   )}
@@ -519,20 +519,20 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               {/* Tier 3: EVM Execution VM */}
               <div
                 onClick={() => setSelectedTier(3)}
-                className={`p-3.5 border cursor-pointer transition-all ${
+                className={`p-3 border cursor-pointer transition-all ${
                   diag.tier === 3
-                    ? 'border-[#EF4444] bg-[#EF4444]/10 shadow-[0_0_10px_rgba(239,68,68,0.1)]'
-                    : 'border-[#261B42] bg-[#0E081E] hover:border-[#4C2889]'
+                    ? 'border-[#EF4444] bg-[#14080D]'
+                    : 'border-[#1C142E] bg-[#06040A] hover:border-[#2E1F4A]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono font-bold text-zinc-400">TIER 3 — EVM ENGINE</span>
+                  <span className="text-[10px] font-mono font-bold text-zinc-500">TIER 3 — EVM ENGINE</span>
                   {diag.tier === 3 ? (
                     <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40 font-bold">
                       CONGESTION
                     </span>
                   ) : (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 font-bold">
                       OPTIMAL GAS
                     </span>
                   )}
@@ -548,9 +548,9 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
             </div>
 
             {/* Diagnosis Callout Card */}
-            <div className="p-3 bg-[#080512] border border-[#261B42] flex items-start gap-3">
+            <div className="p-3 bg-[#06040A] border border-[#1C142E] flex items-start gap-3">
               <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${
-                diag.severity === 'OK' ? 'text-emerald-400' : 'text-amber-400'
+                diag.severity === 'OK' ? 'text-[#00FF9D]' : 'text-amber-400'
               }`} />
               <div className="space-y-1">
                 <div className="text-xs font-mono font-bold text-white flex items-center gap-2">
@@ -571,23 +571,23 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
       {activeTab === 'tools' && (
         <div className="space-y-4">
           {/* 3. Decimal Normalizer & BigInt Parity ($10^14 vs $10^18) */}
-          <div className="p-4 bg-[#110A24] border border-[#261B42] space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1C142E] pb-2.5">
               <div className="flex items-center gap-2">
                 <Binary className="w-3.5 h-3.5 text-[#C084FC]" />
                 <span className="text-xs font-mono font-bold text-white tracking-wider">
-                  SAFE DECIMAL MAPPING & BIGINT PARITY GAUGE
+                  SAFE DECIMAL MAPPING &amp; BIGINT PARITY GAUGE
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 border border-emerald-800/40">
+              <span className="text-[10px] font-mono text-[#00FF9D] bg-[#00FF9D]/10 px-2 py-0.5 border border-[#00FF9D]/30 font-bold">
                 SCALE MULTIPLIER: 10^4 (10,000)
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-3 bg-[#080512] border border-[#1F143D] space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-1.5">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-zinc-400 flex items-center gap-1.5">
+                  <span className="text-zinc-400 flex items-center gap-1.5 font-bold">
                     <span className="w-1.5 h-1.5 bg-[#E6007A]" />
                     Substrate Native POT (14 Decimals)
                   </span>
@@ -596,14 +596,14 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                 <div className="text-sm sm:text-base font-bold font-mono text-white tabular-nums break-all">
                   {decimal_normalization?.substrate_balance_planck || '10000000000000000'}
                 </div>
-                <div className="text-[11px] font-mono text-[#E6007A]">
+                <div className="text-[11px] font-mono text-[#E6007A] pt-1 border-t border-[#140D24]">
                   1.0 POT = 100,000,000,000,000 Planck
                 </div>
               </div>
 
-              <div className="p-3 bg-[#080512] border border-[#1F143D] space-y-2">
+              <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-1.5">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-zinc-400 flex items-center gap-1.5">
+                  <span className="text-zinc-400 flex items-center gap-1.5 font-bold">
                     <span className="w-1.5 h-1.5 bg-[#6366F1]" />
                     Frontier EVM Display (18 Decimals)
                   </span>
@@ -612,15 +612,15 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                 <div className="text-sm sm:text-base font-bold font-mono text-zinc-200 tabular-nums break-all">
                   {decimal_normalization?.evm_balance_wei || '100000000000000000000'}
                 </div>
-                <div className="text-[11px] font-mono text-[#6366F1]">
+                <div className="text-[11px] font-mono text-[#818CF8] pt-1 border-t border-[#140D24]">
                   1.0 POT = 1,000,000,000,000,000,000 Wei
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 bg-[#080512] border border-[#261B42] text-[11px] font-mono text-zinc-300 gap-1.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 bg-[#06040A] border border-[#1C142E] text-[11px] font-mono text-zinc-300 gap-1.5">
               <span className="flex items-center gap-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#00FF9D] shrink-0" />
                 <span>Discrepancy: <strong className="text-white">0 Planck (Zero Precision Loss)</strong></span>
               </span>
               <span className="text-zinc-500">
@@ -630,8 +630,8 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
           </div>
 
           {/* 4. Mempool Flow Segregation */}
-          <div className="p-4 bg-[#110A24] border border-[#261B42] space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-mono gap-1">
+          <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3 font-mono">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1 border-b border-[#1C142E] pb-2">
               <span className="font-bold text-white flex items-center gap-2">
                 <Cpu className="w-3.5 h-3.5 text-[#8B5CF6]" />
                 MEMPOOL SEGREGATION: WASM EXTRINSICS VS EVM TRANSACTIONS
@@ -639,7 +639,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               <span className="text-zinc-400">Total Pending: {mempool.total_pending} txs</span>
             </div>
 
-            <div className="h-2.5 w-full bg-[#080512] flex overflow-hidden border border-[#261B42]">
+            <div className="h-2.5 w-full bg-[#06040A] flex overflow-hidden border border-[#1C142E]">
               <div
                 style={{ width: `${mempool.wasm_ratio_pct}%` }}
                 className="bg-[#E6007A] transition-all duration-500"
@@ -652,12 +652,12 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               />
             </div>
 
-            <div className="flex flex-col xs:flex-row xs:justify-between text-[11px] font-mono gap-1">
-              <span className="text-[#E6007A] flex items-center gap-1.5">
+            <div className="flex flex-col xs:flex-row xs:justify-between text-[11px] gap-1">
+              <span className="text-[#E6007A] flex items-center gap-1.5 font-semibold">
                 <span className="w-2 h-2 rounded-none bg-[#E6007A] shrink-0" />
                 WASM Extrinsics: {mempool.wasm_extrinsics} ({mempool.wasm_ratio_pct}%)
               </span>
-              <span className="text-[#6366F1] flex items-center gap-1.5">
+              <span className="text-[#818CF8] flex items-center gap-1.5 font-semibold">
                 <span className="w-2 h-2 rounded-none bg-[#6366F1] shrink-0" />
                 EVM Transactions: {mempool.evm_transactions} ({mempool.evm_ratio_pct}%)
               </span>

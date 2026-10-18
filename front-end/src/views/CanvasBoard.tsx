@@ -923,17 +923,17 @@ if __name__ == "__main__":
 
   // VIEW 2: FOCUSED, SPACIOUS VISUAL DAG STUDIO BOARD
   return (
-    <div className="flex flex-col h-full min-h-0 select-none bg-[#07040E]">
+    <div className="flex flex-col h-full min-h-0 select-none bg-[#06040A]">
       {/* Spacious, De-cluttered Studio Header Bar */}
-      <div className="px-4 py-2 border-b border-[#261B42] bg-[#0E071F]/98 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div className="px-4 py-2 border-b border-[#1C142E] bg-[#08050F] flex flex-wrap items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3">
           {/* Back to Hub Button */}
           <button
             onClick={handleBackToHub}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border border-[#8B5CF6]/50 bg-[#110A24] hover:bg-[#1A1033] hover:border-[#8B5CF6] text-white transition-all cursor-pointer font-bold shadow-md"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border border-[#2E1F4A] hover:border-[#8B5CF6] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-200 hover:text-white transition-all cursor-pointer font-bold"
             title="Return to Canvas Management Hub"
           >
-            <ArrowLeft className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <ArrowLeft className="w-3.5 h-3.5 text-[#C084FC]" />
             <span>Back</span>
           </button>
 
@@ -942,11 +942,11 @@ if __name__ == "__main__":
             <h2 className="text-xs sm:text-sm font-mono font-bold text-white tracking-wider truncate max-w-xs sm:max-w-md">
               {activeWorkflow.name}
             </h2>
-            <span className="hidden sm:inline-block px-2 py-0.5 text-[9px] font-mono uppercase bg-[#18102E] border border-[#8B5CF6]/40 text-[#C084FC]">
+            <span className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono uppercase bg-[#0E091B] border border-[#2E1F4A] text-[#C084FC]">
               {activeWorkflow.category}
             </span>
             {activeWorkflow.isCustom && (
-              <span className="hidden md:inline-block px-1.5 py-0.5 text-[9px] font-mono uppercase bg-zinc-800 text-zinc-300 border border-zinc-700">
+              <span className="hidden md:inline-block px-1.5 py-0.5 text-[9px] font-mono uppercase bg-[#110C1E] text-zinc-400 border border-[#1C142E]">
                 CUSTOM
               </span>
             )}
@@ -956,10 +956,10 @@ if __name__ == "__main__":
           <div
             className={`hidden lg:flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono border ${
               hasCritical
-                ? 'border-rose-500/80 bg-rose-950/60 text-rose-300'
+                ? 'border-rose-800/80 bg-rose-950/60 text-rose-300'
                 : hasWarning
-                ? 'border-amber-500/80 bg-amber-950/60 text-amber-300'
-                : 'border-[#10B981]/50 bg-[#0E2820]/50 text-[#10B981]'
+                ? 'border-amber-800/80 bg-amber-950/60 text-amber-300'
+                : 'border-[#00FF9D]/30 bg-[#00FF9D]/10 text-[#00FF9D]'
             }`}
           >
             {hasCritical ? (
@@ -967,7 +967,7 @@ if __name__ == "__main__":
             ) : hasWarning ? (
               <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
             ) : (
-              <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#00FF9D]" />
             )}
             <span>
               {hasCritical
@@ -992,7 +992,7 @@ if __name__ == "__main__":
           {/* Reset button */}
           <button
             onClick={handleResetCanvas}
-            className="p-1.5 border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-400 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
+            className="p-1.5 border border-[#1C142E] hover:border-[#2E1F4A] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-400 hover:text-white transition-colors cursor-pointer"
             title="Reset Workflow Topology"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -1001,20 +1001,20 @@ if __name__ == "__main__":
           {/* Export JSON */}
           <button
             onClick={() => handleExportJSON(activeWorkflow)}
-            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-mono border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
+            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-mono border border-[#1C142E] hover:border-[#2E1F4A] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-300 hover:text-white transition-colors cursor-pointer"
             title="Export Active Workflow as JSON"
           >
-            <Download className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <Download className="w-3.5 h-3.5 text-[#C084FC]" />
             <span>JSON</span>
           </button>
 
           {/* Export CLI Script */}
           <button
             onClick={handleExportCLI}
-            className="hidden md:flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-mono border border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E] transition-colors cursor-pointer"
+            className="hidden md:flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-mono border border-[#1C142E] hover:border-[#2E1F4A] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-300 hover:text-white transition-colors cursor-pointer"
             title="Export Standalone Python CLI Runner"
           >
-            <FileCode2 className="w-3.5 h-3.5 text-[#10B981]" />
+            <FileCode2 className="w-3.5 h-3.5 text-[#00FF9D]" />
             <span>CLI</span>
           </button>
 
@@ -1023,8 +1023,8 @@ if __name__ == "__main__":
             onClick={() => setIsPaletteOpen(!isPaletteOpen)}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border transition-colors cursor-pointer ${
               isPaletteOpen
-                ? 'border-[#8B5CF6] bg-[#8B5CF6]/30 text-white font-bold'
-                : 'border-[#261B42] hover:border-[#8B5CF6] bg-[#110A24] text-zinc-300 hover:text-white hover:bg-[#1E113E]'
+                ? 'border-[#8B5CF6] bg-[#110C1E] text-white font-bold'
+                : 'border-[#1C142E] hover:border-[#2E1F4A] bg-[#0B0813] text-zinc-300 hover:text-white hover:bg-[#110C1E]'
             }`}
             title={isPaletteOpen ? 'Close Node Toolbox' : 'Open Node Toolbox'}
           >
@@ -1036,7 +1036,7 @@ if __name__ == "__main__":
           {hasCritical && (
             <button
               onClick={handleAutoFix}
-              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono border border-amber-500 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black font-bold transition-all cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono border border-amber-500/60 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black font-bold transition-all cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 fill-current" />
               <span>Auto-Fix</span>
@@ -1049,10 +1049,10 @@ if __name__ == "__main__":
             disabled={executing || hasCritical || nodes.length === 0}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer ${
               hasCritical || nodes.length === 0
-                ? 'border border-zinc-800 bg-zinc-900/60 text-zinc-500 cursor-not-allowed opacity-60'
+                ? 'border border-[#1C142E] bg-[#0B0813] text-zinc-600 cursor-not-allowed'
                 : executing
-                ? 'bg-[#581C87] border border-[#8B5CF6] text-white animate-pulse cursor-wait'
-                : 'border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white shadow-lg shadow-[#8B5CF6]/30'
+                ? 'bg-[#1E1035] border border-[#8B5CF6] text-white animate-pulse cursor-wait'
+                : 'border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white shadow-md'
             }`}
           >
             <Play className={`w-3.5 h-3.5 fill-current ${executing ? 'animate-pulse' : ''}`} />
@@ -1062,7 +1062,7 @@ if __name__ == "__main__":
       </div>
 
       {/* 3-Section Main Workspace: [Palette | Interactive Canvas | Inspector] */}
-      <div className="relative flex-1 min-h-[500px] h-[calc(100vh-175px)] flex border-t border-[#261B42] bg-[#06030D] overflow-hidden shadow-2xl">
+      <div className="relative flex-1 min-h-[500px] h-[calc(100vh-175px)] flex border-t border-[#1C142E] bg-[#06040A] overflow-hidden">
         {/* Mobile Palette Overlay Backdrop */}
         {isPaletteOpen && (
           <div
@@ -1075,7 +1075,7 @@ if __name__ == "__main__":
         <div
           className={`${
             isPaletteOpen ? 'flex' : 'hidden lg:flex'
-          } absolute lg:relative inset-y-0 left-0 z-30 lg:z-auto shrink-0 shadow-2xl lg:shadow-none h-full`}
+          } absolute lg:relative inset-y-0 left-0 z-30 lg:z-auto shrink-0 h-full`}
         >
           <NodePalette
             onAddNode={(tpl) => {
@@ -1118,9 +1118,9 @@ if __name__ == "__main__":
 
             {/* Floating Execution Results Summary HUD */}
             {execResult && (
-              <div className="absolute bottom-16 right-3 z-30 max-w-sm w-full tech-corner-accent p-3 border border-[#10B981]/60 bg-[#0E071F]/95 backdrop-blur-md shadow-2xl space-y-2">
+              <div className="absolute bottom-16 right-3 z-30 max-w-sm w-full p-3 border border-[#00FF9D]/40 bg-[#08050F] shadow-2xl space-y-2">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-[#10B981] font-bold flex items-center gap-1.5">
+                  <span className="text-[#00FF9D] font-bold flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Executed in {execResult.duration_ms}ms
                   </span>
@@ -1137,9 +1137,9 @@ if __name__ == "__main__":
                   {execResult.steps.map((st: any, idx: number) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-1.5 text-[10px] font-mono p-1.5 bg-[#080512] border border-[#261B42]"
+                      className="flex items-center gap-1.5 text-[10px] font-mono p-1.5 bg-[#06040A] border border-[#1C142E]"
                     >
-                      <span className="px-1 py-0.2 bg-[#10B981]/20 text-[#10B981] text-[8px] font-bold shrink-0">
+                      <span className="px-1 py-0.2 bg-[#00FF9D]/10 text-[#00FF9D] text-[8px] font-bold shrink-0">
                         {st.status}
                       </span>
                       <span className="text-white font-semibold truncate shrink-0">{st.step}:</span>
@@ -1152,10 +1152,10 @@ if __name__ == "__main__":
           </div>
 
           {/* Compact Bottom Metadata Strip */}
-          <div className="h-6 px-3 bg-[#0A0516] border-t border-[#261B42] flex items-center justify-between text-[10px] font-mono text-zinc-400 shrink-0">
+          <div className="h-6 px-3 bg-[#08050F] border-t border-[#1C142E] flex items-center justify-between text-[10px] font-mono text-zinc-400 shrink-0">
             <div className="truncate">
               <span className="text-[#C084FC] font-semibold">{activeWorkflow.name}: </span>
-              <span>{activeWorkflow.description || 'Custom Visual DAG Flow'}</span>
+              <span className="text-zinc-500">{activeWorkflow.description || 'Custom Visual DAG Flow'}</span>
             </div>
             <div className="text-zinc-500 shrink-0 ml-3 hidden sm:block tabular-nums">
               {nodes.length} nodes · {edges.length} wires

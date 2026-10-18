@@ -82,12 +82,12 @@ export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode, onClose }) 
   };
 
   return (
-    <div className="w-72 h-full max-h-full border-r border-[#261B42] bg-[#0A0515] flex flex-col shrink-0 select-none overflow-hidden">
-      <div className="p-2.5 border-b border-[#261B42] shrink-0">
+    <div className="w-72 h-full max-h-full border-r border-[#1C142E] bg-[#08050F] flex flex-col shrink-0 select-none overflow-hidden">
+      <div className="p-2.5 border-b border-[#1C142E] shrink-0">
         <div className="text-[10px] uppercase font-mono text-[#C084FC] font-bold tracking-wider mb-1.5 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span>Ops Node Toolbox</span>
-            <span className="text-[9px] px-1.5 py-0.2 bg-[#1E113E] border border-[#3B2564] text-zinc-300">
+            <span className="text-[9px] px-1.5 py-0.2 bg-[#0E091B] border border-[#2E1F4A] text-zinc-300">
               {NODE_TEMPLATES.length}
             </span>
           </div>
@@ -110,7 +110,7 @@ export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode, onClose }) 
             placeholder="Filter operations nodes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#06030D] border border-[#261B42] text-xs font-mono text-zinc-200 pl-8 pr-2 py-1.5 rounded-none focus:outline-none focus:border-[#8B5CF6]"
+            className="w-full bg-[#06040A] border border-[#1C142E] text-xs font-mono text-zinc-200 pl-8 pr-2 py-1.5 focus:outline-none focus:border-[#8B5CF6]"
           />
         </div>
 
@@ -120,10 +120,10 @@ export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode, onClose }) 
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-2 py-0.5 text-[9px] font-mono rounded-none border transition-colors ${
+              className={`px-2 py-0.5 text-[9px] font-mono border transition-colors cursor-pointer ${
                 selectedCategory === cat
-                  ? 'border-[#8B5CF6] bg-[#8B5CF6]/30 text-white font-bold'
-                  : 'border-[#261B42] bg-[#110A24] text-zinc-400 hover:text-zinc-200'
+                  ? 'border-[#8B5CF6] bg-[#110C1E] text-white font-bold'
+                  : 'border-[#1C142E] bg-[#06040A] text-zinc-400 hover:text-zinc-200 hover:border-[#2E1F4A]'
               }`}
             >
               {cat}

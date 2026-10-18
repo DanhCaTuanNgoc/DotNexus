@@ -1,36 +1,60 @@
 @import "tailwindcss";
 
 :root {
-  --bg-void: #080512;
-  --bg-surface: #110A24;
-  --bg-surface-hover: #190F33;
-  --border-dim: #261B42;
-  --border-violet: #4C2889;
-  --violet-primary: #8B5CF6;
-  --violet-glow: #A855F7;
-  --violet-high: #C084FC;
+  /* Obsidian Core Surfaces */
+  --bg-obsidian-deep: #06040A;
+  --bg-obsidian-surface: #0B0813;
+  --bg-obsidian-elevated: #110C1E;
+  --bg-obsidian-highlight: #171028;
+
+  /* Structural 1px Bevels */
+  --border-subtle: #1C142E;
+  --border-focus: #2E1F4A;
+  --border-active: #4F2D7F;
+
+  /* Strict Semantic Accents */
+  --substrate-pink: #E6007A;
+  --evm-indigo: #6366F1;
+  --telemetry-emerald: #00FF9D;
+  --tactical-amber: #F59E0B;
+  --fencing-red: #EF4444;
 }
 
 body {
   margin: 0;
-  background-color: #080512;
-  color: #E2E8F0;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background-color: #06040A;
+  color: #D1D5DB;
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
+  letter-spacing: -0.015em;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Monospace with tabular numbers */
+/* Strict Tabular Numbers for all real-time stream data */
 .font-mono {
   font-family: 'JetBrains Mono', monospace;
-  font-feature-settings: 'tnum' 1;
+  font-feature-settings: 'tnum' 1, 'cv05' 1;
 }
 
-/* High-tech Cyber Grid */
+/* Precision Terminal Grid (Muted, Non-distracting) */
 .cyber-grid {
-  background-size: 36px 36px;
+  background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(139, 92, 246, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(139, 92, 246, 0.08) 1px, transparent 1px);
+    linear-gradient(to right, rgba(139, 92, 246, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(139, 92, 246, 0.04) 1px, transparent 1px);
+}
+
+/* Precision Tactical Conduit Box */
+.terminal-conduit {
+  border: 1px solid #1C142E;
+  background-color: #0B0813;
+  border-radius: 0px !important;
+  transition: border-color 100ms linear;
+}
+
+.terminal-conduit:hover {
+  border-color: #2E1F4A;
 }
 
 /* Cyber Matrix Dots */
@@ -49,37 +73,38 @@ body {
   pointer-events: none;
 }
 
-/* Glowing Neon Radial Ambient Orbs */
-.glow-orb-violet {
-  position: absolute;
-  filter: blur(120px);
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.24) 0%, rgba(139, 92, 246, 0) 70%);
+/* Precision Status Indicator Pips */
+.status-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 0px;
+  display: inline-block;
 }
 
-.glow-orb-magenta {
-  position: absolute;
-  filter: blur(130px);
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(230, 0, 122, 0.18) 0%, rgba(230, 0, 122, 0) 70%);
+.status-pip-emerald {
+  background-color: #00FF9D;
+  box-shadow: 0 0 4px #00FF9D;
 }
 
-.glow-orb-cyan {
-  position: absolute;
-  filter: blur(130px);
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.16) 0%, rgba(56, 189, 248, 0) 70%);
+.status-pip-amber {
+  background-color: #F59E0B;
+  box-shadow: 0 0 4px #F59E0B;
+}
+
+.status-pip-red {
+  background-color: #EF4444;
+  box-shadow: 0 0 4px #EF4444;
 }
 
 /* Angular Tech Components */
 .tech-box {
   border-radius: 0px !important;
-  border: 1px solid #261B42;
-  background: #110A24;
+  border: 1px solid #1C142E;
+  background: #0B0813;
 }
 
 .tech-box:hover {
-  border-color: #4C2889;
+  border-color: #2E1F4A;
 }
 
 /* Angular Chamfer Corner Accents */

@@ -85,80 +85,80 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
   };
 
   return (
-    <div data-tour="dual-engine-view" className="space-y-4">
+    <div data-tour="dual-engine-view" className="space-y-4 font-mono">
       {/* View Header with Onboarding Mission Context */}
-      <div className="flex flex-wrap items-center justify-between border-b border-[#261B42] pb-3 gap-3">
+      <div className="flex flex-wrap items-center justify-between border-b border-[#1C142E] pb-2.5 gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-[#8B5CF6]" />
-            <h2 className="text-sm sm:text-base font-bold font-mono text-white tracking-wider uppercase">
-              DUAL-ENGINE STATE
+            <div className="w-1.5 h-1.5 bg-[#8B5CF6]" />
+            <h2 className="text-xs sm:text-sm font-bold font-mono text-white tracking-widest uppercase">
+              DUAL-ENGINE REAL-TIME TELEMETRY
             </h2>
-            <span className="text-[10px] font-mono px-2 py-0.5 bg-[#8B5CF6]/10 text-[#C084FC] border border-[#8B5CF6]/30">
+            <span className="text-[9px] font-mono px-1.5 py-0.2 bg-[#0E091B] text-[#C084FC] border border-[#2E1F4A]">
               WASM + EVM
             </span>
           </div>
-          <p className="text-[11px] font-mono text-zinc-400 mt-1">
-            Real-time synchronization telemetry between Substrate WASM runtime and Frontier EVM sub-engine.
+          <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
+            Phase-lock telemetry between Substrate WASM runtime and Frontier EVM execution engine.
           </p>
         </div>
         <button
           onClick={onRefresh}
           disabled={isLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[#180E30] hover:bg-[#261B42] border border-[#4C2889] text-[#C084FC] transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono bg-[#110C1E] hover:bg-[#1A102E] border border-[#2E1F4A] hover:border-[#8B5CF6] text-zinc-200 transition-colors cursor-pointer"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh Pipeline
+          <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+          <span>POLL NOW</span>
         </button>
       </div>
 
       {/* Sub-Tabs Navigation for Progressive Disclosure */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-[#1A122E] pb-2 text-xs font-mono">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-[#140D24] pb-2 text-[11px] font-mono">
         <button
           onClick={() => setActiveTab('stream')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 border transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1 border transition-colors cursor-pointer ${
             activeTab === 'stream'
-              ? 'bg-[#1F1238] border-[#8B5CF6] text-white font-bold shadow-[0_0_12px_rgba(139,92,246,0.15)]'
-              : 'bg-[#0E081E] border-[#261B42] text-zinc-400 hover:text-zinc-200 hover:border-[#3E2568]'
+              ? 'bg-[#110C1E] border-[#8B5CF6] text-white font-bold'
+              : 'bg-[#0B0813] border-[#1C142E] text-zinc-400 hover:text-zinc-200 hover:border-[#2E1F4A]'
           }`}
         >
-          <Radio className="w-3.5 h-3.5 text-[#8B5CF6]" />
-          <span>1. Stream Pipeline & Conduit</span>
+          <Radio className="w-3 h-3 text-[#8B5CF6]" />
+          <span>Stream Pipeline & Conduit</span>
         </button>
 
         <button
           onClick={() => setActiveTab('diagnostics')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 border transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1 border transition-colors cursor-pointer ${
             activeTab === 'diagnostics'
-              ? 'bg-[#1F1238] border-[#8B5CF6] text-white font-bold shadow-[0_0_12px_rgba(139,92,246,0.15)]'
-              : 'bg-[#0E081E] border-[#261B42] text-zinc-400 hover:text-zinc-200 hover:border-[#3E2568]'
+              ? 'bg-[#110C1E] border-[#8B5CF6] text-white font-bold'
+              : 'bg-[#0B0813] border-[#1C142E] text-zinc-400 hover:text-zinc-200 hover:border-[#2E1F4A]'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-[#C084FC]" />
-          <span>2. Causal Lag & Root Cause</span>
+          <Sparkles className="w-3 h-3 text-[#C084FC]" />
+          <span>Causal Lag & Root Cause</span>
           {diag.severity !== 'OK' && (
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="w-1.5 h-1.5 bg-amber-400 animate-pulse ml-0.5" />
           )}
         </button>
 
         <button
           onClick={() => setActiveTab('tools')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 border transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1 border transition-colors cursor-pointer ${
             activeTab === 'tools'
-              ? 'bg-[#1F1238] border-[#8B5CF6] text-white font-bold shadow-[0_0_12px_rgba(139,92,246,0.15)]'
-              : 'bg-[#0E081E] border-[#261B42] text-zinc-400 hover:text-zinc-200 hover:border-[#3E2568]'
+              ? 'bg-[#110C1E] border-[#8B5CF6] text-white font-bold'
+              : 'bg-[#0B0813] border-[#1C142E] text-zinc-400 hover:text-zinc-200 hover:border-[#2E1F4A]'
           }`}
         >
-          <Binary className="w-3.5 h-3.5 text-[#10B981]" />
-          <span>3. Decimals & Mempool</span>
+          <Binary className="w-3 h-3 text-[#00FF9D]" />
+          <span>Decimals & Mempool</span>
         </button>
       </div>
 
       {/* TAB 1: Dual-Block Ribbon Stream & Pipeline Conduit */}
       {activeTab === 'stream' && (
-        <div className="bg-[#0B0813] border border-[#201538] font-mono">
+        <div className="bg-[#08050F] border border-[#1C142E] font-mono">
           {/* Module Header Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 border-b border-[#201538] bg-[#0E091B]">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-1.5 border-b border-[#1C142E] bg-[#0B0716]">
             <div className="flex items-center gap-2 text-xs">
               <span className="text-[#8B5CF6] font-bold">SYS::PIPELINE</span>
               <span className="text-zinc-600">/</span>

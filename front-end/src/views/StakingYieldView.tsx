@@ -32,6 +32,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
   const [selectedDurationMonths, setSelectedDurationMonths] = useState<number>(12);
   const [rebalanceResult, setRebalanceResult] = useState<any | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [candidateFilter, setCandidateFilter] = useState<'ALL' | 'OPTIMAL' | 'LOW_COMM'>('ALL');
 
   // Interactive Validator Detail Modal state
   const [selectedValidator, setSelectedValidator] = useState<any | null>(null);
@@ -113,9 +114,20 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
   const compoundReturnPot = Math.round(stakeInput * (Math.pow(1 + compoundRate / 1460, 1460 * timeFraction) - 1));
   const surplusPot = compoundReturnPot - nominalReturnPot;
 
+  // Filtered validators
+  const visibleValidators = data.validators.slice(0, 16).filter(val => {
+    if (candidateFilter === 'OPTIMAL') {
+      return (val.pao_metrics?.safety_margin_mvu || 0) >= 0.5;
+    }
+    if (candidateFilter === 'LOW_COMM') {
+      return val.commission_pct <= 3.0;
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-4 font-mono">
-      {/* View Header */}
+      {/* View Header with Contextual Mission Statement */}
       <div className="flex flex-wrap items-center justify-between border-b border-[#261B42] pb-3 gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -123,12 +135,18 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
             <h2 className="text-sm sm:text-base font-bold font-mono text-white tracking-wider uppercase">
               NPOS PHRAGMÉN SIMULATOR &amp; DYNAMIC RE-NOMINATION
             </h2>
+            <span className="text-[10px] font-mono px-2 py-0.5 bg-[#8B5CF6]/10 text-[#C084FC] border border-[#8B5CF6]/30">
+              PORTALDOT STAKING
+            </span>
           </div>
+          <p className="text-[11px] font-mono text-zinc-400 mt-1">
+            Automated Phragmén nominator distribution engine protecting validators against whale dilution and oversubscription.
+          </p>
         </div>
 
         <div className="flex items-center gap-2 text-xs text-[#C084FC] bg-[#140C2B] px-3 py-1.5 border border-[#4C2889]">
           <Cpu className="w-3.5 h-3.5 text-[#8B5CF6]" />
-          <span>ALGO: {data.election_algorithm || 'Client-Side Sequential Phragmén Simulator'}</span>
+          <span>ALGO: {data.election_algorithm || 'Sequential Phragmén Optimization'}</span>
         </div>
       </div>
 
@@ -311,7 +329,36 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               (Click card to inspect deep telemetry)
             </span>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Quick Filter Buttons & Selection Utilities */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1 bg-[#080512] p-0.5 border border-[#261B42] text-[10px]">
+              <button
+                onClick={() => setCandidateFilter('ALL')}
+                className={`px-2 py-0.5 transition-colors cursor-pointer ${
+                  candidateFilter === 'ALL' ? 'bg-[#8B5CF6] text-white font-bold' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                ALL (16)
+              </button>
+              <button
+                onClick={() => setCandidateFilter('OPTIMAL')}
+                className={`px-2 py-0.5 transition-colors cursor-pointer ${
+                  candidateFilter === 'OPTIMAL' ? 'bg-[#8B5CF6] text-white font-bold' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                OPTIMAL BUFFER (Mᵥ &ge; 0.5)
+              </button>
+              <button
+                onClick={() => setCandidateFilter('LOW_COMM')}
+                className={`px-2 py-0.5 transition-colors cursor-pointer ${
+                  candidateFilter === 'LOW_COMM' ? 'bg-[#8B5CF6] text-white font-bold' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                COMM &le; 3%
+              </button>
+            </div>
+
             <button
               onClick={handleSelectAllTargets}
               className="text-[10px] text-zinc-400 hover:text-white bg-[#080512] px-2 py-0.5 border border-[#261B42] cursor-pointer"
@@ -331,7 +378,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-          {data.validators.slice(0, 16).map((val, idx) => {
+          {visibleValidators.map((val, idx) => {
             const isSelected = selectedTargets.includes(val.stash_address);
             return (
               <div
@@ -358,7 +405,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                       #{idx + 1 < 10 ? `0${idx + 1}` : idx + 1} {val.identity}
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#10B981] font-bold">{val.estimated_apy}% APY</span>
+                  <span className="text-[10px] text-[#10B981] font-bold tabular-nums">{val.estimated_apy}% APY</span>
                 </div>
 
                 <div className="text-[10px] text-zinc-500 truncate flex items-center justify-between">
@@ -388,8 +435,8 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                 )}
 
                 <div className="flex justify-between text-[10px] text-zinc-400 pt-1 border-t border-[#1F143D]">
-                  <span>COMM: <strong className="text-white">{val.commission_pct}%</strong></span>
-                  <span>UPTIME: <strong className="text-white">{val.uptime_pct}%</strong></span>
+                  <span>COMM: <strong className="text-white tabular-nums">{val.commission_pct}%</strong></span>
+                  <span>UPTIME: <strong className="text-white tabular-nums">{val.uptime_pct}%</strong></span>
                 </div>
               </div>
             );

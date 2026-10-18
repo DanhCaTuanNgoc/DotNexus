@@ -264,21 +264,37 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
             <Zap className="w-3.5 h-3.5 shrink-0" />
             <span>TEST RATE LIMIT BURST (&gt; 60 REQ/MIN)</span>
           </button>
+
+          <button
+            onClick={() => handleSimulateAttack('BATCH_OVERLOAD')}
+            disabled={simulating}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 sm:py-1.5 text-xs bg-[#17110E] hover:bg-[#261B13] active:bg-[#382618] border border-amber-500/60 text-amber-400 hover:text-amber-300 font-bold cursor-pointer transition-colors"
+          >
+            <Filter className="w-3.5 h-3.5 shrink-0" />
+            <span>TEST BATCH OVERLOAD (&gt; 20 CALLS)</span>
+          </button>
         </div>
 
         {simulationResult && (
-          <div className="p-3 bg-[#080512] border border-[#261B42] text-xs text-zinc-300 space-y-1 mt-2">
-            <div className="text-[#C084FC] font-bold flex items-center gap-2">
-              <span>ATTACK DEFENSE RESULT:</span>
-              <span className={simulationResult.result?.decision === 'BLOCKED' ? 'text-[#EF4444]' : 'text-amber-400'}>
+          <div className="p-3 bg-[#080512] border border-[#261B42] text-xs text-zinc-300 space-y-1.5 mt-2 animate-in fade-in duration-150">
+            <div className="text-[#C084FC] font-bold flex items-center justify-between border-b border-[#1A122E] pb-1">
+              <span className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                RPC DEFENSE VERDICT:
+              </span>
+              <span className={`px-2 py-0.5 text-[10px] font-bold border uppercase tracking-wider ${
+                simulationResult.result?.decision === 'BLOCKED'
+                  ? 'bg-rose-950/40 text-rose-400 border-rose-800/60'
+                  : 'bg-amber-950/40 text-amber-400 border-amber-800/60'
+              }`}>
                 [{simulationResult.result?.decision || 'PROCESSED'}]
               </span>
             </div>
-            <div className="text-zinc-400">
+            <div className="text-zinc-400 text-[11px]">
               TARGET VECTOR: <strong className="text-white">{simulationResult.attack_type}</strong>
             </div>
-            <div className="text-zinc-400">
-              ACTION TAKEN: {simulationResult.result?.reason}
+            <div className="text-zinc-300 text-[11px] leading-relaxed">
+              DEFENSE ACTION: <span className="text-emerald-400 font-semibold">{simulationResult.result?.reason}</span>
             </div>
           </div>
         )}

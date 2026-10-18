@@ -31,13 +31,13 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="h-12 border-b border-[#261B42] bg-[#0B0616] px-3 sm:px-4 flex items-center justify-between select-none relative z-30">
+      <header className="h-11 border-b border-[#1C142E] bg-[#06040A] px-3 sm:px-4 flex items-center justify-between select-none relative z-30 font-mono">
         {/* Brand & Mobile Menu Toggle */}
         <div className="flex items-center gap-2 sm:gap-3">
           {onToggleMobileNav && (
             <button
               onClick={onToggleMobileNav}
-              className="md:hidden p-1.5 text-zinc-400 hover:text-white hover:bg-[#1E113E] border border-transparent hover:border-[#3B2564] transition-colors"
+              className="md:hidden p-1 text-zinc-400 hover:text-white hover:bg-[#110C1E] border border-[#1C142E] transition-colors"
               title={isMobileNavOpen ? 'Close Menu' : 'Open Operations Menu'}
               aria-label="Toggle operations navigation"
             >
@@ -51,61 +51,64 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onNavigateHome}
-            className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer group"
+            className="flex items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer group"
             title="Return to Landing Page"
           >
-            <div className="w-6 h-6 rounded-none bg-[#8B5CF6]/20 border border-[#8B5CF6] flex items-center justify-center text-[#8B5CF6] group-hover:scale-105 transition-transform">
-              <Zap className="w-3.5 h-3.5 fill-[#8B5CF6]" />
+            <div className="w-5 h-5 bg-[#8B5CF6]/15 border border-[#8B5CF6]/60 flex items-center justify-center text-[#8B5CF6]">
+              <Zap className="w-3 h-3 fill-[#8B5CF6]" />
             </div>
-            <span className="font-bold text-sm tracking-wider text-white font-mono">DOTNEXUS</span>
+            <span className="font-bold text-xs tracking-widest text-white font-mono uppercase">DOTNEXUS</span>
           </button>
-          <span className="hidden xs:inline-block text-[10px] uppercase font-mono px-2 py-0.5 rounded-none border border-[#4C2889] bg-[#140C2B] text-[#C084FC]">
-            Portaldot V3.0
+
+          <span className="hidden xs:inline-block text-[9px] uppercase font-mono px-1.5 py-0.5 border border-[#2E1F4A] bg-[#0E091B] text-[#C084FC] tracking-wider">
+            PORTALDOT V3.0
           </span>
         </div>
 
         {/* Desktop Cluster Telemetry Micro-Badges */}
-        <div data-tour="header-telemetry" className="hidden sm:flex items-center gap-3 lg:gap-4 text-xs font-mono">
-          <div className="flex items-center gap-1.5">
-            <span className="text-zinc-500 text-[11px]">WASM:</span>
-            <span className="text-zinc-200 tabular-nums">#{bestBlock.toLocaleString()}</span>
+        <div data-tour="header-telemetry" className="hidden sm:flex items-center gap-3 lg:gap-4 text-[11px] font-mono">
+          <div className="flex items-center gap-1.5 border-r border-[#1C142E] pr-3">
+            <span className="w-1.5 h-1.5 bg-[#E6007A]" title="Substrate WASM Runtime" />
+            <span className="text-zinc-500 text-[10px]">WASM:</span>
+            <span className="text-zinc-100 font-bold tabular-nums">#{bestBlock.toLocaleString()}</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-1.5">
-            <span className="text-zinc-500 text-[11px]">FINALIZED:</span>
+          <div className="hidden md:flex items-center gap-1.5 border-r border-[#1C142E] pr-3">
+            <span className="text-zinc-500 text-[10px]">FIN:</span>
             <span className="text-zinc-300 tabular-nums">#{finalizedBlock.toLocaleString()}</span>
-            <span className="text-[10px] text-zinc-500">(-{bestBlock - finalizedBlock})</span>
+            <span className="text-[10px] text-zinc-600">(-{bestBlock - finalizedBlock})</span>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <span className="text-zinc-500 text-[11px]">EVM:</span>
-            <span className="text-[#818CF8] tabular-nums">#{evmBlock.toLocaleString()}</span>
+          <div className="flex items-center gap-1.5 border-r border-[#1C142E] pr-3">
+            <span className="w-1.5 h-1.5 bg-[#6366F1]" title="Frontier EVM Engine" />
+            <span className="text-zinc-500 text-[10px]">EVM:</span>
+            <span className="text-[#818CF8] font-bold tabular-nums">#{evmBlock.toLocaleString()}</span>
           </div>
 
           {/* Delta Chip */}
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-none border border-[#261B42] bg-[#110A24]">
-            <span className="text-zinc-500 text-[11px]">DELTA:</span>
-            <span className={`font-semibold ${isHealthy ? 'text-[#10B981]' : 'text-[#F59E0B]'}`}>
-              {delta} {delta === 1 ? 'blk' : 'blks'}
+          <div className="flex items-center gap-1.5 px-2 py-0.5 border border-[#1C142E] bg-[#0B0813]">
+            <span className="text-zinc-500 text-[10px]">DELTA:</span>
+            <span className={`font-bold tabular-nums ${isHealthy ? 'text-[#00FF9D]' : 'text-[#F59E0B]'}`}>
+              {delta} {delta === 1 ? 'BLK' : 'BLKS'}
             </span>
           </div>
 
           {/* Node Active Indicator */}
-          <div className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 rounded-none border border-[#4C2889] bg-[#140C2B]">
+          <div className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 border border-[#1C142E] bg-[#0B0813]">
             <Server className="w-3 h-3 text-[#A855F7]" />
-            <span className="text-[11px] text-[#C084FC] font-semibold">{activeNode}</span>
+            <span className="text-[10px] text-zinc-300 font-bold uppercase">{activeNode}</span>
           </div>
         </div>
 
         {/* Mobile Compact Telemetry Toggle Button */}
         <button
           onClick={() => setShowMobileTelemetry((prev) => !prev)}
-          className="sm:hidden flex items-center gap-1 px-2 py-1 rounded-none border border-[#3B2564] bg-[#140C2B] text-[10px] font-mono text-zinc-200"
+          className="sm:hidden flex items-center gap-1 px-2 py-1 border border-[#1C142E] bg-[#0B0813] text-[10px] font-mono text-zinc-200"
           title="Toggle telemetry details"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+          <span className="w-1.5 h-1.5 bg-[#00FF9D] animate-pulse" />
           <span className="text-[#C084FC] font-bold tabular-nums">#{bestBlock.toLocaleString()}</span>
-          <span className={`font-bold ${isHealthy ? 'text-[#10B981]' : 'text-[#F59E0B]'}`}>Δ{delta}</span>
+          <span className={`font-bold ${isHealthy ? 'text-[#00FF9D]' : 'text-[#F59E0B]'}`}>Δ{delta}</span>
           {showMobileTelemetry ? (
             <ChevronUp className="w-3 h-3 text-zinc-400" />
           ) : (
@@ -118,10 +121,10 @@ export const Header: React.FC<HeaderProps> = ({
           {onStartTour && (
             <button
               onClick={onStartTour}
-              className="flex items-center gap-1.5 text-[11px] font-mono text-[#C084FC] bg-[#180E30] hover:bg-[#261B42] px-2 sm:px-2.5 py-1 rounded-none border border-[#4C2889] hover:border-[#8B5CF6] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 text-[10px] font-mono text-[#C084FC] bg-[#110C1E] hover:bg-[#1A102E] px-2 sm:px-2.5 py-1 border border-[#2E1F4A] hover:border-[#8B5CF6] transition-colors cursor-pointer"
               title="Launch Guided Mission Tour"
             >
-              <Activity className="w-3.5 h-3.5 text-[#8B5CF6]" />
+              <Activity className="w-3 h-3 text-[#8B5CF6]" />
               <span className="hidden sm:inline">TOUR GUIDE</span>
             </button>
           )}
@@ -129,15 +132,15 @@ export const Header: React.FC<HeaderProps> = ({
           {onNavigateHome && (
             <button
               onClick={onNavigateHome}
-              className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 hover:text-white px-2 sm:px-2.5 py-1 rounded-none border border-[#261B42] hover:border-[#8B5CF6] hover:bg-[#140C2B] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-400 hover:text-white px-2 sm:px-2.5 py-1 border border-[#1C142E] hover:border-[#2E1F4A] hover:bg-[#110C1E] transition-colors cursor-pointer"
             >
-              <Home className="w-3.5 h-3.5 text-[#8B5CF6]" />
+              <Home className="w-3 h-3 text-zinc-400" />
               <span className="hidden md:inline">HOMEPAGE</span>
             </button>
           )}
-          <div className="hidden xs:flex items-center gap-1.5 text-[10px] font-mono border border-[#10B981]/40 bg-[#0E2820]/40 px-2 py-0.5 text-[#10B981] font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
-            <span>:9944</span>
+          <div className="hidden xs:flex items-center gap-1.5 text-[10px] font-mono border border-[#00FF9D]/30 bg-[#00FF9D]/5 px-2 py-0.5 text-[#00FF9D] font-bold">
+            <span className="w-1.5 h-1.5 bg-[#00FF9D]" />
+            <span>:9944 WS</span>
           </div>
         </div>
       </header>

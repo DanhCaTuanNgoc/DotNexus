@@ -238,18 +238,18 @@ export const App: React.FC = () => {
 
         {/* Mobile Slide-over Drawer */}
         <aside
-          className={`fixed inset-y-0 left-0 w-64 bg-[#0A0515] border-r border-[#261B42] z-50 flex flex-col justify-between py-4 select-none pb-8 transition-transform duration-200 md:hidden shadow-2xl ${
+          className={`fixed inset-y-0 left-0 w-64 bg-[#06040A] border-r border-[#1C142E] z-50 flex flex-col justify-between py-4 select-none pb-8 transition-transform duration-150 md:hidden shadow-2xl ${
             isMobileNavOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
           <div className="space-y-1 px-3">
-            <div className="flex items-center justify-between px-2 py-2 mb-2 border-b border-[#261B42]">
-              <span className="text-[11px] uppercase font-mono text-zinc-400 font-bold tracking-wider">
-                Operations Menu
+            <div className="flex items-center justify-between px-2 py-2 mb-2 border-b border-[#1C142E]">
+              <span className="text-[10px] uppercase font-mono text-zinc-500 font-bold tracking-widest">
+                OPERATIONS MATRIX
               </span>
               <button
                 onClick={() => setIsMobileNavOpen(false)}
-                className="p-1 text-zinc-400 hover:text-white"
+                className="p-1 text-zinc-500 hover:text-white"
                 title="Close Menu"
               >
                 ✕
@@ -263,25 +263,25 @@ export const App: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => handleSelectTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-none text-xs font-mono transition-all text-left cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-mono transition-colors text-left cursor-pointer ${
                     isActive
-                      ? 'bg-[#180E30] border-l-2 border-[#8B5CF6] text-white font-bold'
-                      : 'border-l-2 border-transparent text-zinc-400 hover:bg-[#110A24] hover:text-white hover:border-[#4C2889]'
+                      ? 'bg-[#110C1E] border-l-2 border-[#8B5CF6] text-white font-bold'
+                      : 'border-l-2 border-transparent text-zinc-400 hover:bg-[#0B0813] hover:text-zinc-200'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#8B5CF6]' : 'text-zinc-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#8B5CF6]' : 'text-zinc-500'}`} />
                   <span className="truncate">{item.label}</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="px-4 text-[11px] font-mono text-zinc-500 border-t border-[#1F143D] pt-3">
+          <div className="px-4 text-[10px] font-mono text-zinc-600 border-t border-[#1C142E] pt-3">
             <div className="flex items-center gap-2 text-zinc-400">
-              <span className="w-2 h-2 rounded bg-[#10B981] shrink-0" />
-              <span>Engine Status: Online</span>
+              <span className="w-1.5 h-1.5 bg-[#00FF9D] shrink-0" />
+              <span>NODE STATUS: NOMINAL</span>
             </div>
-            <div className="text-[10px] text-zinc-600 mt-1">Portaldot Network V3.0</div>
+            <div className="text-[9px] text-zinc-600 mt-0.5">PORTALDOT V3.0 DUAL-VM</div>
           </div>
         </aside>
 
@@ -289,28 +289,28 @@ export const App: React.FC = () => {
         <aside
           data-tour="sidebar-navigation"
           className={`hidden md:flex ${
-            isSidebarCollapsed ? 'w-16' : 'w-56'
-          } border-r border-[#261B42] bg-[#0A0515] flex-col justify-between py-4 select-none shrink-0 pb-12 transition-all duration-200`}
+            isSidebarCollapsed ? 'w-14' : 'w-52'
+          } border-r border-[#1C142E] bg-[#06040A] flex-col justify-between py-3 select-none shrink-0 pb-12 transition-all duration-150`}
         >
-          <div className="space-y-1 px-2">
+          <div className="space-y-0.5 px-2">
             {/* Operations Navigation Header & Collapse/Expand Toggle */}
-            <div className="flex items-center justify-between px-2 py-1 mb-1">
+            <div className="flex items-center justify-between px-2 py-1 mb-1 border-b border-[#140D24] pb-1.5">
               {!isSidebarCollapsed && (
-                <span className="text-[10px] uppercase font-mono text-zinc-500 font-bold tracking-wider truncate">
-                  Operations Navigation
+                <span className="text-[9px] uppercase font-mono text-zinc-500 font-bold tracking-widest truncate">
+                  MODULES
                 </span>
               )}
               <button
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className={`p-1 text-zinc-400 hover:text-white hover:bg-[#1E113E] border border-transparent hover:border-[#3B2564] transition-colors rounded-none ${
+                className={`p-1 text-zinc-500 hover:text-white hover:bg-[#110C1E] border border-transparent hover:border-[#1C142E] transition-colors ${
                   isSidebarCollapsed ? 'mx-auto' : 'ml-auto'
                 }`}
                 title={isSidebarCollapsed ? 'Expand Navigation Menu' : 'Collapse Navigation Menu'}
               >
                 {isSidebarCollapsed ? (
-                  <PanelLeftOpen className="w-4 h-4 text-[#8B5CF6]" />
+                  <PanelLeftOpen className="w-3.5 h-3.5 text-[#8B5CF6]" />
                 ) : (
-                  <PanelLeftClose className="w-4 h-4 text-zinc-400" />
+                  <PanelLeftClose className="w-3.5 h-3.5 text-zinc-500" />
                 )}
               </button>
             </div>
@@ -324,14 +324,14 @@ export const App: React.FC = () => {
                   onClick={() => handleSelectTab(item.id)}
                   title={isSidebarCollapsed ? item.label : undefined}
                   className={`w-full flex items-center ${
-                    isSidebarCollapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3'
-                  } py-2.5 rounded-none text-xs font-mono transition-all text-left cursor-pointer ${
+                    isSidebarCollapsed ? 'justify-center px-0' : 'justify-start gap-2.5 px-2.5'
+                  } py-2 text-[11px] font-mono transition-colors text-left cursor-pointer ${
                     isActive
-                      ? 'bg-[#180E30] border-l-2 border-[#8B5CF6] text-white font-bold'
-                      : 'border-l-2 border-transparent text-zinc-400 hover:bg-[#110A24] hover:text-white hover:border-[#4C2889]'
+                      ? 'bg-[#110C1E] border-l-2 border-[#8B5CF6] text-white font-bold'
+                      : 'border-l-2 border-transparent text-zinc-400 hover:bg-[#0B0813] hover:text-zinc-200'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#8B5CF6]' : 'text-zinc-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#8B5CF6]' : 'text-zinc-500'}`} />
                   {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
                 </button>
               );
@@ -339,13 +339,13 @@ export const App: React.FC = () => {
           </div>
 
           {/* Sidebar Footer info */}
-          <div className={`px-3 text-[11px] font-mono text-zinc-500 ${isSidebarCollapsed ? 'text-center' : ''}`}>
+          <div className={`px-3 text-[10px] font-mono text-zinc-600 ${isSidebarCollapsed ? 'text-center' : ''}`}>
             <div className={`flex items-center gap-1.5 text-zinc-400 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
-              <span className="w-2 h-2 rounded bg-[#10B981] shrink-0" title="Engine Status: Online" />
-              {!isSidebarCollapsed && <span>Engine Status: Online</span>}
+              <span className="w-1.5 h-1.5 bg-[#00FF9D] shrink-0" title="Engine Status: Online" />
+              {!isSidebarCollapsed && <span>ENGINE: ONLINE</span>}
             </div>
             {!isSidebarCollapsed && (
-              <div className="text-[10px] text-zinc-600 mt-1">Portaldot Network V3.0</div>
+              <div className="text-[9px] text-zinc-600 mt-0.5">SUBSTRATE + EVM</div>
             )}
           </div>
         </aside>

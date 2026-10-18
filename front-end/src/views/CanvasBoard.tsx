@@ -130,6 +130,14 @@ export function convertRunbookToWorkflow(rb: any): CanvasWorkflow {
     ) {
       cat = 'STAKING';
     } else if (
+      t.includes('chaos') ||
+      labelLower.includes('chaos') ||
+      labelLower.includes('cut') ||
+      labelLower.includes('ddos') ||
+      labelLower.includes('inject')
+    ) {
+      cat = 'CHAOS';
+    } else if (
       t.includes('action') || 
       t.includes('promot') || 
       t.includes('alert') || 
@@ -140,7 +148,10 @@ export function convertRunbookToWorkflow(rb: any): CanvasWorkflow {
     }
 
     let matchedKind = n.id;
-    if (labelLower.includes('heartbeat')) matchedKind = 'heartbeat_daemon';
+    if (labelLower.includes('heartbeat') && !labelLower.includes('cut')) matchedKind = 'heartbeat_daemon';
+    else if (labelLower.includes('cut') || labelLower.includes('partition')) matchedKind = 'chaos_heartbeat_cut';
+    else if (labelLower.includes('ddos')) matchedKind = 'chaos_rpc_ddos';
+    else if (labelLower.includes('inject') || (labelLower.includes('lag') && !labelLower.includes('desync'))) matchedKind = 'chaos_evm_lag';
     else if (labelLower.includes('mutex') || labelLower.includes('equivocation')) matchedKind = 'mutex_lock';
     else if (labelLower.includes('standby')) matchedKind = 'promote_standby';
     else if (labelLower.includes('substrate')) matchedKind = 'ws_substrate';

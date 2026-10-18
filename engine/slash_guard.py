@@ -301,6 +301,10 @@ class SlashingGuard:
             }
         }
 
+    def simulate_missed_heartbeat(self) -> Dict[str, Any]:
+        """Convenience method to simulate missed heartbeat interval for tests and Chaos drills"""
+        return self.check_heartbeat(force_miss=True)
+
     def execute_failover(self, reason: str = "Manual Failover Triggered") -> Dict[str, Any]:
         """
         Emergency Failover:

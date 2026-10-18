@@ -1,6 +1,6 @@
 export type FlowHandleId = 'left' | 'right' | 'top' | 'bottom';
 export type FlowHandleType = 'trigger' | 'telemetry' | 'security' | 'action' | 'any';
-export type NodeCategory = 'INFRA' | 'WATCHER' | 'SECURITY' | 'ACTION' | 'STAKING';
+export type NodeCategory = 'INFRA' | 'WATCHER' | 'SECURITY' | 'ACTION' | 'STAKING' | 'CHAOS';
 export type NodeStatus = 'idle' | 'running' | 'success' | 'error';
 
 export interface CanvasNodeData {

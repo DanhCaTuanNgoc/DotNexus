@@ -21,7 +21,10 @@ import {
   FileCode2, 
   FileText,
   Search,
-  Plus
+  Plus,
+  AlertTriangle,
+  Flame,
+  ZapOff
 } from 'lucide-react';
 import { NodeCategory, NodeTemplate } from './types';
 import { CATEGORY_THEMES, NODE_TEMPLATES } from './constants';
@@ -53,9 +56,12 @@ const ICON_MAP: Record<string, React.FC<any>> = {
   Zap,
   FileCode2,
   FileText,
+  AlertTriangle,
+  Flame,
+  ZapOff
 };
 
-const CATEGORIES: ('ALL' | NodeCategory)[] = ['ALL', 'INFRA', 'WATCHER', 'SECURITY', 'ACTION', 'STAKING'];
+const CATEGORIES: ('ALL' | NodeCategory)[] = ['ALL', 'INFRA', 'WATCHER', 'SECURITY', 'ACTION', 'STAKING', 'CHAOS'];
 
 export const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode, onClose }) => {
   const [selectedCategory, setSelectedCategoryState] = useState<'ALL' | NodeCategory>(

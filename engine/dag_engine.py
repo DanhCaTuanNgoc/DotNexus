@@ -130,6 +130,39 @@ class DAGCanvasEngine:
                     {"id": "e-era-filter", "source": "n-era", "target": "n-filter", "animated": True, "label": "Era Finalized"},
                     {"id": "e-filter-bond", "source": "n-filter", "target": "n-bond", "animated": True, "label": "Top 16 Selected"}
                 ]
+            },
+            {
+                "id": "runbook-chaos-fire-drill",
+                "name": "Chaos Engineering: Validator Network Partition Fire Drill",
+                "description": "Diễn tập phòng cháy chữa cháy: Ngắt kết nối node Primary, kích hoạt Dead Man's Switch và tự động chuyển giao quyền sang Standby.",
+                "category": "CHAOS",
+                "nodes": [
+                    {
+                        "id": "n-chaos-cut",
+                        "type": "chaos",
+                        "label": "Cut Heartbeat (Network Partition)",
+                        "position": {"x": 50, "y": 150},
+                        "data": {"partition_duration_sec": 15, "trigger_self_fence": True}
+                    },
+                    {
+                        "id": "n-fence-guard",
+                        "type": "security",
+                        "label": "Anti-Equivocation Lock",
+                        "position": {"x": 380, "y": 150},
+                        "data": {"lease_timeout": "12s", "check": "Strict Mutex", "status": "SELF_FENCED"}
+                    },
+                    {
+                        "id": "n-standby-takeover",
+                        "type": "action",
+                        "label": "Promote Standby Node",
+                        "position": {"x": 720, "y": 150},
+                        "data": {"standby_url": "ws://127.0.0.1:9945", "action": "promote_primary", "status": "ACTIVE"}
+                    }
+                ],
+                "edges": [
+                    {"id": "e-chaos-fence", "source": "n-chaos-cut", "target": "n-fence-guard", "animated": True, "label": "Missing Ping > 10s"},
+                    {"id": "e-fence-takeover", "source": "n-fence-guard", "target": "n-standby-takeover", "animated": True, "label": "Safe Epoch Takeover"}
+                ]
             }
         ]
 
@@ -171,6 +204,39 @@ class DAGCanvasEngine:
             # Step 2: Filter top 16
             top = NPOS_OPTIMIZER.get_top_16_recommendation()
             steps_result.append({"step": "Top 16 Selection", "status": "SUCCESS", "detail": f"Selected {top['top_validators_count']} nodes. Compounded APY: {top['auto_compounded_apy']}%"})
+
+        elif runbook_id == "runbook-chaos-fire-drill":
+            # Step 1: Injected Heartbeat Partition
+            miss_res = SLASH_GUARD.simulate_missed_heartbeat()
+            steps_result.append({
+                "step": "Fault Injection: Heartbeat Cut",
+                "status": "SUCCESS",
+                "detail": f"Simulated missed heartbeats: {miss_res['missed_heartbeats']}. Self-fenced: {SLASH_GUARD.is_self_fenced}"
+            })
+            # Step 2: Invariant Check & Dead Man's Switch Evaluation
+            hb = SLASH_GUARD.check_heartbeat()
+            steps_result.append({
+                "step": "Dead Man's Switch Evaluation",
+                "status": "SUCCESS",
+                "detail": f"Active Node: {hb['active_node']} | Fencing Epoch: {SLASH_GUARD.fencing_epoch}"
+            })
+            # Step 3: RPC DDoS Defense Simulation
+            attack_res = RPC_SHIELD.simulate_attack_test("HEAVY_GETLOGS")
+            client_ip = attack_res.get("result", {}).get("client_ip", "194.26.29.11")
+            decision = attack_res.get("result", {}).get("decision", "BLOCKED")
+            steps_result.append({
+                "step": "Chaos Defense: RPC DDoS Shield",
+                "status": "SUCCESS",
+                "detail": f"Attacker IP Quarantined: {client_ip} ({decision})"
+            })
+            # Step 4: Cross-VM Causal Lag Index Probe
+            dual = DUAL_TRACKER.get_dual_state()
+            cli_diag = dual.get("causal_lag_index", {})
+            steps_result.append({
+                "step": "Causal Lag Index Probe",
+                "status": "SUCCESS",
+                "detail": f"CLI Score: {cli_diag.get('cli_score', 0)} ({cli_diag.get('classification', 'NOMINAL_PARITY')})"
+            })
 
         exec_summary = {
             "execution_id": f"exec-{secrets.token_hex(4)}",

@@ -54,6 +54,14 @@ export const CATEGORY_THEMES: Record<
     badgeBg: 'bg-[#311F0D] border-[#F59E0B]/50 text-[#F59E0B]',
     dotColor: '#F59E0B',
   },
+  CHAOS: {
+    border: 'border-[#EF4444]',
+    text: 'text-[#F87171]',
+    bg: 'bg-[#29080A]',
+    glow: '#EF4444',
+    badgeBg: 'bg-[#3B0C0F] border-[#EF4444]/50 text-[#EF4444]',
+    dotColor: '#EF4444',
+  },
 };
 
 // 20 Specialized Node Templates for Portaldot V3.0
@@ -226,6 +234,31 @@ export const NODE_TEMPLATES: NodeTemplate[] = [
     description: 'Generates immutable Markdown/JSON post-mortem report.',
     iconName: 'FileText',
     defaultConfig: { format: 'markdown', signDigest: true },
+  },
+  // 6. CHAOS / FAULT INJECTOR (3 Nodes)
+  {
+    kind: 'chaos_evm_lag',
+    category: 'CHAOS',
+    label: 'Inject EVM Lag (+5 Blocks)',
+    description: 'Bơm độ trễ giả lập vào luồng đọc :8545 để kiểm tra phản ứng Causal Lag Index.',
+    iconName: 'AlertTriangle',
+    defaultConfig: { lagBlocks: 5, targetEngine: 'EVM:8545', autoRevertSec: 30 },
+  },
+  {
+    kind: 'chaos_rpc_ddos',
+    category: 'CHAOS',
+    label: 'Simulate RPC DDoS (eth_getLogs)',
+    description: 'Bắn luồng request quét log khổng lồ để kích hoạt RPC Shield tự động cách ly IP.',
+    iconName: 'Flame',
+    defaultConfig: { attackType: 'HEAVY_GETLOGS', burstVolume: 500, banDurationSec: 60 },
+  },
+  {
+    kind: 'chaos_heartbeat_cut',
+    category: 'CHAOS',
+    label: 'Cut Heartbeat (Network Partition)',
+    description: 'Ngắt kết nối heartbeat của Primary để kích hoạt Self-Fencing Dead Mans Switch.',
+    iconName: 'ZapOff',
+    defaultConfig: { partitionDurationSec: 15, triggerSelfFence: true },
   },
 ];
 
@@ -481,4 +514,37 @@ export const DEFAULT_RUNBOOKS = [
       { id: 'erpc-2-3', source: 'rpc-2', target: 'rpc-3', animated: true, label: 'Trigger on Span > 2000' },
     ],
   },
+  {
+    id: 'runbook-chaos-fire-drill',
+    name: 'Chaos Engineering: Validator Network Partition Fire Drill',
+    description: 'Diễn tập phòng cháy chữa cháy: Ngắt kết nối node Primary, kích hoạt Dead Mans Switch và tự động chuyển giao quyền sang Standby.',
+    category: 'SECURITY',
+    nodes: [
+      {
+        id: 'n-chaos-cut',
+        type: 'chaos',
+        label: 'Cut Heartbeat (Network Partition)',
+        position: { x: 50, y: 150 },
+        data: { partitionDurationSec: 15, triggerSelfFence: true, status: 'TRIGGERED' }
+      },
+      {
+        id: 'n-fence-guard',
+        type: 'security',
+        label: 'Anti-Equivocation Lock',
+        position: { x: 380, y: 150 },
+        data: { lease_timeout: '12s', check: 'Strict Mutex', status: 'SELF_FENCED' }
+      },
+      {
+        id: 'n-standby-takeover',
+        type: 'action',
+        label: 'Promote Standby Node',
+        position: { x: 720, y: 150 },
+        data: { standby_url: 'ws://127.0.0.1:9945', action: 'promote_primary', status: 'ACTIVE' }
+      }
+    ],
+    edges: [
+      { id: 'e-chaos-fence', source: 'n-chaos-cut', target: 'n-fence-guard', animated: true, label: 'Missing Ping > 10s' },
+      { id: 'e-fence-takeover', source: 'n-fence-guard', target: 'n-standby-takeover', animated: true, label: 'Safe Epoch Takeover' }
+    ]
+  }
 ];

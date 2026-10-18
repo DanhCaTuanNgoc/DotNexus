@@ -13,7 +13,7 @@ import {
 import { ShieldStatus, api } from '../services/api';
 
 interface TopologyRadarViewProps {
-  data: ShieldStatus | null;
+  data: ShieldStatus;
   onRefresh: () => void;
 }
 
@@ -21,14 +21,6 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
   const [simulating, setSimulating] = useState(false);
   const [simulationResult, setSimulationResult] = useState<any | null>(null);
   const [selectedPeer, setSelectedPeer] = useState<any | null>(null);
-
-  if (!data) {
-    return (
-      <div className="flex items-center justify-center h-96 text-zinc-500 font-mono text-xs">
-        [INITIALIZING P2P RADAR &amp; RPC REVERSE PROXY SIEVE...]
-      </div>
-    );
-  }
 
   const handleSimulateAttack = async (type: 'HEAVY_GETLOGS' | 'RATE_LIMIT_BURST' | 'BATCH_OVERLOAD') => {
     setSimulating(true);

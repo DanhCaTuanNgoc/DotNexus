@@ -15,25 +15,16 @@ import { Header } from './components/Header';
 import { TerminalDrawer } from './components/TerminalDrawer';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-// Dynamic Code Splitting via React.lazy for optimized initial bundle
+import { LandingPage } from './views/LandingPage';
+
+// Dynamic Code Splitting via React.lazy for console operational views
 const DualEngineView = React.lazy(() => import('./views/DualEngineView').then(m => ({ default: m.DualEngineView })));
 const SecurityGuardView = React.lazy(() => import('./views/SecurityGuardView').then(m => ({ default: m.SecurityGuardView })));
 const StakingYieldView = React.lazy(() => import('./views/StakingYieldView').then(m => ({ default: m.StakingYieldView })));
 const TopologyRadarView = React.lazy(() => import('./views/TopologyRadarView').then(m => ({ default: m.TopologyRadarView })));
 const CanvasBoard = React.lazy(() => import('./views/CanvasBoard').then(m => ({ default: m.CanvasBoard })));
-const LandingPage = React.lazy(() => import('./views/LandingPage').then(m => ({ default: m.LandingPage })));
 
-const ViewLoadingFallback: React.FC = () => (
-  <div className="flex-1 h-full min-h-[300px] flex flex-col items-center justify-center p-6 bg-[#080512]">
-    <div className="relative flex items-center justify-center mb-4">
-      <div className="w-10 h-10 rounded-full border-2 border-[#E6007A]/20 border-t-[#E6007A] animate-spin" />
-      <div className="absolute w-5 h-5 rounded-full border-2 border-[#6366F1]/30 border-b-[#6366F1] animate-spin" style={{ animationDirection: 'reverse' }} />
-    </div>
-    <span className="text-[12px] font-mono tracking-wider text-zinc-400 uppercase select-none">
-      Initializing View Module...
-    </span>
-  </div>
-);
+import { ViewLoadingFallback } from './components/ViewLoadingFallback';
 import { 
   api, 
   DualTelemetryState, 
@@ -176,15 +167,13 @@ export const App: React.FC = () => {
   // Semantic HTML/React Landing Page with Three.js Background
   if (viewMode === 'landing') {
     return (
-      <React.Suspense fallback={<ViewLoadingFallback />}>
-        <LandingPage
-          onLaunchApp={handleLaunchApp}
-          dualData={dualData}
-          secData={secData}
-          nposData={nposData}
-          shieldData={shieldData}
-        />
-      </React.Suspense>
+      <LandingPage
+        onLaunchApp={handleLaunchApp}
+        dualData={dualData}
+        secData={secData}
+        nposData={nposData}
+        shieldData={shieldData}
+      />
     );
   }
 
@@ -337,16 +326,32 @@ export const App: React.FC = () => {
         >
           <React.Suspense fallback={<ViewLoadingFallback />}>
             {activeTab === 'dual-vm' && (
-              <DualEngineView data={dualData} onRefresh={fetchAllData} isLoading={isLoading} />
+              dualData ? (
+                <DualEngineView data={dualData} onRefresh={fetchAllData} isLoading={isLoading} />
+              ) : (
+                <ViewLoadingFallback />
+              )
             )}
             {activeTab === 'slashing' && (
-              <SecurityGuardView data={secData} onRefresh={fetchAllData} />
+              secData ? (
+                <SecurityGuardView data={secData} onRefresh={fetchAllData} />
+              ) : (
+                <ViewLoadingFallback />
+              )
             )}
             {activeTab === 'staking' && (
-              <StakingYieldView data={nposData} onRefresh={fetchAllData} />
+              nposData ? (
+                <StakingYieldView data={nposData} onRefresh={fetchAllData} />
+              ) : (
+                <ViewLoadingFallback />
+              )
             )}
             {activeTab === 'shield' && (
-              <TopologyRadarView data={shieldData} onRefresh={fetchAllData} />
+              shieldData ? (
+                <TopologyRadarView data={shieldData} onRefresh={fetchAllData} />
+              ) : (
+                <ViewLoadingFallback />
+              )
             )}
             {activeTab === 'canvas' && (
               <ErrorBoundary fallbackTitle="Visual DAG Canvas Interrupted">

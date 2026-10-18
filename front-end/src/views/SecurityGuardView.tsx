@@ -16,7 +16,7 @@ import {
 import { SecurityDashboardState, api } from '../services/api';
 
 interface SecurityGuardViewProps {
-  data: SecurityDashboardState | null;
+  data: SecurityDashboardState;
   onRefresh: () => void;
 }
 
@@ -25,14 +25,6 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
   const [switching, setSwitching] = useState(false);
   const [simulatingMiss, setSimulatingMiss] = useState(false);
   const [lastGeneratedKey, setLastGeneratedKey] = useState<any | null>(null);
-
-  if (!data) {
-    return (
-      <div className="flex items-center justify-center h-96 text-zinc-500 font-mono text-xs">
-        [INITIALIZING SECURITY RADAR &amp; EQUIVOCATION GUARD...]
-      </div>
-    );
-  }
 
   const handleRotateKeys = async () => {
     setRotating(true);

@@ -22,7 +22,6 @@ The goal is simple: make it easier for anyone to go from “I don’t know where
 First version coming soon. 
 
 
-
 hello !! From the V3.0 information currently available, I haven’t seen an official confirmation yet about whether the network will keep the same BABE + GRANDPA setup.
 Just to clarify the roles: BABE handles block production, while GRANDPA provides finality.
 I don’t want to give you an assumption as an official answer, so I’ll confirm this with the core/dev team and share the exact V3.0 consensus/finality architecture here once confirmed. 
@@ -241,3 +240,27 @@ LINK API DOC: https://portaldot-dev.readthedocs.io/ (Lưu ý: URL trực tiếp 
   - Portaldot V3.0 hỗ trợ Solidity smart contracts thông qua **`revive` (`pallet-revive`)** thay vì Frontier cũ.
   - Tương thích với các công cụ EVM tiêu chuẩn: MetaMask, Hardhat, Foundry.
   - EVM JSON-RPC URL và Chain ID chính thức đang được `@Titus` (Core Team) xác nhận và sẽ công bố ngay khi hoàn tất cấu hình.
+
+
+
+10/18/2026
+et me clarify what we currently know.
+Testnet Node Operator / Validator Program
+
+I don't have confirmation that a public V3 testnet node operator or validator program is currently accepting applications.
+Rewards and Incentives
+
+There hasn't been a confirmed announcement regarding node operator rewards, testnet incentives, or guaranteed future mainnet rewards. I wouldn't recommend making financial commitments based on potential rewards until the team publishes official details.
+Node Setup and Requirements
+
+The official V3 testnet WebSocket endpoint is:
+wss://test-node-v3.portaldot.dev
+However, this is an RPC endpoint, not a node installation guide.
+We still need the development team to confirm the official node binary or source repository, hardware requirements, synchronization instructions, and validator registration process.
+Node Operations & Tooling Track
+
+This is an official Hacker House development track focused on infrastructure tools, monitoring, automation, and related solutions.
+However, participation in this track does not automatically mean enrollment in a separate node operator program or eligibility for validator rewards.
+My recommendation: Before renting a server, I suggest waiting for confirmation of the public node participation requirements. In the meantime, you can begin developing monitoring and analytics tools using the available V3 RPC endpoint.
+Could the core team please confirm whether public node participation is currently available and whether an official operator guide and incentive program are planned?
+I appreciate your willingness to contribute to the network's infrastructure, and I hope this helps you plan your project without unnecessary expenses.

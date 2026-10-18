@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   Award,
@@ -23,7 +23,7 @@ import { NPoSRecommendation, api } from '../services/api';
 import { storage } from '../services/storage';
 
 interface StakingYieldViewProps {
-  data: NPoSRecommendation | null;
+  data: NPoSRecommendation;
   onRefresh: () => void;
 }
 
@@ -38,8 +38,14 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
 
   // Target customization state (selected stash addresses)
   const [selectedTargets, setSelectedTargets] = useState<string[]>(() => {
-    return data ? data.validators.slice(0, 16).map(v => v.stash_address) : [];
+    return data.validators.slice(0, 16).map(v => v.stash_address);
   });
+
+  useEffect(() => {
+    if (selectedTargets.length === 0) {
+      setSelectedTargets(data.validators.slice(0, 16).map(v => v.stash_address));
+    }
+  }, [data]);
 
   // Extrinsic Signing Studio Modal state
   const [isDispatchModalOpen, setIsDispatchModalOpen] = useState(false);
@@ -57,14 +63,6 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
     setCopiedKey(key);
     setTimeout(() => setCopiedKey(null), 2000);
   };
-
-  if (!data) {
-    return (
-      <div className="flex items-center justify-center h-96 text-zinc-500 font-mono text-xs">
-        [SIMULATING SEQUENTIAL PHRAGMÉN ELECTION...]
-      </div>
-    );
-  }
 
   const handleToggleTarget = (stash: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();

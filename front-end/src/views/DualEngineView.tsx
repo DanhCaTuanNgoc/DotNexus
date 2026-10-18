@@ -22,27 +22,13 @@ import {
 import { DualTelemetryState } from '../services/api';
 
 interface DualEngineViewProps {
-  data: DualTelemetryState | null;
+  data: DualTelemetryState;
   onRefresh: () => void;
   isLoading: boolean;
 }
 
 export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh, isLoading }) => {
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
-
-  if (!data) {
-    return (
-      <div className="flex items-center justify-center h-96 text-zinc-500 font-mono text-xs">
-        <RefreshCw className="w-4 h-4 animate-spin mr-2 text-[#8B5CF6]" />
-        Probing Dual-Engine Telemetry (:9944 / :8545)...
-      </div>
-    );
-  }
-
-  const { substrate, evm, sync, mempool, root_cause_diagnosis, decimal_normalization } = data;
-  const isHealthy = sync.is_synced;
-  const delta = sync.delta_blocks;
-
   const [slotElapsed, setSlotElapsed] = useState(0);
 
   useEffect(() => {
@@ -52,6 +38,10 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
     }, 100);
     return () => clearInterval(timer);
   }, []);
+
+  const { substrate, evm, sync, mempool, root_cause_diagnosis, decimal_normalization } = data;
+  const isHealthy = sync.is_synced;
+  const delta = sync.delta_blocks;
 
   const slotPercent = Math.min(100, Math.floor((slotElapsed / 6.0) * 100));
 

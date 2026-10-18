@@ -85,7 +85,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
   };
 
   return (
-    <div className="space-y-4">
+    <div data-tour="dual-engine-view" className="space-y-4">
       {/* View Header with Onboarding Mission Context */}
       <div className="flex flex-wrap items-center justify-between border-b border-[#261B42] pb-3 gap-3">
         <div>

@@ -14,6 +14,7 @@ import {
 import { Header } from './components/Header';
 import { TerminalDrawer } from './components/TerminalDrawer';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { OnboardingTour } from './components/OnboardingTour';
 
 import { LandingPage } from './views/LandingPage';
 
@@ -44,6 +45,30 @@ export const App: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsedState] = useState<boolean>(() => storage.getSidebarCollapsed(false));
   const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isTourOpen, setIsTourOpen] = useState<boolean>(false);
+
+  // Auto-launch Onboarding Tour for first-time visitors once in console view
+  useEffect(() => {
+    if (viewMode === 'console') {
+      const hasCompleted = storage.getOnboardingCompleted(false);
+      if (!hasCompleted) {
+        // Small delay to allow UI components to settle
+        const timer = setTimeout(() => {
+          setIsTourOpen(true);
+        }, 800);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [viewMode]);
+
+  const handleCloseTour = () => {
+    setIsTourOpen(false);
+    storage.setOnboardingCompleted(true);
+  };
+
+  const handleStartTour = () => {
+    setIsTourOpen(true);
+  };
 
   // Sync state whenever URL or browser history changes (Back/Forward buttons)
   useEffect(() => {
@@ -198,6 +223,7 @@ export const App: React.FC = () => {
         onNavigateHome={handleNavigateHome}
         isMobileNavOpen={isMobileNavOpen}
         onToggleMobileNav={() => setIsMobileNavOpen((prev) => !prev)}
+        onStartTour={handleStartTour}
       />
 
       {/* Main Control Center Body */}
@@ -261,6 +287,7 @@ export const App: React.FC = () => {
 
         {/* Desktop Sidebar Hotkey Rail */}
         <aside
+          data-tour="sidebar-navigation"
           className={`hidden md:flex ${
             isSidebarCollapsed ? 'w-16' : 'w-56'
           } border-r border-[#261B42] bg-[#0A0515] flex-col justify-between py-4 select-none shrink-0 pb-12 transition-all duration-200`}
@@ -384,6 +411,14 @@ export const App: React.FC = () => {
         onClearNodeFilter={() => setSelectedCanvasNodeId(null)}
         isOpen={isTerminalOpen}
         onToggleOpen={handleToggleTerminal}
+      />
+
+      {/* Guided Mission Briefing Onboarding Tour Modal */}
+      <OnboardingTour
+        isOpen={isTourOpen}
+        onClose={handleCloseTour}
+        onNavigateTab={(tab) => handleSelectTab(tab)}
+        currentTab={activeTab}
       />
     </div>
   );

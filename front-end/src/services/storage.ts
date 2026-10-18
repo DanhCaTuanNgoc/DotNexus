@@ -21,6 +21,7 @@ const STORAGE_KEYS = {
   ACTIVE_WORKFLOW_ID: 'dotnexus_active_workflow_id',
   STAKE_INPUT: 'dotnexus_stake_input',
   PALETTE_CATEGORY: 'dotnexus_palette_category',
+  ONBOARDING_COMPLETED: 'dotnexus_onboarding_completed_v1',
 } as const;
 
 /**
@@ -137,4 +138,10 @@ export const storage = {
     getItem<number>('dotnexus_terminal_height', fallback),
   setTerminalHeight: (height: number) =>
     setItem('dotnexus_terminal_height', height),
+
+  // Guided Onboarding Tour Completion
+  getOnboardingCompleted: (fallback: boolean = false): boolean =>
+    getItem<boolean>(STORAGE_KEYS.ONBOARDING_COMPLETED, fallback),
+  setOnboardingCompleted: (completed: boolean) =>
+    setItem(STORAGE_KEYS.ONBOARDING_COMPLETED, completed),
 };

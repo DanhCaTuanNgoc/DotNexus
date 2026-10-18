@@ -11,6 +11,7 @@ interface HeaderProps {
   onNavigateHome?: () => void;
   isMobileNavOpen?: boolean;
   onToggleMobileNav?: () => void;
+  onStartTour?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,7 +23,8 @@ export const Header: React.FC<HeaderProps> = ({
   activeNode,
   onNavigateHome,
   isMobileNavOpen,
-  onToggleMobileNav
+  onToggleMobileNav,
+  onStartTour
 }) => {
   const [showMobileTelemetry, setShowMobileTelemetry] = useState(false);
   const isHealthy = delta <= 2;
@@ -63,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Desktop Cluster Telemetry Micro-Badges */}
-        <div className="hidden sm:flex items-center gap-3 lg:gap-4 text-xs font-mono">
+        <div data-tour="header-telemetry" className="hidden sm:flex items-center gap-3 lg:gap-4 text-xs font-mono">
           <div className="flex items-center gap-1.5">
             <span className="text-zinc-500 text-[11px]">WASM:</span>
             <span className="text-zinc-200 tabular-nums">#{bestBlock.toLocaleString()}</span>
@@ -111,8 +113,19 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </button>
 
-        {/* Right Actions: Back to Landing / Live Status */}
+        {/* Right Actions: Tour Guide / Back to Landing / Live Status */}
         <div className="flex items-center gap-2">
+          {onStartTour && (
+            <button
+              onClick={onStartTour}
+              className="flex items-center gap-1.5 text-[11px] font-mono text-[#C084FC] bg-[#180E30] hover:bg-[#261B42] px-2 sm:px-2.5 py-1 rounded-none border border-[#4C2889] hover:border-[#8B5CF6] transition-all cursor-pointer"
+              title="Launch Guided Mission Tour"
+            >
+              <Activity className="w-3.5 h-3.5 text-[#8B5CF6]" />
+              <span className="hidden sm:inline">TOUR GUIDE</span>
+            </button>
+          )}
+
           {onNavigateHome && (
             <button
               onClick={onNavigateHome}

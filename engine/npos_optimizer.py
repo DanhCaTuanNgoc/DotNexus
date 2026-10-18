@@ -149,18 +149,21 @@ class NPoSOptimizer:
         Scans validators from Portaldot chain or returns high-fidelity active set data.
         Evaluates Uptime, Commission %, Slashing History, and Oversubscription headroom.
         """
-        if self.validators_cache and not force_refresh and (time.time() - self.last_scan_time < 60):
+        if self.validators_cache and not force_refresh and (time.time() - self.last_scan_time < 300):
             return self.validators_cache
 
         # Try live query via Substrate pallet_staking & pallet_session
         candidate_pool: List[Dict[str, Any]] = []
         if SubstrateInterface is not None:
             try:
-                client = SubstrateInterface(
-                    url=self.substrate_url,
-                    ss58_format=CONFIG.ss58_format,
-                    type_registry_preset='substrate-node-template'
-                )
+                from engine.dual_tracker import DUAL_TRACKER
+                client = DUAL_TRACKER.substrate_client
+                if client is None:
+                    client = SubstrateInterface(
+                        url=self.substrate_url,
+                        ss58_format=CONFIG.ss58_format,
+                        type_registry_preset='substrate-node-template'
+                    )
                 chain_head = client.get_chain_head()
                 if chain_head:
                     live_vals = self._fetch_live_validators_from_chain(client, chain_head)

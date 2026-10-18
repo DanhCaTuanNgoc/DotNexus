@@ -264,3 +264,32 @@ However, participation in this track does not automatically mean enrollment in a
 My recommendation: Before renting a server, I suggest waiting for confirmation of the public node participation requirements. In the meantime, you can begin developing monitoring and analytics tools using the available V3 RPC endpoint.
 Could the core team please confirm whether public node participation is currently available and whether an official operator guide and incentive program are planned?
 I appreciate your willingness to contribute to the network's infrastructure, and I hope this helps you plan your project without unnecessary expenses.
+
+
+# 📢 **PortaldotV3 Testnet: Updated Network Info & Testnet Token Distribution**
+
+Hello Portaldot builders! 👋
+
+The PortaldotV3 Testnet RPC information has been updated. Please use the endpoints below from now on. The previous endpoints are no longer in use.
+
+🔗 **Updated Testnet Network Info**
+• Node Explorer: https://node-console.portaldot.dev
+• Testnet Node URL: `wss://test-node-v3.portaldot.dev`
+• Testnet Node EVM Endpoint: `https://test-evm-rpc-v3.portaldot.dev`
+• Chain ID (EVM): `420420777`
+
+If you already configured MetaMask, Hardhat or any scripts with the old endpoints, please update the RPC URL. The Chain ID stays the same.
+
+🪙 **Testnet Token Distribution for Hackathon Participants**
+The **first batch of testnet tokens** will be distributed to **hackathon participants**.
+
+✅ **Already submitted your wallet?** Some participants already provided their **native POT wallet address** (beginning with **5**) during registration. No further action is needed for now.
+
+📝 **Haven't submitted your wallet address yet?** Please open a **support ticket** here on Discord and include:
+1. A screenshot of your hackathon registration/participation
+2. Your correct **native POT wallet address** (beginning with **5**)
+
+⚠️ Make sure you send your **native POT address** (starting with `5`), not an EVM address (starting with `0x`).
+🔒 The team will never ask for your seed phrase or private key. Never share them with anyone.
+
+Thank you, and happy building on PortaldotV3! @everyone

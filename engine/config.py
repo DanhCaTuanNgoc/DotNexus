@@ -6,10 +6,12 @@ Includes 3-Tier Root-Cause, Dead Man's Switch Fencing, Reverse Proxy, and Pre-Fl
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 # Base Directory Setup
 ROOT_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(ROOT_DIR / ".env")
 DATA_DIR = ROOT_DIR / ".dotnexus_data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 RUNBOOKS_DIR = DATA_DIR / "runbooks"
@@ -22,7 +24,8 @@ AUDIT_LOG_FILE = DATA_DIR / "audit.log"
 
 
 class EngineConfig(BaseModel):
-    # Portaldot Network V3.0 Chain Parameters
+    # Chain IDs & Token Specifications
+    evm_chain_id: int = int(os.getenv("PORTALDOT_CHAIN_ID", "420420777"))  # Official PortaldotV3 EVM Chain ID
     chain_name: str = "Portaldot Network V3.0"
     ss58_format: int = 42  # Standard Portaldot SS58 address prefix (addresses start with '5')
     token_symbol: str = "POT"
@@ -30,7 +33,9 @@ class EngineConfig(BaseModel):
     evm_standard_decimals: int = 18   # Standard EVM Wei decimals (10^18)
     decimal_scale_multiplier: int = 10 ** (18 - 14)  # 10^4 = 10,000
 
-    # RPC Endpoints
+    # RPC Endpoints (Default to local node; override via env with official PortaldotV3 Testnet)
+    # Live Testnet WS: wss://test-node-v3.portaldot.dev
+    # Live Testnet EVM: https://test-evm-rpc-v3.portaldot.dev
     substrate_ws_url: str = Field(
         default=os.getenv("PORTALDOT_WS_URL", "ws://127.0.0.1:9944"),
         description="Portaldot Substrate WebSocket RPC (WASM & Runtime consensus)"

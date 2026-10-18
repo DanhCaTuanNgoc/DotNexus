@@ -256,8 +256,25 @@ def get_unified_logs():
 
 
 def run_server():
-    logger.info(f"Starting DotNexus Central Gateway on port {CONFIG.engine_port}...")
-    app.run(host=CONFIG.engine_host, port=CONFIG.engine_port, debug=False, use_reloader=False)
+    logger.info("=" * 60)
+    logger.info("  DotNexus Control Center - Portaldot Network V3.0")
+    logger.info("=" * 60)
+    logger.info(f"Substrate WS: {CONFIG.substrate_ws_url}")
+    logger.info(f"EVM JSON-RPC: {CONFIG.evm_rpc_url} (Chain ID: {CONFIG.evm_chain_id})")
+    logger.info("Initializing pre-flight telemetry probe...")
+    try:
+        dual_state = DUAL_TRACKER.get_dual_state()
+        sub_status = "ONLINE (LIVE)" if dual_state["substrate"].get("is_live_chain") else "SIMULATED / OFFLINE"
+        evm_status = "ONLINE (LIVE)" if dual_state["evm"].get("is_live_chain") else "SIMULATED / OFFLINE"
+        sub_block = dual_state["substrate"].get("best_block", "N/A")
+        evm_block = dual_state["evm"].get("block_number", "N/A")
+        logger.info(f"Substrate State: [{sub_status}] - Block #{sub_block}")
+        logger.info(f"EVM State:       [{evm_status}] - Block #{evm_block}")
+    except Exception as e:
+        logger.warning(f"Initial probe exception: {e}")
+    logger.info(f"Starting Gateway API listener on {CONFIG.engine_host}:{CONFIG.engine_port}...")
+    logger.info("=" * 60)
+    app.run(host=CONFIG.engine_host, port=CONFIG.engine_port, debug=False, use_reloader=False, threaded=True)
 
 
 if __name__ == "__main__":

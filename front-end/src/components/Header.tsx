@@ -12,6 +12,7 @@ interface HeaderProps {
   isMobileNavOpen?: boolean;
   onToggleMobileNav?: () => void;
   onStartTour?: () => void;
+  isLiveChain?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,7 +25,8 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigateHome,
   isMobileNavOpen,
   onToggleMobileNav,
-  onStartTour
+  onStartTour,
+  isLiveChain
 }) => {
   const [showMobileTelemetry, setShowMobileTelemetry] = useState(false);
   const isHealthy = delta <= 2;
@@ -138,9 +140,13 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden md:inline">HOMEPAGE</span>
             </button>
           )}
-          <div className="hidden xs:flex items-center gap-1.5 text-[10px] font-mono border border-[#00FF9D]/30 bg-[#00FF9D]/5 px-2 py-0.5 text-[#00FF9D] font-bold">
-            <span className="w-1.5 h-1.5 bg-[#00FF9D]" />
-            <span>:9944 WS</span>
+          <div className={`hidden xs:flex items-center gap-1.5 text-[10px] font-mono border px-2 py-0.5 font-bold ${
+            isLiveChain 
+              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' 
+              : 'border-[#00FF9D]/30 bg-[#00FF9D]/5 text-[#00FF9D]'
+          }`}>
+            <span className={`w-1.5 h-1.5 ${isLiveChain ? 'bg-emerald-400 animate-pulse' : 'bg-[#00FF9D]'}`} />
+            <span>{isLiveChain ? 'PORTALDOT TESTNET' : ':9944 WS'}</span>
           </div>
         </div>
       </header>

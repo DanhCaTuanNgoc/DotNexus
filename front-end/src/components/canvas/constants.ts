@@ -73,7 +73,7 @@ export const NODE_TEMPLATES: NodeTemplate[] = [
     label: 'EVM RPC (:8545)',
     description: 'Ethereum JSON-RPC interface for Solidity contracts and gas tracker.',
     iconName: 'Cpu',
-    defaultConfig: { endpoint: 'http://127.0.0.1:8545', chainId: 4200, role: 'EVM Dual-VM' },
+    defaultConfig: { endpoint: 'http://127.0.0.1:8545', chainId: 420420777, role: 'EVM Dual-VM' },
   },
   {
     kind: 'standby_node',

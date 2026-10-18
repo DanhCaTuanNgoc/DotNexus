@@ -224,6 +224,7 @@ export const App: React.FC = () => {
         isMobileNavOpen={isMobileNavOpen}
         onToggleMobileNav={() => setIsMobileNavOpen((prev) => !prev)}
         onStartTour={handleStartTour}
+        isLiveChain={Boolean(dualData?.substrate?.is_live_chain)}
       />
 
       {/* Main Control Center Body */}

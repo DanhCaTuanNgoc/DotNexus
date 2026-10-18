@@ -26,14 +26,27 @@ except ImportError:
     Web3 = None
 
 
-def _is_endpoint_alive(url: str, timeout: float = 0.15) -> bool:
+def _is_endpoint_alive(url: str, timeout: float = 0.25) -> bool:
     """Fast pre-flight TCP check to avoid long websocket/http handshake timeouts when node is down"""
     try:
         parsed = urlparse(url)
         host = parsed.hostname or "127.0.0.1"
-        port = parsed.port or (9944 if "ws" in (parsed.scheme or "") else 8545)
+        scheme = (parsed.scheme or "").lower()
+        if parsed.port:
+            port = parsed.port
+        elif scheme in ("https", "wss"):
+            port = 443
+        elif scheme == "http":
+            port = 8545 if host in ("127.0.0.1", "localhost") else 80
+        elif "ws" in scheme:
+            port = 9944
+        else:
+            port = 8545
+
+        # For remote internet endpoints, allow slightly longer connection budget
+        effective_timeout = 2.0 if host not in ("127.0.0.1", "localhost") else timeout
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(timeout)
+            s.settimeout(effective_timeout)
             return s.connect_ex((host, port)) == 0
     except Exception:
         return False
@@ -109,7 +122,13 @@ class DualEngineTracker:
             return False
 
         try:
-            w3 = Web3(Web3.HTTPProvider(self.evm_url, request_kwargs={'timeout': 0.5}))
+            w3 = Web3(Web3.HTTPProvider(
+                self.evm_url,
+                request_kwargs={
+                    'headers': {'User-Agent': 'Mozilla/5.0 DotNexus/1.0', 'Content-Type': 'application/json'},
+                    'timeout': 3.0
+                }
+            ))
             if w3.is_connected():
                 self.web3_client = w3
                 logger.info(f"EVM JSON-RPC connected at {self.evm_url}")
@@ -277,7 +296,7 @@ class DualEngineTracker:
             "is_live_chain": False,
             "endpoint": self.evm_url,
             "block_number": evm_sim_block,
-            "chain_id": 9944,
+            "chain_id": CONFIG.evm_chain_id,
             "gas_price_gwei": 21.5,
             "base_fee_gwei": 18.0,
             "latency_ms": 18.7,

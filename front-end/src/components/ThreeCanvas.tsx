@@ -300,14 +300,23 @@ export const ThreeCanvas: React.FC = () => {
 
     const handleResize = () => {
       if (!mount) return;
-      width = mount.clientWidth;
-      height = mount.clientHeight;
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
+      const w = mount.clientWidth || window.innerWidth;
+      const h = mount.clientHeight || window.innerHeight;
+      if (w > 0 && h > 0) {
+        width = w;
+        height = h;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+      }
     };
 
     window.addEventListener('resize', handleResize);
+
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(mount);
 
     // 7. Animation Loop with Fixed Flat Plane & Spring Elevation
     let animId: number;
@@ -426,6 +435,7 @@ export const ThreeCanvas: React.FC = () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mouseleave', handlePointerLeave);
       window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       cancelAnimationFrame(animId);
 
       renderer.dispose();

@@ -73,6 +73,31 @@ body {
   pointer-events: none;
 }
 
+/* Glowing Neon Radial Ambient Orbs */
+.glow-orb-violet {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(120px);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.22) 0%, rgba(139, 92, 246, 0) 70%);
+}
+
+.glow-orb-magenta {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(130px);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(230, 0, 122, 0.18) 0%, rgba(230, 0, 122, 0) 70%);
+}
+
+.glow-orb-cyan {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(130px);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(99, 102, 241, 0) 70%);
+}
+
 /* Precision Status Indicator Pips */
 .status-pip {
   width: 6px;

@@ -54,9 +54,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <div className="fixed inset-0 scanline-overlay opacity-25 pointer-events-none z-0" />
 
       {/* Dynamic Ambient Neon Glow Orbs */}
-      <div className="glow-orb-violet w-[700px] h-[700px] -top-40 left-1/2 -translate-x-1/2 z-0 animate-pulse-glow" />
-      <div className="glow-orb-magenta w-[600px] h-[600px] top-60 -left-60 z-0 animate-pulse-glow" style={{ animationDelay: '2s' }} />
-      <div className="glow-orb-cyan w-[600px] h-[600px] top-60 -right-60 z-0 animate-pulse-glow" style={{ animationDelay: '4s' }} />
+      <div className="absolute pointer-events-none rounded-full glow-orb-violet w-[700px] h-[700px] -top-40 left-1/2 -translate-x-1/2 z-0 animate-pulse-glow" />
+      <div className="absolute pointer-events-none rounded-full glow-orb-magenta w-[600px] h-[600px] top-60 -left-60 z-0 animate-pulse-glow" style={{ animationDelay: '2s' }} />
+      <div className="absolute pointer-events-none rounded-full glow-orb-cyan w-[600px] h-[600px] top-60 -right-60 z-0 animate-pulse-glow" style={{ animationDelay: '4s' }} />
 
       {/* Top Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[#261B42]/90 bg-[#080512]/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between shadow-2xl">
@@ -247,8 +247,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
       
       {/* Section: The 4 Pillars */}
-      <section id="pillars" className="py-24 px-6 relative z-10">
-        <div className="glow-orb-violet w-[500px] h-[500px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0" />
+      <section id="pillars" className="py-24 px-6 relative z-10 overflow-hidden">
+        <div className="absolute pointer-events-none rounded-full glow-orb-violet w-[500px] h-[500px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0" />
         <div className="max-w-6xl mx-auto space-y-14 relative z-10">
           <div className="text-center space-y-3">
             <div className="inline-block px-3 py-1 rounded-none border border-[#4C2889] bg-[#140C2B] text-[11px] font-mono text-[#C084FC] font-bold">

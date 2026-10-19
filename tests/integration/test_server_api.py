@@ -201,6 +201,52 @@ class TestServerAPIIntegration(unittest.TestCase):
         self.assertIn("logs", data)
         self.assertIsInstance(data.get("logs"), list)
 
+    def test_post_dispatch_nominate_endpoint(self):
+        """Verifies POST /api/npos/dispatch-nominate endpoint validation and execution"""
+        res = self.client.post("/api/npos/dispatch-nominate", json={"targets": []}, headers=self.auth_headers)
+        self.assertEqual(res.status_code, 400)
+        self.assertFalse(res.get_json().get("success"))
+
+        from unittest.mock import patch
+        with patch("engine.server.NPOS_OPTIMIZER.dispatch_nomination_onchain") as mock_dispatch:
+            mock_dispatch.return_value = {
+                "is_success": True,
+                "tx_hash": "0x123abc456",
+                "block_hash": "0x789def",
+                "events": ["ExtrinsicSuccess"],
+                "signer_address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+            }
+            res = self.client.post(
+                "/api/npos/dispatch-nominate",
+                json={"targets": ["5F4ZyJJ8R3QHZKRLAfDXdUuVE4w3Q7uq7tCNfAtvf2XEBfYY"], "signer_key": "//Alice"},
+                headers=self.auth_headers
+            )
+            self.assertEqual(res.status_code, 200)
+            data = res.get_json()
+            self.assertTrue(data.get("success"))
+            self.assertEqual(data.get("data", {}).get("tx_hash"), "0x123abc456")
+
+    def test_post_bond_extra_endpoint(self):
+        """Verifies POST /api/npos/bond-extra endpoint execution"""
+        from unittest.mock import patch
+        with patch("engine.server.NPOS_OPTIMIZER.bond_extra_onchain") as mock_bond:
+            mock_bond.return_value = {
+                "is_success": True,
+                "tx_hash": "0x987fed654",
+                "block_hash": "0x654cba",
+                "amount_pot": 5.0,
+                "events": ["Bonded", "ExtrinsicSuccess"]
+            }
+            res = self.client.post(
+                "/api/npos/bond-extra",
+                json={"amount_pot": 5.0, "signer_key": "//Alice"},
+                headers=self.auth_headers
+            )
+            self.assertEqual(res.status_code, 200)
+            data = res.get_json()
+            self.assertTrue(data.get("success"))
+            self.assertEqual(data.get("data", {}).get("tx_hash"), "0x987fed654")
+
 
 if __name__ == "__main__":
     unittest.main()

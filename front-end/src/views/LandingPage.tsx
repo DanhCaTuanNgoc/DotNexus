@@ -148,11 +148,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         {/* Foreground Hero Content */}
         <div className="relative z-20 max-w-5xl mx-auto text-center space-y-6 sm:space-y-8">
-          {/* Track Chip */}
-          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-none border border-[#4C2889] bg-[#110A24]/90 backdrop-blur-md text-[10px] sm:text-xs font-mono text-[#C084FC] shadow-lg shadow-[#8B5CF6]/20 pointer-events-auto">
-            <span className="w-2 h-2 rounded bg-[#10B981] animate-ping" />
-            <span className="font-semibold tracking-wider">PORTALDOT HACKER HOUSE 2026 • NODE OPERATIONS &amp; TOOLING</span>
-          </div>
 
           {/* Main Title */}
           <div className="space-y-4">

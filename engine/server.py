@@ -177,6 +177,50 @@ def rebalance_staking():
     return jsonify({"success": True, "data": res})
 
 
+@app.route("/api/npos/dispatch-nominate", methods=["POST"])
+def dispatch_nominate():
+    """Executes real on-chain Staking.nominate (and auto Staking.bond) on Portaldot V3.0"""
+    if not check_auth(request):
+        return jsonify({"success": False, "error": "Unauthorized: Invalid X-DotNexus-Auth token"}), 401
+    body = request.get_json(silent=True) or {}
+    targets = body.get("targets", [])
+    if not targets:
+        return jsonify({"success": False, "error": "targets array cannot be empty"}), 400
+    signer_key = body.get("signer_key", "//Alice")
+    bond_pot = float(body.get("bond_pot", 0.0))
+
+    try:
+        receipt = NPOS_OPTIMIZER.dispatch_nomination_onchain(
+            targets=targets,
+            signer_key=signer_key,
+            bond_amount_pot=bond_pot
+        )
+        return jsonify({"success": True, "data": receipt})
+    except Exception as e:
+        logger.error(f"On-chain nominate dispatch failed: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/npos/bond-extra", methods=["POST"])
+def bond_extra():
+    """Executes real on-chain Staking.bond_extra on Portaldot V3.0 for auto-compounding"""
+    if not check_auth(request):
+        return jsonify({"success": False, "error": "Unauthorized: Invalid X-DotNexus-Auth token"}), 401
+    body = request.get_json(silent=True) or {}
+    amount_pot = float(body.get("amount_pot", 1.0))
+    signer_key = body.get("signer_key", "//Alice")
+
+    try:
+        receipt = NPOS_OPTIMIZER.bond_extra_onchain(
+            amount_pot=amount_pot,
+            signer_key=signer_key
+        )
+        return jsonify({"success": True, "data": receipt})
+    except Exception as e:
+        logger.error(f"On-chain bond_extra failed: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route("/api/rpc-shield", methods=["GET"])
 def get_rpc_shield():
     """RPC shield metrics, query inspect logs, and P2P peer topology"""

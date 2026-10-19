@@ -130,7 +130,7 @@ class NPoSOptimizer:
 
             live_validators.append({
                 "stash_address": stash_str,
-                "identity": f"LiveValidator-{stash_str[:6]}...{stash_str[-4:]}",
+                "identity": f"PortaldotV3-Validator-{stash_str[:6]}...{stash_str[-4:]}",
                 "commission_pct": max(0.0, min(100.0, comm_pct)),
                 "uptime_pct": 99.9,
                 "total_stake_pot": round(total_stake, 2),
@@ -139,7 +139,9 @@ class NPoSOptimizer:
                 "max_nominators": 256,
                 "slash_count": 0,
                 "estimated_apy": max(5.0, round(16.0 - (comm_pct * 0.1), 2)),
-                "era_points": points
+                "era_points": points,
+                "is_live_onchain": True,
+                "source": "PORTALDOT_V3_LIVE"
             })
 
         return live_validators
@@ -157,6 +159,8 @@ class NPoSOptimizer:
         if SubstrateInterface is not None:
             try:
                 from engine.dual_tracker import DUAL_TRACKER
+                if DUAL_TRACKER.substrate_client is None:
+                    DUAL_TRACKER._init_substrate()
                 client = DUAL_TRACKER.substrate_client
                 if client is None:
                     client = SubstrateInterface(
@@ -422,6 +426,10 @@ class NPoSOptimizer:
                 "era_points": 15000
             }
         ]
+
+        for s_val in sample_validators:
+            s_val.setdefault("is_live_onchain", False)
+            s_val.setdefault("source", "SYNTHETIC_POOL")
 
         if candidate_pool:
             # If live chain has fewer than 16 validators (e.g., 1 Alice validator on dev node),
@@ -772,6 +780,183 @@ class NPoSOptimizer:
             },
             "timestamp": time.time(),
             "status": "READY_TO_SIGN" if pre_flight_ok else "HELD_SAFETY_PREFLIGHT"
+        }
+
+    def dispatch_nomination_onchain(
+        self,
+        targets: List[str],
+        signer_key: str = "//Alice",
+        bond_amount_pot: float = 0.0
+    ) -> Dict[str, Any]:
+        """
+        Executes genuine on-chain nomination and auto-bonding onto Portaldot Network V3.0.
+        """
+        if SubstrateInterface is None:
+            raise RuntimeError("substrateinterface library is required for on-chain dispatch.")
+
+        from engine.dual_tracker import DUAL_TRACKER
+        if DUAL_TRACKER.substrate_client is None:
+            DUAL_TRACKER._init_substrate()
+        client = DUAL_TRACKER.substrate_client
+        if client is None:
+            client = SubstrateInterface(
+                url=self.substrate_url,
+                ss58_format=CONFIG.ss58_format,
+                type_registry_preset='substrate-node-template'
+            )
+
+        from substrateinterface import Keypair
+        clean_key = (signer_key or "//Alice").strip()
+        try:
+            if clean_key.startswith("//"):
+                keypair = Keypair.create_from_uri(clean_key, ss58_format=CONFIG.ss58_format)
+            elif len(clean_key.split()) in [12, 24]:
+                keypair = Keypair.create_from_mnemonic(clean_key, ss58_format=CONFIG.ss58_format)
+            elif clean_key.startswith("0x") and len(clean_key) == 66:
+                keypair = Keypair.create_from_seed(clean_key, ss58_format=CONFIG.ss58_format)
+            else:
+                keypair = Keypair.create_from_uri(f"//{clean_key.lstrip('/')}", ss58_format=CONFIG.ss58_format)
+        except Exception as e:
+            raise ValueError(f"Invalid signer URI or seed: {e}")
+
+        signer_address = keypair.ss58_address
+        decimals = CONFIG.default_token_decimals
+        decimals_mult = 10 ** decimals
+
+        # Query existing ledger
+        ledger_query = client.query("Staking", "Ledger", [signer_address])
+        is_bonded = ledger_query.value is not None
+
+        calls = []
+        if not is_bonded:
+            eff_bond = max(1.0, float(bond_amount_pot))
+            bond_val_planck = int(eff_bond * decimals_mult)
+            bond_call = client.compose_call(
+                call_module="Staking",
+                call_function="bond",
+                call_params={"value": bond_val_planck, "payee": "Staked"}
+            )
+            calls.append(bond_call)
+        elif bond_amount_pot > 0:
+            bond_extra_call = client.compose_call(
+                call_module="Staking",
+                call_function="bond_extra",
+                call_params={"max_additional": int(bond_amount_pot * decimals_mult)}
+            )
+            calls.append(bond_extra_call)
+
+        nominate_call = client.compose_call(
+            call_module="Staking",
+            call_function="nominate",
+            call_params={"targets": targets}
+        )
+        calls.append(nominate_call)
+
+        if len(calls) == 1:
+            extrinsic_call = calls[0]
+        else:
+            extrinsic_call = client.compose_call(
+                call_module="Utility",
+                call_function="batch",
+                call_params={"calls": calls}
+            )
+
+        extrinsic = client.create_signed_extrinsic(call=extrinsic_call, keypair=keypair)
+        receipt = client.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+
+        events_list = []
+        if hasattr(receipt, "triggered_events") and receipt.triggered_events:
+            for ev in receipt.triggered_events:
+                ev_id = ev.value.get("event_id") if isinstance(ev.value, dict) else str(ev)
+                if ev_id:
+                    events_list.append(ev_id)
+
+        active_era = 0
+        try:
+            era_val = client.query("Staking", "ActiveEra")
+            if era_val and era_val.value:
+                active_era = era_val.value.get("index", 0) if isinstance(era_val.value, dict) else int(era_val.value)
+        except Exception:
+            pass
+
+        return {
+            "is_success": receipt.is_success,
+            "tx_hash": receipt.extrinsic_hash,
+            "block_hash": receipt.block_hash,
+            "signer_address": signer_address,
+            "targets": targets,
+            "bonded_action": "BOND_AND_NOMINATE" if not is_bonded else ("BOND_EXTRA_AND_NOMINATE" if bond_amount_pot > 0 else "NOMINATE_ONLY"),
+            "events": events_list,
+            "error_message": receipt.error_message if not receipt.is_success else None,
+            "active_era": active_era,
+            "next_active_era": active_era + 1,
+            "is_live_chain": True,
+            "network": CONFIG.chain_name,
+            "timestamp": time.time()
+        }
+
+    def bond_extra_onchain(self, amount_pot: float = 1.0, signer_key: str = "//Alice") -> Dict[str, Any]:
+        """
+        Executes genuine on-chain Staking.bond_extra onto Portaldot Network V3.0 for auto-compounding.
+        """
+        if SubstrateInterface is None:
+            raise RuntimeError("substrateinterface library is required for on-chain dispatch.")
+
+        from engine.dual_tracker import DUAL_TRACKER
+        if DUAL_TRACKER.substrate_client is None:
+            DUAL_TRACKER._init_substrate()
+        client = DUAL_TRACKER.substrate_client
+        if client is None:
+            client = SubstrateInterface(
+                url=self.substrate_url,
+                ss58_format=CONFIG.ss58_format,
+                type_registry_preset='substrate-node-template'
+            )
+
+        from substrateinterface import Keypair
+        clean_key = (signer_key or "//Alice").strip()
+        try:
+            if clean_key.startswith("//"):
+                keypair = Keypair.create_from_uri(clean_key, ss58_format=CONFIG.ss58_format)
+            elif len(clean_key.split()) in [12, 24]:
+                keypair = Keypair.create_from_mnemonic(clean_key, ss58_format=CONFIG.ss58_format)
+            elif clean_key.startswith("0x") and len(clean_key) == 66:
+                keypair = Keypair.create_from_seed(clean_key, ss58_format=CONFIG.ss58_format)
+            else:
+                keypair = Keypair.create_from_uri(f"//{clean_key.lstrip('/')}", ss58_format=CONFIG.ss58_format)
+        except Exception as e:
+            raise ValueError(f"Invalid signer URI or seed: {e}")
+
+        signer_address = keypair.ss58_address
+        decimals = CONFIG.default_token_decimals
+        planck_amount = int(amount_pot * (10 ** decimals))
+
+        call = client.compose_call(
+            call_module="Staking",
+            call_function="bond_extra",
+            call_params={"max_additional": planck_amount}
+        )
+        extrinsic = client.create_signed_extrinsic(call=call, keypair=keypair)
+        receipt = client.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+
+        events_list = []
+        if hasattr(receipt, "triggered_events") and receipt.triggered_events:
+            for ev in receipt.triggered_events:
+                ev_id = ev.value.get("event_id") if isinstance(ev.value, dict) else str(ev)
+                if ev_id:
+                    events_list.append(ev_id)
+
+        return {
+            "is_success": receipt.is_success,
+            "tx_hash": receipt.extrinsic_hash,
+            "block_hash": receipt.block_hash,
+            "signer_address": signer_address,
+            "amount_pot": amount_pot,
+            "events": events_list,
+            "error_message": receipt.error_message if not receipt.is_success else None,
+            "is_live_chain": True,
+            "network": CONFIG.chain_name,
+            "timestamp": time.time()
         }
 
 

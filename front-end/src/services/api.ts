@@ -167,6 +167,8 @@ export interface NPoSRecommendation {
     health_score: number;
     recommendation: string;
     risk_warning?: string | null;
+    is_live_onchain?: boolean;
+    source?: string;
     pao_metrics?: {
       pao_score: number;
       safety_margin_mvu: number;
@@ -180,6 +182,23 @@ export interface NPoSRecommendation {
     };
   }>;
   extrinsic_call: string;
+}
+
+export interface OnchainDispatchResult {
+  is_success: boolean;
+  tx_hash: string;
+  block_hash?: string;
+  signer_address?: string;
+  targets?: string[];
+  bonded_action?: string;
+  amount_pot?: number;
+  events?: string[];
+  error_message?: string | null;
+  active_era?: number;
+  next_active_era?: number;
+  is_live_chain?: boolean;
+  network?: string;
+  timestamp?: number;
 }
 
 export interface ShieldStatus {
@@ -274,6 +293,29 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ stake_pot: stakeAmount })
+    });
+    return res.json();
+  },
+  dispatchNominateOnchain: async (
+    targets: string[],
+    signerKey: string = '//Alice',
+    bondPot: number = 0
+  ): Promise<{ success: boolean; data?: OnchainDispatchResult; error?: string }> => {
+    const res = await fetch(`${BASE_URL}/npos/dispatch-nominate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targets, signer_key: signerKey, bond_pot: bondPot })
+    });
+    return res.json();
+  },
+  dispatchBondExtraOnchain: async (
+    amountPot: number = 1.0,
+    signerKey: string = '//Alice'
+  ): Promise<{ success: boolean; data?: OnchainDispatchResult; error?: string }> => {
+    const res = await fetch(`${BASE_URL}/npos/bond-extra`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount_pot: amountPot, signer_key: signerKey })
     });
     return res.json();
   },

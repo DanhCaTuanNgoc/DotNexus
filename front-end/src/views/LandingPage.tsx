@@ -652,28 +652,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Desktop Horizontal Line Journey (md and up) */}
-          <div className="hidden md:block relative pt-4 pb-2">
-            {/* Background Conduit Rail */}
-            <div className="absolute top-[20px] left-12 right-12 h-[2px] bg-[#1C142E]" />
-            {/* Active Progress Beam (from Station 01 to Station 02) */}
-            <div className="absolute top-[20px] left-12 w-[35%] h-[2px] bg-gradient-to-r from-[#10B981] via-[#8B5CF6] to-[#C084FC]" />
+          <div className="hidden md:block relative pt-2 pb-2">
+            {/* Background Conduit Rail connecting center of Station 01 to center of Station 04 */}
+            <div className="absolute top-[18px] left-[12.5%] right-[12.5%] h-[2px] bg-[#1C142E] z-0" />
+            {/* Active Progress Beam (Station 01 to Station 02) */}
+            <div className="absolute top-[18px] left-[12.5%] w-[25%] h-[2px] bg-gradient-to-r from-[#10B981] via-[#8B5CF6] to-[#C084FC] z-0" />
 
             <div className="grid grid-cols-4 gap-6 relative z-10">
               {/* Station 01 */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-none bg-[#07040E] border-2 border-[#10B981] flex items-center justify-center text-[#10B981] shrink-0">
-                    <Check className="w-4 h-4 text-[#10B981]" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-mono text-[#10B981] font-bold block">OCT 14, 2026</span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 bg-[#10B981]/15 text-[#10B981] font-bold inline-block">
-                      PHASE // 01
-                    </span>
-                  </div>
+              <div className="flex flex-col items-center text-center space-y-3.5">
+                {/* Station Junction Node on Rail */}
+                <div className="w-9 h-9 rounded-none bg-[#07040E] border-2 border-[#10B981] flex items-center justify-center text-[#10B981] z-10 relative shadow-lg shadow-[#10B981]/20">
+                  <Check className="w-4 h-4 text-[#10B981]" />
+                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#0A261B] border border-[#10B981]/40 text-[#10B981] text-[9px] font-mono font-bold">
+                    01
+                  </span>
                 </div>
 
-                <div className="p-4 rounded-none border border-[#1C142E] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between">
+                {/* Station Date & Phase Tag (Clearly separated from Rail) */}
+                <div className="space-y-1">
+                  <span className="text-[11px] font-mono text-[#10B981] font-bold block tracking-wider">
+                    OCT 14, 2026
+                  </span>
+                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#10B981]/15 text-[#10B981] font-bold border border-[#10B981]/30 inline-block uppercase">
+                    PHASE 01 // COMPLETED
+                  </span>
+                </div>
+
+                {/* Milestone Deliverable Card */}
+                <div className="w-full p-4 rounded-none border border-[#1C142E] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">Architecture Kick-off</h4>
                     <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
@@ -682,27 +689,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-mono pt-2 border-t border-[#1C142E]">
                     <span className="text-zinc-500">v0.1 Baseline</span>
-                    <span className="text-[#10B981] font-bold">COMPLETED</span>
+                    <span className="text-[#10B981] font-bold">VERIFIED</span>
                   </div>
                 </div>
               </div>
 
               {/* Station 02 */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-none bg-[#120B24] border-2 border-[#C084FC] flex items-center justify-center text-[#C084FC] shrink-0 relative">
-                    <span className="w-3 h-3 rounded-none bg-[#C084FC] animate-ping absolute" />
-                    <span className="w-2.5 h-2.5 rounded-none bg-[#C084FC] relative z-10" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-mono text-[#C084FC] font-bold block">OCT 24, 2026 (12:00 UTC)</span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 bg-[#8B5CF6]/25 text-[#C084FC] font-bold inline-block">
-                      PHASE // 02
-                    </span>
-                  </div>
+              <div className="flex flex-col items-center text-center space-y-3.5">
+                {/* Station Junction Node on Rail */}
+                <div className="w-9 h-9 rounded-none bg-[#120B24] border-2 border-[#C084FC] flex items-center justify-center text-[#C084FC] z-10 relative shadow-lg shadow-[#C084FC]/30">
+                  <span className="w-3 h-3 rounded-none bg-[#C084FC] animate-ping absolute" />
+                  <span className="w-2.5 h-2.5 rounded-none bg-[#C084FC] relative z-10" />
+                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#2E1452] border border-[#C084FC]/60 text-[#C084FC] text-[9px] font-mono font-bold">
+                    02
+                  </span>
                 </div>
 
-                <div className="p-4 rounded-none border border-[#8B5CF6]/50 bg-[#120A24] space-y-2 text-left h-[170px] flex flex-col justify-between">
+                {/* Station Date & Phase Tag (Clearly separated from Rail) */}
+                <div className="space-y-1">
+                  <span className="text-[11px] font-mono text-[#C084FC] font-bold block tracking-wider">
+                    OCT 24, 2026 (12:00 UTC)
+                  </span>
+                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#8B5CF6]/25 text-[#C084FC] font-bold border border-[#8B5CF6]/40 inline-block uppercase">
+                    PHASE 02 // TARGET
+                  </span>
+                </div>
+
+                {/* Milestone Deliverable Card */}
+                <div className="w-full p-4 rounded-none border border-[#8B5CF6]/50 bg-[#120A24] space-y-2 text-left h-[170px] flex flex-col justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">DoraHacks Check-in</h4>
                     <p className="text-[11px] text-zinc-300 mt-1.5 leading-relaxed">
@@ -717,20 +731,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               {/* Station 03 */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-none bg-[#07040E] border-2 border-[#3E216B] flex items-center justify-center text-zinc-500 shrink-0">
-                    <Clock className="w-4 h-4 text-zinc-500" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-mono text-zinc-400 font-bold block">NOV 06, 2026 (04:00 UTC)</span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 bg-[#120B24] text-zinc-500 font-bold inline-block">
-                      PHASE // 03
-                    </span>
-                  </div>
+              <div className="flex flex-col items-center text-center space-y-3.5">
+                {/* Station Junction Node on Rail */}
+                <div className="w-9 h-9 rounded-none bg-[#07040E] border-2 border-[#3E216B] flex items-center justify-center text-zinc-500 z-10 relative">
+                  <Clock className="w-4 h-4 text-zinc-500" />
+                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#120B24] border border-[#3E216B] text-zinc-500 text-[9px] font-mono font-bold">
+                    03
+                  </span>
                 </div>
 
-                <div className="p-4 rounded-none border border-[#1C142E] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between">
+                {/* Station Date & Phase Tag (Clearly separated from Rail) */}
+                <div className="space-y-1">
+                  <span className="text-[11px] font-mono text-zinc-400 font-bold block tracking-wider">
+                    NOV 06, 2026 (04:00 UTC)
+                  </span>
+                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#120B24] text-zinc-500 font-bold border border-[#261B42] inline-block uppercase">
+                    PHASE 03 // SCHEDULED
+                  </span>
+                </div>
+
+                {/* Milestone Deliverable Card */}
+                <div className="w-full p-4 rounded-none border border-[#1C142E] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">Code Freeze &amp; Hardening</h4>
                     <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
@@ -745,20 +766,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               {/* Station 04 */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-none bg-[#07040E] border-2 border-[#261B42] flex items-center justify-center text-zinc-600 shrink-0">
-                    <CircleDot className="w-4 h-4 text-zinc-600" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-mono text-zinc-500 font-bold block">NOV 07–08, 2026</span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 bg-[#120B24] text-zinc-600 font-bold inline-block">
-                      PHASE // 04
-                    </span>
-                  </div>
+              <div className="flex flex-col items-center text-center space-y-3.5">
+                {/* Station Junction Node on Rail */}
+                <div className="w-9 h-9 rounded-none bg-[#07040E] border-2 border-[#261B42] flex items-center justify-center text-zinc-600 z-10 relative">
+                  <CircleDot className="w-4 h-4 text-zinc-600" />
+                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#120B24] border border-[#261B42] text-zinc-600 text-[9px] font-mono font-bold">
+                    04
+                  </span>
                 </div>
 
-                <div className="p-4 rounded-none border border-[#1C142E] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between">
+                {/* Station Date & Phase Tag (Clearly separated from Rail) */}
+                <div className="space-y-1">
+                  <span className="text-[11px] font-mono text-zinc-500 font-bold block tracking-wider">
+                    NOV 07–08, 2026
+                  </span>
+                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#120B24] text-zinc-600 font-bold border border-[#261B42] inline-block uppercase">
+                    PHASE 04 // DEMO DAY
+                  </span>
+                </div>
+
+                {/* Milestone Deliverable Card */}
+                <div className="w-full p-4 rounded-none border border-[#1C142E] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">Live Demo Day</h4>
                     <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
@@ -775,16 +803,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Mobile Vertical Line Journey (< md) */}
-          <div className="md:hidden relative pl-7 border-l-2 border-[#1C142E] space-y-6 ml-2">
+          <div className="md:hidden relative space-y-6">
+            {/* Continuous Vertical Rail Line */}
+            <div className="absolute top-3 bottom-3 left-3 w-[2px] bg-[#1C142E] z-0" />
+            <div className="absolute top-3 left-3 w-[2px] h-[35%] bg-gradient-to-b from-[#10B981] via-[#8B5CF6] to-[#C084FC] z-0" />
+
             {/* Station 01 */}
-            <div className="relative space-y-2">
-              <div className="absolute -left-[38px] top-1 w-5 h-5 rounded-none bg-[#07040E] border-2 border-[#10B981] flex items-center justify-center">
-                <Check className="w-2.5 h-2.5 text-[#10B981]" />
+            <div className="relative pl-10">
+              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-none bg-[#07040E] border-2 border-[#10B981] flex items-center justify-center z-10">
+                <Check className="w-3 h-3 text-[#10B981]" />
               </div>
               <div className="p-3.5 rounded-none border border-[#1C142E] bg-[#0B0813] space-y-1.5">
                 <div className="flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-[#10B981] font-bold">OCT 14, 2026 // PHASE 01</span>
-                  <span className="px-1.5 py-0.2 bg-[#10B981]/15 text-[#10B981] text-[9px] font-bold">COMPLETED</span>
+                  <span className="text-[#10B981] font-bold">OCT 14, 2026</span>
+                  <span className="px-1.5 py-0.2 bg-[#10B981]/15 text-[#10B981] text-[9px] font-bold">PHASE 01 // COMPLETED</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">Architecture Kick-off &amp; Baseline</div>
                 <p className="text-[11px] text-zinc-400">Finalized Dual-VM WebSocket &amp; RPC baseline collectors.</p>
@@ -792,14 +824,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             {/* Station 02 */}
-            <div className="relative space-y-2">
-              <div className="absolute -left-[38px] top-1 w-5 h-5 rounded-none bg-[#120B24] border-2 border-[#C084FC] flex items-center justify-center">
+            <div className="relative pl-10">
+              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-none bg-[#120B24] border-2 border-[#C084FC] flex items-center justify-center z-10">
                 <span className="w-2 h-2 rounded-none bg-[#C084FC] animate-ping" />
               </div>
               <div className="p-3.5 rounded-none border border-[#8B5CF6]/50 bg-[#120A24] space-y-1.5">
                 <div className="flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-[#C084FC] font-bold">OCT 24, 2026 // PHASE 02</span>
-                  <span className="px-1.5 py-0.2 bg-[#8B5CF6]/25 text-[#C084FC] text-[9px] font-bold">ACTIVE TARGET</span>
+                  <span className="text-[#C084FC] font-bold">OCT 24, 2026 (12:00 UTC)</span>
+                  <span className="px-1.5 py-0.2 bg-[#8B5CF6]/25 text-[#C084FC] text-[9px] font-bold">PHASE 02 // TARGET</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">DoraHacks Check-in &amp; Working Prototype</div>
                 <p className="text-[11px] text-zinc-300">Dual-Engine Tracker, Slashing Guard failover &amp; DAG Canvas prototype.</p>
@@ -807,14 +839,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             {/* Station 03 */}
-            <div className="relative space-y-2">
-              <div className="absolute -left-[38px] top-1 w-5 h-5 rounded-none bg-[#07040E] border-2 border-[#3E216B] flex items-center justify-center">
-                <Clock className="w-2.5 h-2.5 text-zinc-500" />
+            <div className="relative pl-10">
+              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-none bg-[#07040E] border-2 border-[#3E216B] flex items-center justify-center z-10">
+                <Clock className="w-3 h-3 text-zinc-500" />
               </div>
               <div className="p-3.5 rounded-none border border-[#1C142E] bg-[#0B0813] space-y-1.5">
                 <div className="flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-zinc-400 font-bold">NOV 06, 2026 // PHASE 03</span>
-                  <span className="px-1.5 py-0.2 bg-zinc-800 text-zinc-400 text-[9px] font-bold">SCHEDULED</span>
+                  <span className="text-zinc-400 font-bold">NOV 06, 2026 (04:00 UTC)</span>
+                  <span className="px-1.5 py-0.2 bg-zinc-800 text-zinc-400 text-[9px] font-bold">PHASE 03 // SCHEDULED</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">Code Freeze &amp; Security Hardening</div>
                 <p className="text-[11px] text-zinc-400">Complete code package, pitch deck &amp; test suite verification.</p>
@@ -822,14 +854,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             {/* Station 04 */}
-            <div className="relative space-y-2">
-              <div className="absolute -left-[38px] top-1 w-5 h-5 rounded-none bg-[#07040E] border-2 border-[#261B42] flex items-center justify-center">
-                <CircleDot className="w-2.5 h-2.5 text-zinc-600" />
+            <div className="relative pl-10">
+              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-none bg-[#07040E] border-2 border-[#261B42] flex items-center justify-center z-10">
+                <CircleDot className="w-3 h-3 text-zinc-600" />
               </div>
               <div className="p-3.5 rounded-none border border-[#1C142E] bg-[#0B0813] space-y-1.5">
                 <div className="flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-zinc-500 font-bold">NOV 07–08, 2026 // PHASE 04</span>
-                  <span className="px-1.5 py-0.2 bg-zinc-800 text-zinc-500 text-[9px] font-bold">UPCOMING</span>
+                  <span className="text-zinc-500 font-bold">NOV 07–08, 2026</span>
+                  <span className="px-1.5 py-0.2 bg-zinc-800 text-zinc-500 text-[9px] font-bold">PHASE 04 // DEMO DAY</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">Live Demo Day &amp; Foundation Review</div>
                 <p className="text-[11px] text-zinc-400">Live demonstration with Portaldot Network foundation judges.</p>

@@ -54,13 +54,13 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onNavigateHome}
-            className="flex items-center gap-2.5 hover:opacity-90 transition-opacity cursor-pointer group"
+            className="flex items-center gap-2.5 cursor-pointer"
             title="Return to Landing Page"
           >
             <img
               src={dotnexusIcon}
               alt="DotNexus"
-              className="w-8 h-8 object-contain rounded-md border border-[#8B5CF6]/50 shadow-md shadow-[#8B5CF6]/25 transition-transform group-hover:scale-105"
+              className="w-8 h-8 object-contain rounded-none border border-[#1C142E]"
             />
             <span className="font-bold text-xs tracking-widest text-white font-mono uppercase">DOTNEXUS</span>
           </button>

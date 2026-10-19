@@ -65,7 +65,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <img
             src={dotnexusIcon}
             alt="DotNexus"
-            className="w-11 h-11 sm:w-12 sm:h-12 object-contain rounded-lg border border-[#8B5CF6]/50 shadow-xl shadow-[#8B5CF6]/30 transition-transform hover:scale-105"
+            className="w-11 h-11 sm:w-12 sm:h-12 object-contain rounded-none border border-[#261B42]"
           />
           <div>
             <div className="flex items-center gap-2">

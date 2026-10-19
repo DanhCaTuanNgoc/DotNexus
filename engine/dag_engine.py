@@ -134,7 +134,7 @@ class DAGCanvasEngine:
             {
                 "id": "runbook-chaos-fire-drill",
                 "name": "Chaos Engineering: Validator Network Partition Fire Drill",
-                "description": "Diễn tập phòng cháy chữa cháy: Ngắt kết nối node Primary, kích hoạt Dead Man's Switch và tự động chuyển giao quyền sang Standby.",
+                "description": "Incident fire drill: Severs Primary connection, verifies Dead Man's Switch self-fencing, and tests automated Standby takeover.",
                 "category": "CHAOS",
                 "nodes": [
                     {

@@ -240,7 +240,7 @@ export const NODE_TEMPLATES: NodeTemplate[] = [
     kind: 'chaos_evm_lag',
     category: 'CHAOS',
     label: 'Inject EVM Lag (+5 Blocks)',
-    description: 'Bơm độ trễ giả lập vào luồng đọc :8545 để kiểm tra phản ứng Causal Lag Index.',
+    description: 'Injects simulated latency into :8545 stream to evaluate Causal Lag Index response.',
     iconName: 'AlertTriangle',
     defaultConfig: { lagBlocks: 5, targetEngine: 'EVM:8545', autoRevertSec: 30 },
   },
@@ -248,7 +248,7 @@ export const NODE_TEMPLATES: NodeTemplate[] = [
     kind: 'chaos_rpc_ddos',
     category: 'CHAOS',
     label: 'Simulate RPC DDoS (eth_getLogs)',
-    description: 'Bắn luồng request quét log khổng lồ để kích hoạt RPC Shield tự động cách ly IP.',
+    description: 'Generates abusive archival getLogs traffic to verify RPC Shield automated IP quarantine.',
     iconName: 'Flame',
     defaultConfig: { attackType: 'HEAVY_GETLOGS', burstVolume: 500, banDurationSec: 60 },
   },
@@ -256,7 +256,7 @@ export const NODE_TEMPLATES: NodeTemplate[] = [
     kind: 'chaos_heartbeat_cut',
     category: 'CHAOS',
     label: 'Cut Heartbeat (Network Partition)',
-    description: 'Ngắt kết nối heartbeat của Primary để kích hoạt Self-Fencing Dead Mans Switch.',
+    description: 'Severs Primary heartbeat connection to trigger Dead Mans Switch self-fencing.',
     iconName: 'ZapOff',
     defaultConfig: { partitionDurationSec: 15, triggerSelfFence: true },
   },
@@ -517,7 +517,7 @@ export const DEFAULT_RUNBOOKS = [
   {
     id: 'runbook-chaos-fire-drill',
     name: 'Chaos Engineering: Validator Network Partition Fire Drill',
-    description: 'Diễn tập phòng cháy chữa cháy: Ngắt kết nối node Primary, kích hoạt Dead Mans Switch và tự động chuyển giao quyền sang Standby.',
+    description: 'Incident fire drill: Severs Primary connection, verifies Dead Mans Switch self-fencing, and tests automated Standby takeover.',
     category: 'SECURITY',
     nodes: [
       {

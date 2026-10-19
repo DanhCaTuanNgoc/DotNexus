@@ -214,14 +214,28 @@ function loadInitialWorkflows(): { workflows: CanvasWorkflow[]; activeId: string
   const savedActiveId = storage.getActiveWorkflowId('runbook-health-bot');
 
   if (savedWfs && savedWfs.length > 0) {
-    const existingIds = new Set(savedWfs.map((w) => w.id));
-    const merged = [...savedWfs];
+    const defaultMap = new Map(defaultWfs.map((d) => [d.id, d]));
+    const merged = savedWfs.map((w) => {
+      const def = defaultMap.get(w.id);
+      if (def && !w.isCustom) {
+        return {
+          ...w,
+          name: def.name,
+          description: def.description,
+          category: def.category,
+        };
+      }
+      return w;
+    });
+
+    const existingIds = new Set(merged.map((w) => w.id));
     for (const def of defaultWfs) {
       if (!existingIds.has(def.id)) {
         merged.push(def);
       }
     }
     const finalActiveId = merged.some((w) => w.id === savedActiveId) ? savedActiveId : merged[0].id;
+    storage.setWorkflowsList(merged);
     return { workflows: merged, activeId: finalActiveId };
   }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Zap, 
   Layers, 
@@ -33,6 +33,75 @@ import {
   ShieldStatus 
 } from '../services/api';
 import { TabType } from '../services/storage';
+
+interface LazySectionProps {
+  id?: string;
+  className?: string;
+  minHeight?: string;
+  fallbackText?: string;
+  children: React.ReactNode;
+}
+
+/**
+ * High-performance viewport lazy-loader for heavy landing sections.
+ * Preloads 250px ahead of viewport to eliminate layout shifts (CLS)
+ * while keeping initial DOM weight minimal for fast 60fps rendering.
+ */
+const LazySection: React.FC<LazySectionProps> = ({
+  id,
+  className = '',
+  minHeight = 'min-h-[480px]',
+  fallbackText = 'INITIALIZING MODULE TELEMETRY...',
+  children,
+}) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const target = containerRef.current;
+    if (!target) return;
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: '250px 0px',
+        threshold: 0.01,
+      }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <section
+      id={id}
+      ref={containerRef}
+      className={`${className} ${!isVisible ? minHeight : ''}`}
+    >
+      {isVisible ? (
+        children
+      ) : (
+        <div className="max-w-6xl mx-auto py-28 px-4 flex flex-col items-center justify-center space-y-3 opacity-30 select-none">
+          <div className="w-5 h-5 border border-[#8B5CF6] border-t-transparent animate-spin rounded-none" />
+          <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
+            {fallbackText}
+          </span>
+        </div>
+      )}
+    </section>
+  );
+};
 
 interface LandingPageProps {
   onLaunchApp: (tab?: TabType) => void;
@@ -459,7 +528,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* Section: Visual DAG Runbook Canvas */}
-      <section id="dag-canvas" className="py-20 sm:py-24 px-4 sm:px-6 border-t border-[#1C142E] bg-[#0A0615] relative z-10">
+      <LazySection 
+        id="dag-canvas" 
+        className="py-20 sm:py-24 px-4 sm:px-6 border-t border-[#1C142E] bg-[#0A0615] relative z-10"
+        minHeight="min-h-[580px]"
+        fallbackText="INITIALIZING DAG AUTOMATION PIPELINE..."
+      >
         <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#1C142E] pb-6">
             <div className="space-y-2">
@@ -558,10 +632,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
         </div>
-      </section>
+      </LazySection>
 
       {/* Section: Comparison Matrix */}
-      <section id="comparison" className="py-20 sm:py-24 px-4 sm:px-6 border-t border-[#1C142E] bg-[#07040E] relative z-10">
+      <LazySection 
+        id="comparison" 
+        className="py-20 sm:py-24 px-4 sm:px-6 border-t border-[#1C142E] bg-[#07040E] relative z-10"
+        minHeight="min-h-[500px]"
+        fallbackText="LOADING COMPARATIVE BENCHMARKS..."
+      >
         <div className="max-w-5xl mx-auto space-y-10 sm:space-y-12">
           <div className="text-center space-y-2.5">
             <div className="inline-block px-2.5 py-0.5 rounded-none border border-[#3E216B] bg-[#120B24] text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
@@ -632,10 +711,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </table>
           </div>
         </div>
-      </section>
+      </LazySection>
 
       {/* Section: Delivery Line Journey (Roadmap) */}
-      <section id="roadmap" className="py-20 sm:py-24 px-4 sm:px-6 border-t border-[#1C142E] bg-[#07040E] relative z-10">
+      <LazySection 
+        id="roadmap" 
+        className="py-20 sm:py-24 px-4 sm:px-6 border-t border-[#1C142E] bg-[#07040E] relative z-10"
+        minHeight="min-h-[520px]"
+        fallbackText="CONNECTING LINE JOURNEY TELEMETRY..."
+      >
         <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#1C142E] pb-6">
             <div className="space-y-2">
@@ -869,7 +953,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
         </div>
-      </section>
+      </LazySection>
 
       {/* Footer */}
       <footer className="py-8 px-4 sm:px-6 border-t border-[#1C142E] bg-[#05030A] text-xs font-mono text-zinc-500 relative z-10">

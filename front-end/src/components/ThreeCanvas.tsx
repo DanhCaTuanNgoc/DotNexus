@@ -2,12 +2,14 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 /**
- * ThreeCanvas: High-Performance Custom 3D Interactive Cyber Grid
- * Complies with UI_UX_DESIGN_SPEC.md (Giai đoạn 1 - 5)
- * - 3D Matrix of Cyber Cubes (Substrate WASM / EVM Dual-VM nodes)
- * - Mouse Raycaster & Spring Physics Ripple Waves
- * - Chamfered edges with glowing neon cyber lines
- * - Dynamic Dual-VM colored lights & cursor follower
+ * ThreeCanvas: Custom 3D Interconnected Dual-VM Topology Matrix
+ * Embodying DotNexus as the Central Visual Control Plane & Security Operations Engine:
+ * - Left Domain (c = 0..7): Substrate ink! WASM Validator Nodes (Polkadot Magenta / Amethyst)
+ * - Center Cluster (c = 8..12): DotNexus Control Plane, Slashing Guard & Synthesis Core (Radiant Violet)
+ * - Right Domain (c = 13..20): EVM Solidity RPC Nodes (Ethereum Indigo / Electric Violet)
+ * - Interconnecting Cyber Conduits (Optical Network Bus) linking all nodes
+ * - Live Telemetry Packet Streams (photons travelling across conduits into DotNexus Core)
+ * - Spring physics elevation with subtle, craft-floor compliant hover brightness
  */
 export const ThreeCanvas: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -18,14 +20,14 @@ export const ThreeCanvas: React.FC = () => {
 
     // 1. Scene & Camera Setup
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x080512, 0.0011);
+    scene.fog = new THREE.FogExp2(0x080512, 0.001);
 
     let width = mount.clientWidth || window.innerWidth;
     let height = mount.clientHeight || window.innerHeight;
 
-    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-    // Position camera closer at Z=160 for high visual presence on flat plane
-    camera.position.set(0, 0, 160);
+    // Camera at Z=195 for an expansive, full-width perspective across the entire network topology
+    const camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 1000);
+    camera.position.set(0, 0, 195);
     camera.lookAt(0, 0, 0);
 
     // 2. WebGL Renderer
@@ -37,85 +39,91 @@ export const ThreeCanvas: React.FC = () => {
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.35;
+    renderer.toneMappingExposure = 1.25;
     mount.appendChild(renderer.domElement);
 
-    // 3. Lighting Setup (Wider span for full-width coverage)
-    const ambientLight = new THREE.AmbientLight(0x22153d, 2.3);
+    // 3. Lighting System (Balanced for technical precision & deep obsidian contrast)
+    const ambientLight = new THREE.AmbientLight(0x1e1236, 2.2);
     scene.add(ambientLight);
 
-    // High Directional Rim Light for glossy cube bevels
-    const dirLight = new THREE.DirectionalLight(0xc4b5fd, 3.8);
-    dirLight.position.set(0, 100, 120);
+    const dirLight = new THREE.DirectionalLight(0xc4b5fd, 3.2);
+    dirLight.position.set(0, 110, 130);
     scene.add(dirLight);
 
-    // Dynamic Mouse Light (follows pointer on the grid)
+    // Subtle pointer illumination (softened to avoid glare)
     const mouseLight = new THREE.PointLight(0xd8b4fe, 1.8, 140, 1.6);
     mouseLight.position.set(0, 0, 30);
     scene.add(mouseLight);
 
-    // Left Domain Light (Deep Electric Amethyst - wide wingspan)
-    const wasmLight = new THREE.PointLight(0xa855f7, 5.6, 360, 1.2);
-    wasmLight.position.set(-140, 40, 55);
+    // Domain Lights
+    const wasmLight = new THREE.PointLight(0xe6007a, 5.2, 380, 1.3);
+    wasmLight.position.set(-150, 45, 60);
     scene.add(wasmLight);
 
-    // Right Domain Light (Royal Neon Violet - wide wingspan)
-    const evmLight = new THREE.PointLight(0x7c3aed, 5.6, 360, 1.2);
-    evmLight.position.set(140, -30, 55);
+    const evmLight = new THREE.PointLight(0x6366f1, 5.2, 380, 1.3);
+    evmLight.position.set(150, -35, 60);
     scene.add(evmLight);
 
-    // Center Core Light (High Radiant Violet)
-    const centerLight = new THREE.PointLight(0xc084fc, 4.8, 260, 1.2);
-    centerLight.position.set(0, 15, 60);
+    // Central DotNexus Core Light
+    const centerLight = new THREE.PointLight(0xc084fc, 4.5, 260, 1.2);
+    centerLight.position.set(0, 10, 65);
     scene.add(centerLight);
 
-    // 4. Matrix of Cyber Cubes (Expanded Grid Geometry for 100% full-width coverage)
-    const COLS = 25;
-    const ROWS = 12;
-    const SPACING_X = 22;
-    const SPACING_Y = 19;
-    const BOX_WIDTH = 17;
-    const BOX_HEIGHT = 14.5;
-    const BOX_DEPTH = 13.5;
+    // 4. Grid Geometry & Node Matrix Configuration
+    const COLS = 21;
+    const ROWS = 11;
+    const SPACING_X = 26;
+    const SPACING_Y = 22;
+    const BOX_WIDTH = 15;
+    const BOX_HEIGHT = 12;
+    const BOX_DEPTH = 10;
+
+    const CENTER_COL = 10;
+    const CENTER_ROW = 5;
 
     const gridGroup = new THREE.Group();
-    // Fixed flat plane: completely parallel to the screen without rotational tilt
     gridGroup.rotation.set(0, 0, 0);
     scene.add(gridGroup);
 
-    // Shared geometry for performance
-    const boxGeometry = new THREE.BoxGeometry(BOX_WIDTH, BOX_HEIGHT, BOX_DEPTH);
-    const edgesGeometry = new THREE.EdgesGeometry(boxGeometry);
+    // Shared Geometries
+    const standardBoxGeo = new THREE.BoxGeometry(BOX_WIDTH, BOX_HEIGHT, BOX_DEPTH);
+    const standardEdgesGeo = new THREE.EdgesGeometry(standardBoxGeo);
+    const standardCapGeo = new THREE.PlaneGeometry(BOX_WIDTH * 0.72, BOX_HEIGHT * 0.72);
 
-    // Top cap indicator geometry
-    const capGeometry = new THREE.PlaneGeometry(BOX_WIDTH * 0.72, BOX_HEIGHT * 0.72);
+    // DotNexus Central Core Node Geometry (prominent, slightly larger)
+    const coreBoxGeo = new THREE.BoxGeometry(BOX_WIDTH * 1.2, BOX_HEIGHT * 1.2, BOX_DEPTH * 1.25);
+    const coreEdgesGeo = new THREE.EdgesGeometry(coreBoxGeo);
+    const coreCapGeo = new THREE.PlaneGeometry(BOX_WIDTH * 0.88, BOX_HEIGHT * 0.88);
 
-    interface CubeInstance {
+    // Socket Terminal Geometry (small metallic connection pins where conduits enter)
+    const socketGeo = new THREE.BoxGeometry(2.2, 1.8, 2.2);
+
+    interface NodeInstance {
       mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshStandardMaterial>;
       edgeMesh: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>;
       capMesh: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+      socketMeshes: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>[];
+      col: number;
+      row: number;
       baseX: number;
       baseY: number;
       baseZ: number;
       currentZ: number;
       targetZ: number;
-      rotX: number;
-      rotY: number;
-      targetRotX: number;
-      targetRotY: number;
       glowIntensity: number;
-      vmType: 'wasm' | 'core' | 'evm';
+      role: 'wasm' | 'nexus-core' | 'nexus-plane' | 'evm';
       baseColor: THREE.Color;
       activeColor: THREE.Color;
+      isMasterNode: boolean;
     }
 
-    const cubes: CubeInstance[] = [];
+    const nodes: NodeInstance[] = [];
 
     const startX = -((COLS - 1) * SPACING_X) / 2;
     const startY = -((ROWS - 1) * SPACING_Y) / 2;
 
-    const wasmCutoff = Math.floor(COLS * 0.42);
-    const evmCutoff = Math.ceil(COLS * 0.58);
+    const wasmCutoff = 8;
+    const evmCutoff = 13;
 
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
@@ -123,110 +131,306 @@ export const ThreeCanvas: React.FC = () => {
         const y = startY + r * SPACING_Y;
         const z = 0;
 
-        // Classify domain within the Obsidian Violet Spectrum
-        let vmType: 'wasm' | 'core' | 'evm' = 'core';
+        const isMasterNode = (r === CENTER_ROW && c === CENTER_COL);
+        const isNexusCluster = (c >= 8 && c <= 12 && r >= 3 && r <= 7);
+
+        let role: 'wasm' | 'nexus-core' | 'nexus-plane' | 'evm' = 'nexus-plane';
         let baseColor = new THREE.Color(0x130a28);
-        let activeColor = new THREE.Color(0xd8b4fe);
+        let activeColor = new THREE.Color(0xc084fc);
         let edgeColor = new THREE.Color(0x8b5cf6);
         let capColor = new THREE.Color(0xa855f7);
+        let socketColor = new THREE.Color(0x7c3aed);
 
-        if (c < wasmCutoff) {
-          // Substrate WASM Domain (Deep Amethyst Violet)
-          vmType = 'wasm';
-          baseColor = new THREE.Color(0x16082e);
-          activeColor = new THREE.Color(0xe879f9);
-          edgeColor = new THREE.Color(0xa855f7);
-          capColor = new THREE.Color(0xc084fc);
-        } else if (c >= evmCutoff) {
-          // EVM Domain (Royal Electric Violet)
-          vmType = 'evm';
-          baseColor = new THREE.Color(0x0f0724);
-          activeColor = new THREE.Color(0xa78bfa);
-          edgeColor = new THREE.Color(0x7c3aed);
-          capColor = new THREE.Color(0x8b5cf6);
-        } else {
-          // Dual-VM Synthesis Core (High Radiant Neon Violet)
-          vmType = 'core';
-          baseColor = new THREE.Color(0x150b2e);
+        if (isMasterNode) {
+          // Central DotNexus Master Control Plane Node
+          role = 'nexus-core';
+          baseColor = new THREE.Color(0x1d0f3d);
           activeColor = new THREE.Color(0xf0abfc);
+          edgeColor = new THREE.Color(0xc084fc);
+          capColor = new THREE.Color(0xf5d0fe);
+          socketColor = new THREE.Color(0xc084fc);
+        } else if (c < wasmCutoff) {
+          // Substrate ink! WASM Validator Nodes
+          role = 'wasm';
+          baseColor = new THREE.Color(0x170724);
+          activeColor = new THREE.Color(0xf472b6);
+          edgeColor = new THREE.Color(0xe6007a);
+          capColor = new THREE.Color(0xa855f7);
+          socketColor = new THREE.Color(0xe6007a);
+        } else if (c >= evmCutoff) {
+          // EVM Solidity JSON-RPC Nodes
+          role = 'evm';
+          baseColor = new THREE.Color(0x0c0722);
+          activeColor = new THREE.Color(0x818cf8);
+          edgeColor = new THREE.Color(0x6366f1);
+          capColor = new THREE.Color(0x7c3aed);
+          socketColor = new THREE.Color(0x6366f1);
+        } else {
+          // DotNexus Synthesis & Security Matrix
+          role = isNexusCluster ? 'nexus-core' : 'nexus-plane';
+          baseColor = new THREE.Color(0x140a2d);
+          activeColor = new THREE.Color(0xd8b4fe);
           edgeColor = new THREE.Color(0x8b5cf6);
-          capColor = new THREE.Color(0xd8b4fe);
+          capColor = new THREE.Color(0xc084fc);
+          socketColor = new THREE.Color(0xa855f7);
         }
 
-        // Body Material (Dark obsidian violet chassis with high metalness)
+        // Body Material
         const mat = new THREE.MeshStandardMaterial({
           color: baseColor,
-          roughness: 0.16,
+          roughness: 0.22,
           metalness: 0.82,
           emissive: baseColor,
-          emissiveIntensity: 0.28,
+          emissiveIntensity: isMasterNode ? 0.22 : 0.1,
           transparent: true,
-          opacity: 0.95,
+          opacity: 0.96,
         });
 
-        const mesh = new THREE.Mesh(boxGeometry, mat);
+        const nodeBoxGeo = isMasterNode ? coreBoxGeo : standardBoxGeo;
+        const nodeEdgesGeo = isMasterNode ? coreEdgesGeo : standardEdgesGeo;
+        const nodeCapGeo = isMasterNode ? coreCapGeo : standardCapGeo;
+
+        const mesh = new THREE.Mesh(nodeBoxGeo, mat);
         mesh.position.set(x, y, z);
         gridGroup.add(mesh);
 
-        // Edge Wireframe (Crisp cyber borders)
+        // Edge Wireframe
         const edgeMat = new THREE.LineBasicMaterial({
           color: edgeColor,
           transparent: true,
-          opacity: 0.82,
+          opacity: isMasterNode ? 0.75 : 0.45,
           blending: THREE.AdditiveBlending,
         });
-        const edgeMesh = new THREE.LineSegments(edgesGeometry, edgeMat);
+        const edgeMesh = new THREE.LineSegments(nodeEdgesGeo, edgeMat);
         mesh.add(edgeMesh);
 
         // Top Microchip Cap
         const capMat = new THREE.MeshBasicMaterial({
           color: capColor,
           transparent: true,
-          opacity: 0.65,
+          opacity: isMasterNode ? 0.65 : 0.35,
           blending: THREE.AdditiveBlending,
         });
-        const capMesh = new THREE.Mesh(capGeometry, capMat);
-        capMesh.position.set(0, 0, BOX_DEPTH / 2 + 0.05);
+        const capMesh = new THREE.Mesh(nodeCapGeo, capMat);
+        const depth = isMasterNode ? (BOX_DEPTH * 1.25) : BOX_DEPTH;
+        capMesh.position.set(0, 0, depth / 2 + 0.05);
         mesh.add(capMesh);
 
-        cubes.push({
+        // Socket Terminal Ports (East, West, North, South connection pins)
+        const currentW = isMasterNode ? (BOX_WIDTH * 1.2) : BOX_WIDTH;
+        const currentH = isMasterNode ? (BOX_HEIGHT * 1.2) : BOX_HEIGHT;
+
+        const socketMat = new THREE.MeshBasicMaterial({
+          color: socketColor,
+          transparent: true,
+          opacity: 0.55,
+          blending: THREE.AdditiveBlending,
+        });
+
+        const socketMeshes: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>[] = [];
+        const portPositions = [
+          [currentW / 2 + 0.4, 0, 0], // East
+          [-currentW / 2 - 0.4, 0, 0], // West
+          [0, currentH / 2 + 0.4, 0], // North
+          [0, -currentH / 2 - 0.4, 0] // South
+        ];
+
+        portPositions.forEach(([px, py, pz]) => {
+          const sMesh = new THREE.Mesh(socketGeo, socketMat);
+          sMesh.position.set(px, py, pz);
+          mesh.add(sMesh);
+          socketMeshes.push(sMesh);
+        });
+
+        nodes.push({
           mesh,
           edgeMesh,
           capMesh,
+          socketMeshes,
+          col: c,
+          row: r,
           baseX: x,
           baseY: y,
           baseZ: z,
           currentZ: z,
           targetZ: z,
-          rotX: 0,
-          rotY: 0,
-          targetRotX: 0,
-          targetRotY: 0,
           glowIntensity: 0,
-          vmType,
+          role,
           baseColor,
           activeColor,
+          isMasterNode,
         });
       }
     }
 
-    // 5. Floating Background Cyber Dust (Embers in Obsidian Violet)
-    const dustCount = 280;
+    // 5. Interconnecting Cyber Conduits (Optical Network Bus)
+    // Generates horizontal & vertical connection lines between adjacent nodes,
+    // plus a central dual express telemetry highway flowing through the DotNexus Core.
+    const conduitVertices: number[] = [];
+    const conduitColors: number[] = [];
+
+    interface ConduitSegment {
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      type: 'wasm' | 'core' | 'evm';
+    }
+
+    const segments: ConduitSegment[] = [];
+
+    const wasmCol = new THREE.Color(0xa855f7);
+    const wasmPink = new THREE.Color(0xe6007a);
+    const coreViolet = new THREE.Color(0xc084fc);
+    const evmIndigo = new THREE.Color(0x6366f1);
+    const evmBlue = new THREE.Color(0x818cf8);
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const x = startX + c * SPACING_X;
+        const y = startY + r * SPACING_Y;
+
+        let segType: 'wasm' | 'core' | 'evm' = 'core';
+        let cColor = coreViolet;
+
+        if (c < wasmCutoff - 1) {
+          segType = 'wasm';
+          cColor = (r % 2 === 0) ? wasmPink : wasmCol;
+        } else if (c >= evmCutoff) {
+          segType = 'evm';
+          cColor = (r % 2 === 0) ? evmIndigo : evmBlue;
+        } else {
+          segType = 'core';
+          cColor = coreViolet;
+        }
+
+        // Horizontal Connection (to right neighbor)
+        if (c < COLS - 1) {
+          const nextX = startX + (c + 1) * SPACING_X;
+          const xStart = x + BOX_WIDTH / 2;
+          const xEnd = nextX - BOX_WIDTH / 2;
+
+          conduitVertices.push(xStart, y, 0, xEnd, y, 0);
+          conduitColors.push(cColor.r, cColor.g, cColor.b, cColor.r, cColor.g, cColor.b);
+
+          segments.push({ x1: xStart, y1: y, x2: xEnd, y2: y, type: segType });
+        }
+
+        // Vertical Connection (to top neighbor)
+        if (r < ROWS - 1) {
+          const nextY = startY + (r + 1) * SPACING_Y;
+          const yStart = y + BOX_HEIGHT / 2;
+          const yEnd = nextY - BOX_HEIGHT / 2;
+
+          conduitVertices.push(x, yStart, 0, x, yEnd, 0);
+          conduitColors.push(cColor.r, cColor.g, cColor.b, cColor.r, cColor.g, cColor.b);
+
+          segments.push({ x1: x, y1: yStart, x2: x, y2: yEnd, type: segType });
+        }
+      }
+    }
+
+    // Express Dual-Rail Telemetry Highway into DotNexus Center (Row 5 & Rows 4, 6)
+    [-3.5, 3.5].forEach((offsetY) => {
+      const highwayY = startY + CENTER_ROW * SPACING_Y + offsetY;
+      const xLeft = startX;
+      const xRight = startX + (COLS - 1) * SPACING_X;
+
+      conduitVertices.push(xLeft, highwayY, -1, xRight, highwayY, -1);
+      conduitColors.push(
+        coreViolet.r * 0.7, coreViolet.g * 0.7, coreViolet.b * 0.7,
+        coreViolet.r * 0.7, coreViolet.g * 0.7, coreViolet.b * 0.7
+      );
+
+      segments.push({ x1: xLeft, y1: highwayY, x2: xRight, y2: highwayY, type: 'core' });
+    });
+
+    const conduitGeo = new THREE.BufferGeometry();
+    conduitGeo.setAttribute('position', new THREE.Float32BufferAttribute(conduitVertices, 3));
+    conduitGeo.setAttribute('color', new THREE.Float32BufferAttribute(conduitColors, 3));
+
+    const conduitMat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.32,
+      blending: THREE.AdditiveBlending,
+    });
+    const conduitLines = new THREE.LineSegments(conduitGeo, conduitMat);
+    scene.add(conduitLines);
+
+    // 6. Live Telemetry Packet Stream (Photons moving along conduits into DotNexus Core)
+    const PACKET_COUNT = 140;
+    const packetPositions = new Float32Array(PACKET_COUNT * 3);
+    const packetColors = new Float32Array(PACKET_COUNT * 3);
+
+    interface PacketState {
+      segIndex: number;
+      progress: number;
+      speed: number;
+      color: THREE.Color;
+      reverse: boolean;
+    }
+
+    const packets: PacketState[] = [];
+
+    for (let i = 0; i < PACKET_COUNT; i++) {
+      const segIndex = Math.floor(Math.random() * segments.length);
+      const seg = segments[segIndex];
+      const speed = 0.007 + Math.random() * 0.016;
+
+      let pColor = coreViolet;
+      let reverse = false;
+
+      if (seg.type === 'wasm') {
+        pColor = Math.random() < 0.5 ? wasmPink : wasmCol;
+        reverse = false; // WASM stream flows east towards center
+      } else if (seg.type === 'evm') {
+        pColor = Math.random() < 0.5 ? evmIndigo : evmBlue;
+        reverse = true; // EVM stream flows west towards center
+      } else {
+        pColor = coreViolet;
+        reverse = Math.random() < 0.5;
+      }
+
+      packets.push({
+        segIndex,
+        progress: Math.random(),
+        speed,
+        color: pColor,
+        reverse,
+      });
+
+      packetColors[i * 3] = pColor.r;
+      packetColors[i * 3 + 1] = pColor.g;
+      packetColors[i * 3 + 2] = pColor.b;
+    }
+
+    const packetGeo = new THREE.BufferGeometry();
+    packetGeo.setAttribute('position', new THREE.BufferAttribute(packetPositions, 3));
+    packetGeo.setAttribute('color', new THREE.BufferAttribute(packetColors, 3));
+
+    const packetMat = new THREE.PointsMaterial({
+      size: 3.2,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+    });
+    const packetPoints = new THREE.Points(packetGeo, packetMat);
+    scene.add(packetPoints);
+
+    // 7. Ambient Cyber Dust (Embers in deep space)
+    const dustCount = 180;
     const dustPositions = new Float32Array(dustCount * 3);
     const dustColors = new Float32Array(dustCount * 3);
 
-    const c1 = new THREE.Color(0x8b5cf6); // Electric Violet
-    const c2 = new THREE.Color(0xc084fc); // Radiant Lavender
-    const c3 = new THREE.Color(0xa855f7); // Amethyst
-    const c4 = new THREE.Color(0xd8b4fe); // Neon Lilac
-
     for (let i = 0; i < dustCount; i++) {
-      dustPositions[i * 3] = (Math.random() - 0.5) * 900;
-      dustPositions[i * 3 + 1] = (Math.random() - 0.5) * 600;
-      dustPositions[i * 3 + 2] = -50 + (Math.random() - 0.5) * 350;
+      dustPositions[i * 3] = (Math.random() - 0.5) * 850;
+      dustPositions[i * 3 + 1] = (Math.random() - 0.5) * 550;
+      dustPositions[i * 3 + 2] = -40 + (Math.random() - 0.5) * 250;
 
       const pick = Math.random();
-      const col = pick < 0.25 ? c1 : pick < 0.5 ? c2 : pick < 0.75 ? c3 : c4;
+      const col = pick < 0.35 ? wasmCol : pick < 0.7 ? coreViolet : evmIndigo;
       dustColors[i * 3] = col.r;
       dustColors[i * 3 + 1] = col.g;
       dustColors[i * 3 + 2] = col.b;
@@ -237,23 +441,21 @@ export const ThreeCanvas: React.FC = () => {
     dustGeometry.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
 
     const dustMaterial = new THREE.PointsMaterial({
-      size: 2.2,
+      size: 1.8,
       vertexColors: true,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.35,
       blending: THREE.AdditiveBlending,
     });
     const dustPoints = new THREE.Points(dustGeometry, dustMaterial);
     scene.add(dustPoints);
 
-    // 6. Mouse Raycasting & Target World Coordinates
+    // 8. Mouse Raycaster & World Projection
     const raycaster = new THREE.Raycaster();
     const mouseNorm = new THREE.Vector2(-999, -999);
     const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
     const planeIntersect = new THREE.Vector3(0, 0, 0);
 
-    let clientMouseX = 0;
-    let clientMouseY = 0;
     let isMouseOver = false;
 
     const handlePointerMove = (e: MouseEvent) => {
@@ -261,7 +463,6 @@ export const ThreeCanvas: React.FC = () => {
       const px = e.clientX - rect.left;
       const py = e.clientY - rect.top;
 
-      // Only activate 3D interaction if the cursor is strictly inside the hero canvas bounds
       if (
         px >= 0 &&
         px <= rect.width &&
@@ -272,8 +473,6 @@ export const ThreeCanvas: React.FC = () => {
       ) {
         mouseNorm.x = (px / rect.width) * 2 - 1;
         mouseNorm.y = -(py / rect.height) * 2 + 1;
-        clientMouseX = mouseNorm.x;
-        clientMouseY = mouseNorm.y;
         isMouseOver = true;
       } else {
         isMouseOver = false;
@@ -282,7 +481,6 @@ export const ThreeCanvas: React.FC = () => {
 
     const handleScroll = () => {
       const rect = mount.getBoundingClientRect();
-      // If hero container is scrolled out of view, cleanly deactivate hover raycasting
       if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
         isMouseOver = false;
         mouseNorm.set(-999, -999);
@@ -318,7 +516,7 @@ export const ThreeCanvas: React.FC = () => {
     });
     resizeObserver.observe(mount);
 
-    // 7. Animation Loop with Fixed Flat Plane & Spring Elevation
+    // 9. Animation Loop (Strict Fixed Plane with Spring Elevation & Realtime Telemetry Pulse)
     let animId: number;
     const clock = new THREE.Clock();
 
@@ -326,110 +524,148 @@ export const ThreeCanvas: React.FC = () => {
       animId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
 
-      // Intersect ray with ground plane to get exact mouse position in 3D world space
+      // Mouse intersection on ground plane
       raycaster.setFromCamera(mouseNorm, camera);
       raycaster.ray.intersectPlane(planeZ, planeIntersect);
 
-      // Fixed Flat Plane: grid orientation is strictly locked with zero tilt or roll
-      gridGroup.rotation.set(0, 0, 0);
-
-      // Position mouse point light smoothly above cursor
+      // Mouse point light follows pointer smoothly (softened glow)
       if (isMouseOver && mouseNorm.x > -2) {
         mouseLight.position.x += (planeIntersect.x - mouseLight.position.x) * 0.18;
         mouseLight.position.y += (planeIntersect.y - mouseLight.position.y) * 0.18;
-        mouseLight.position.z = 24 + Math.sin(elapsed * 4) * 3;
+        mouseLight.position.z = 24 + Math.sin(elapsed * 4) * 2.5;
         mouseLight.intensity = 1.8;
       } else {
         mouseLight.intensity += (0 - mouseLight.intensity) * 0.08;
       }
 
-      // Orbital sway for Dual-VM lights (wider reach for 25 columns)
-      wasmLight.position.x = -135 + Math.sin(elapsed * 0.8) * 20;
-      wasmLight.position.y = 40 + Math.cos(elapsed * 0.7) * 15;
+      // Orbital sway for dual-domain lights
+      wasmLight.position.x = -145 + Math.sin(elapsed * 0.75) * 18;
+      wasmLight.position.y = 45 + Math.cos(elapsed * 0.65) * 14;
 
-      evmLight.position.x = 135 + Math.cos(elapsed * 0.8) * 20;
-      evmLight.position.y = -30 + Math.sin(elapsed * 0.7) * 15;
+      evmLight.position.x = 145 + Math.cos(elapsed * 0.75) * 18;
+      evmLight.position.y = -35 + Math.sin(elapsed * 0.65) * 14;
 
-      // Influence radius for mouse ripple wave
-      const WAVE_RADIUS = 65;
-      const MAX_ELEVATION = 26;
+      // Center DotNexus Core heartbeat pulse
+      const coreHeartbeat = 0.85 + Math.sin(elapsed * 3.2) * 0.15;
+      centerLight.intensity = 4.0 * coreHeartbeat;
 
-      // Update each cube with Spring Physics (perpendicular elevation strictly on flat plane)
-      for (let i = 0; i < cubes.length; i++) {
-        const c = cubes[i];
+      // Influence radius for mouse wave
+      const WAVE_RADIUS = 68;
+      const MAX_ELEVATION = 20;
 
-        // 1. Ambient breathing wave (diagonally sweeping across matrix)
-        const colIndex = i % COLS;
-        const rowIndex = Math.floor(i / COLS);
-        const ambientWave = Math.sin(elapsed * 1.8 + colIndex * 0.42 + rowIndex * 0.32) * 2.8;
+      // Update Node States
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+
+        // 1. Ambient undulating network breathing wave
+        const ambientWave = Math.sin(elapsed * 1.6 + n.col * 0.38 + n.row * 0.28) * 2.2;
 
         // 2. Mouse distance calculation (pure perpendicular elevation, zero tilt)
         let mouseLift = 0;
 
         if (isMouseOver && mouseNorm.x > -2) {
-          const dx = planeIntersect.x - c.baseX;
-          const dy = planeIntersect.y - c.baseY;
+          const dx = planeIntersect.x - n.baseX;
+          const dy = planeIntersect.y - n.baseY;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < WAVE_RADIUS) {
-            // Cosine smooth wave falloff
             const normDist = dist / WAVE_RADIUS;
             const factor = Math.cos(normDist * (Math.PI / 2));
             mouseLift = factor * MAX_ELEVATION;
 
-            // Glow intensity flare
-            c.glowIntensity += (factor - c.glowIntensity) * 0.22;
+            // Subtle glow flare
+            n.glowIntensity += (factor - n.glowIntensity) * 0.2;
           } else {
-            c.glowIntensity += (0 - c.glowIntensity) * 0.08;
+            n.glowIntensity += (0 - n.glowIntensity) * 0.08;
           }
         } else {
-          c.glowIntensity += (0 - c.glowIntensity) * 0.08;
+          n.glowIntensity += (0 - n.glowIntensity) * 0.08;
         }
 
         // 3. Spring physics: update perpendicular Z displacement
-        c.targetZ = c.baseZ + ambientWave + mouseLift;
-        c.currentZ += (c.targetZ - c.currentZ) * 0.12;
-        c.mesh.position.z = c.currentZ;
+        // Master node has a slight natural baseline prominence (+3.0 Z)
+        const baselineOffset = n.isMasterNode ? 3.0 : 0;
+        n.targetZ = n.baseZ + baselineOffset + ambientWave + mouseLift;
+        n.currentZ += (n.targetZ - n.currentZ) * 0.12;
+        n.mesh.position.z = n.currentZ;
 
-        // Fixed flat plane: strictly lock cube rotations to 0 (no tilt on scroll or hover)
-        c.mesh.rotation.set(0, 0, 0);
+        // Fixed plane: zero rotational tilt
+        n.mesh.rotation.set(0, 0, 0);
 
-        // 4. Dynamic Emissive Glow & Edge Brightness
-        const mat = c.mesh.material;
-        const edgeMat = c.edgeMesh.material;
-        const capMat = c.capMesh.material;
+        // 4. Subtle, Craft-Floor Compliant Emissive & Edge Shading
+        const mat = n.mesh.material;
+        const edgeMat = n.edgeMesh.material;
+        const capMat = n.capMesh.material;
 
-        if (c.glowIntensity > 0.01) {
-          // Subtly interpolate emissive color toward active neon (not glaring)
-          mat.emissive.lerpColors(c.baseColor, c.activeColor, c.glowIntensity * 0.35);
-          mat.emissiveIntensity = 0.1 + c.glowIntensity * 0.35;
+        if (n.glowIntensity > 0.01) {
+          // Softened emissive lerp (non-glaring)
+          mat.emissive.lerpColors(n.baseColor, n.activeColor, n.glowIntensity * 0.35);
+          mat.emissiveIntensity = (n.isMasterNode ? 0.22 : 0.1) + n.glowIntensity * 0.32;
 
-          // Controlled subtle edge & cap highlight
-          edgeMat.opacity = 0.45 + c.glowIntensity * 0.20;
-          capMat.opacity = 0.35 + c.glowIntensity * 0.20;
+          edgeMat.opacity = (n.isMasterNode ? 0.75 : 0.45) + n.glowIntensity * 0.22;
+          capMat.opacity = (n.isMasterNode ? 0.65 : 0.35) + n.glowIntensity * 0.22;
+
+          // Socket terminals highlight
+          n.socketMeshes.forEach((sm) => {
+            sm.material.opacity = 0.55 + n.glowIntensity * 0.35;
+          });
 
           // Micro scale pop
-          const s = 1 + c.glowIntensity * 0.04;
-          c.mesh.scale.set(s, s, s);
+          const s = 1 + n.glowIntensity * 0.04;
+          n.mesh.scale.set(s, s, s);
         } else {
-          mat.emissive.copy(c.baseColor);
-          mat.emissiveIntensity = 0.1;
-          edgeMat.opacity = 0.45;
-          capMat.opacity = 0.35;
-          c.mesh.scale.set(1, 1, 1);
+          mat.emissive.copy(n.baseColor);
+          mat.emissiveIntensity = n.isMasterNode ? (0.22 * coreHeartbeat) : 0.1;
+          edgeMat.opacity = n.isMasterNode ? 0.75 : 0.45;
+          capMat.opacity = n.isMasterNode ? (0.65 * coreHeartbeat) : 0.35;
+
+          n.socketMeshes.forEach((sm) => {
+            sm.material.opacity = 0.55;
+          });
+
+          n.mesh.scale.set(1, 1, 1);
         }
       }
 
-      // Slowly drift cyber dust
-      dustPoints.rotation.y = elapsed * 0.025;
-      dustPoints.rotation.x = Math.sin(elapsed * 0.015) * 0.04;
+      // 5. Update Telemetry Packets along Network Conduits
+      const posAttr = packetGeo.attributes.position as THREE.BufferAttribute;
+      const posArray = posAttr.array as Float32Array;
+
+      for (let i = 0; i < PACKET_COUNT; i++) {
+        const p = packets[i];
+        p.progress += p.speed;
+
+        if (p.progress >= 1) {
+          p.progress = 0;
+          p.segIndex = Math.floor(Math.random() * segments.length);
+        }
+
+        const seg = segments[p.segIndex];
+        const t = p.reverse ? (1 - p.progress) : p.progress;
+
+        const px = seg.x1 + (seg.x2 - seg.x1) * t;
+        const py = seg.y1 + (seg.y2 - seg.y1) * t;
+        const pz = 1.2 + Math.sin(t * Math.PI) * 1.5;
+
+        posArray[i * 3] = px;
+        posArray[i * 3 + 1] = py;
+        posArray[i * 3 + 2] = pz;
+      }
+      posAttr.needsUpdate = true;
+
+      // Subtle conduit line glow breathing
+      conduitMat.opacity = 0.30 + Math.sin(elapsed * 2.0) * 0.06;
+
+      // Slow cyber dust drift
+      dustPoints.rotation.y = elapsed * 0.02;
+      dustPoints.rotation.x = Math.sin(elapsed * 0.015) * 0.03;
 
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // 8. Cleanup & Resource Disposal
+    // 10. Cleanup & Resource Disposal
     return () => {
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('scroll', handleScroll);
@@ -439,16 +675,25 @@ export const ThreeCanvas: React.FC = () => {
       cancelAnimationFrame(animId);
 
       renderer.dispose();
-      boxGeometry.dispose();
-      edgesGeometry.dispose();
-      capGeometry.dispose();
+      standardBoxGeo.dispose();
+      standardEdgesGeo.dispose();
+      standardCapGeo.dispose();
+      coreBoxGeo.dispose();
+      coreEdgesGeo.dispose();
+      coreCapGeo.dispose();
+      socketGeo.dispose();
+      conduitGeo.dispose();
+      conduitMat.dispose();
+      packetGeo.dispose();
+      packetMat.dispose();
       dustGeometry.dispose();
       dustMaterial.dispose();
 
-      cubes.forEach((c) => {
-        c.mesh.material.dispose();
-        c.edgeMesh.material.dispose();
-        c.capMesh.material.dispose();
+      nodes.forEach((n) => {
+        n.mesh.material.dispose();
+        n.edgeMesh.material.dispose();
+        n.capMesh.material.dispose();
+        n.socketMeshes.forEach((sm) => sm.material.dispose());
       });
 
       if (mount.contains(renderer.domElement)) {
@@ -464,4 +709,3 @@ export const ThreeCanvas: React.FC = () => {
     />
   );
 };
-

@@ -65,7 +65,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <img
             src={dotnexusIcon}
             alt="DotNexus"
-            className="w-8 h-8 object-contain rounded-none border border-[#8B5CF6]/50 shadow-lg shadow-[#8B5CF6]/25 p-0.5 bg-[#0e0720]"
+            className="w-11 h-11 sm:w-12 sm:h-12 object-contain rounded-lg border border-[#8B5CF6]/50 shadow-xl shadow-[#8B5CF6]/30 transition-transform hover:scale-105"
           />
           <div>
             <div className="flex items-center gap-2">
@@ -73,9 +73,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-none border border-[#4C2889] bg-[#140C2B] text-[#C084FC]">
                 Portaldot V3.0
               </span>
-            </div>
-            <div className="text-[10px] text-zinc-500 font-mono hidden sm:block">
-              Visual Control Plane & Security Operations Engine
             </div>
           </div>
         </div>

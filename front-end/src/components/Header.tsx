@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="h-11 border-b border-[#1C142E] bg-[#06040A] px-3 sm:px-4 flex items-center justify-between select-none relative z-30 font-mono">
+      <header className="h-12 border-b border-[#1C142E] bg-[#06040A] px-3 sm:px-4 flex items-center justify-between select-none relative z-30 font-mono">
         {/* Brand & Mobile Menu Toggle */}
         <div className="flex items-center gap-2 sm:gap-3">
           {onToggleMobileNav && (
@@ -54,13 +54,13 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onNavigateHome}
-            className="flex items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer group"
+            className="flex items-center gap-2.5 hover:opacity-90 transition-opacity cursor-pointer group"
             title="Return to Landing Page"
           >
             <img
               src={dotnexusIcon}
               alt="DotNexus"
-              className="w-5 h-5 object-contain rounded-none border border-[#8B5CF6]/40 shadow-sm shadow-[#8B5CF6]/20 transition-transform group-hover:scale-105"
+              className="w-8 h-8 object-contain rounded-md border border-[#8B5CF6]/50 shadow-md shadow-[#8B5CF6]/25 transition-transform group-hover:scale-105"
             />
             <span className="font-bold text-xs tracking-widest text-white font-mono uppercase">DOTNEXUS</span>
           </button>

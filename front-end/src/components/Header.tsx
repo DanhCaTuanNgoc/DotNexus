@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Zap, Server, Home, Menu, X, ChevronDown, ChevronUp, Activity } from 'lucide-react';
+import dotnexusIcon from '../assets/Icon.png';
 
 interface HeaderProps {
   bestBlock: number;
@@ -56,9 +57,11 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer group"
             title="Return to Landing Page"
           >
-            <div className="w-5 h-5 bg-[#8B5CF6]/15 border border-[#8B5CF6]/60 flex items-center justify-center text-[#8B5CF6]">
-              <Zap className="w-3 h-3 fill-[#8B5CF6]" />
-            </div>
+            <img
+              src={dotnexusIcon}
+              alt="DotNexus"
+              className="w-5 h-5 object-contain rounded-none border border-[#8B5CF6]/40 shadow-sm shadow-[#8B5CF6]/20 transition-transform group-hover:scale-105"
+            />
             <span className="font-bold text-xs tracking-widest text-white font-mono uppercase">DOTNEXUS</span>
           </button>
 

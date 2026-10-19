@@ -21,6 +21,7 @@ import {
   X
 } from 'lucide-react';
 import { ThreeCanvas } from '../components/ThreeCanvas';
+import dotnexusIcon from '../assets/Icon.png';
 import { 
   DualTelemetryState, 
   SecurityDashboardState, 
@@ -61,9 +62,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Top Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[#261B42]/90 bg-[#080512]/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-none bg-[#8B5CF6]/20 border border-[#8B5CF6] flex items-center justify-center text-[#8B5CF6] shadow-lg shadow-[#8B5CF6]/30">
-            <Zap className="w-4 h-4 fill-[#8B5CF6]" />
-          </div>
+          <img
+            src={dotnexusIcon}
+            alt="DotNexus"
+            className="w-8 h-8 object-contain rounded-none border border-[#8B5CF6]/50 shadow-lg shadow-[#8B5CF6]/25 p-0.5 bg-[#0e0720]"
+          />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-base tracking-wider text-white font-mono">DOTNEXUS</span>

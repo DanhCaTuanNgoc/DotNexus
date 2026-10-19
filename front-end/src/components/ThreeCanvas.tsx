@@ -50,7 +50,7 @@ export const ThreeCanvas: React.FC = () => {
     scene.add(dirLight);
 
     // Dynamic Mouse Light (follows pointer on the grid)
-    const mouseLight = new THREE.PointLight(0xd8b4fe, 6.8, 160, 1.4);
+    const mouseLight = new THREE.PointLight(0xd8b4fe, 1.8, 140, 1.6);
     mouseLight.position.set(0, 0, 30);
     scene.add(mouseLight);
 
@@ -338,7 +338,7 @@ export const ThreeCanvas: React.FC = () => {
         mouseLight.position.x += (planeIntersect.x - mouseLight.position.x) * 0.18;
         mouseLight.position.y += (planeIntersect.y - mouseLight.position.y) * 0.18;
         mouseLight.position.z = 24 + Math.sin(elapsed * 4) * 3;
-        mouseLight.intensity = 6.5;
+        mouseLight.intensity = 1.8;
       } else {
         mouseLight.intensity += (0 - mouseLight.intensity) * 0.08;
       }
@@ -400,16 +400,16 @@ export const ThreeCanvas: React.FC = () => {
         const capMat = c.capMesh.material;
 
         if (c.glowIntensity > 0.01) {
-          // Interpolate emissive color toward active neon
-          mat.emissive.lerpColors(c.baseColor, c.activeColor, c.glowIntensity * 0.7);
-          mat.emissiveIntensity = 0.1 + c.glowIntensity * 1.6;
+          // Subtly interpolate emissive color toward active neon (not glaring)
+          mat.emissive.lerpColors(c.baseColor, c.activeColor, c.glowIntensity * 0.35);
+          mat.emissiveIntensity = 0.1 + c.glowIntensity * 0.35;
 
-          // Brighten edges
-          edgeMat.opacity = 0.55 + c.glowIntensity * 0.45;
-          capMat.opacity = 0.45 + c.glowIntensity * 0.55;
+          // Controlled subtle edge & cap highlight
+          edgeMat.opacity = 0.45 + c.glowIntensity * 0.20;
+          capMat.opacity = 0.35 + c.glowIntensity * 0.20;
 
           // Micro scale pop
-          const s = 1 + c.glowIntensity * 0.06;
+          const s = 1 + c.glowIntensity * 0.04;
           c.mesh.scale.set(s, s, s);
         } else {
           mat.emissive.copy(c.baseColor);

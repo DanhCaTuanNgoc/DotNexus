@@ -588,20 +588,20 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
         </div>
       </div>
 
-      {/* 4. MODAL: Detailed Validator Inspection (Binance Earn Style) */}
+      {/* 4. MODAL: Detailed Validator Inspection (DotNexus Institutional Profile) */}
       {selectedValidator && (
         <div
-          className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setSelectedValidator(null)}
         >
           <div
-            className="w-full max-w-xl bg-[#181A20] border border-[#2B313A] shadow-2xl p-5 space-y-4 text-[#EAECEF] font-mono relative"
+            className="w-full max-w-xl bg-[#0B0813] border border-[#261B42] shadow-[0_0_50px_rgba(139,92,246,0.15)] p-5 space-y-4 text-zinc-200 font-mono relative"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#2B313A] pb-3">
+            <div className="flex items-center justify-between border-b border-[#1C142E] pb-3">
               <div>
-                <span className="text-[10px] text-[#848E9C] tracking-wider uppercase font-semibold block">
+                <span className="text-[10px] text-[#C084FC] tracking-wider uppercase font-semibold block">
                   PORTALDOT V3.0 EARN · VALIDATOR PROFILE
                 </span>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -609,12 +609,12 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                     {selectedValidator.identity}
                   </h3>
                   {selectedValidator.is_live_onchain ? (
-                    <span className="text-[10px] px-2 py-0.5 bg-[#0ECB81]/15 text-[#0ECB81] border border-[#0ECB81]/30 font-semibold flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#0ECB81] animate-pulse" />
+                    <span className="text-[10px] px-2 py-0.5 bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 font-semibold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D] animate-pulse" />
                       LIVE ON-CHAIN
                     </span>
                   ) : (
-                    <span className="text-[10px] px-2 py-0.5 bg-[#2B313A] text-[#848E9C] font-semibold">
+                    <span className="text-[10px] px-2 py-0.5 bg-[#1C142E] text-zinc-400 border border-[#2E1F4A] font-semibold">
                       SIMULATION
                     </span>
                   )}
@@ -622,7 +622,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               </div>
               <button
                 onClick={() => setSelectedValidator(null)}
-                className="p-1.5 text-[#848E9C] hover:text-white hover:bg-[#2B313A] rounded transition-colors"
+                className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#1C142E] rounded transition-colors"
                 title="Close"
               >
                 <X className="w-4 h-4" />
@@ -630,71 +630,71 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
             </div>
 
             {/* Stash Address with 1-click Copy */}
-            <div className="p-2.5 bg-[#121318] border border-[#2B313A] space-y-1">
-              <div className="flex items-center justify-between text-[10px] text-[#848E9C]">
-                <span className="font-semibold uppercase">SS58 STASH ACCOUNT</span>
+            <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
+              <div className="flex items-center justify-between text-[10px] text-zinc-400">
+                <span className="font-semibold uppercase tracking-wider">SS58 STASH ACCOUNT</span>
                 <button
                   onClick={() => copyToClipboard(selectedValidator.stash_address, 'stash')}
-                  className="flex items-center gap-1 text-[#0ECB81] hover:text-emerald-300 font-semibold cursor-pointer"
+                  className="flex items-center gap-1 text-[#00FF9D] hover:text-[#00FF9D]/80 font-semibold cursor-pointer"
                 >
                   <Copy className="w-3 h-3" />
                   <span>{copiedKey === 'stash' ? 'COPIED' : 'COPY ADDRESS'}</span>
                 </button>
               </div>
-              <div className="text-xs text-white break-all tabular-nums font-mono font-medium">
+              <div className="text-xs text-zinc-200 break-all tabular-nums font-mono font-medium">
                 {selectedValidator.stash_address}
               </div>
             </div>
 
-            {/* Key Metrics Grid (Binance Staking Cards) */}
+            {/* Key Metrics Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div className="p-3 bg-[#1E2329] border border-[#2B313A] space-y-0.5">
-                <span className="text-[10px] text-[#848E9C] block font-semibold uppercase">EST. APY</span>
-                <span className="text-base font-bold text-[#0ECB81] tabular-nums">
+              <div className="p-3 bg-[#0E091B] border border-[#1C142E] space-y-0.5">
+                <span className="text-[10px] text-zinc-400 block font-semibold uppercase">EST. APY</span>
+                <span className="text-base font-bold text-[#00FF9D] tabular-nums">
                   {selectedValidator.estimated_apy}%
                 </span>
-                <span className="text-[9px] text-[#848E9C] block">Gross Yield</span>
+                <span className="text-[9px] text-zinc-500 block">Gross Yield</span>
               </div>
-              <div className="p-3 bg-[#1E2329] border border-[#2B313A] space-y-0.5">
-                <span className="text-[10px] text-[#848E9C] block font-semibold uppercase">COMMISSION</span>
+              <div className="p-3 bg-[#0E091B] border border-[#1C142E] space-y-0.5">
+                <span className="text-[10px] text-zinc-400 block font-semibold uppercase">COMMISSION</span>
                 <span className="text-base font-bold text-white tabular-nums">
                   {selectedValidator.commission_pct}%
                 </span>
-                <span className="text-[9px] text-[#848E9C] block">Node Fee</span>
+                <span className="text-[9px] text-zinc-500 block">Node Fee</span>
               </div>
-              <div className="p-3 bg-[#1E2329] border border-[#2B313A] space-y-0.5">
-                <span className="text-[10px] text-[#848E9C] block font-semibold uppercase">TOTAL STAKED</span>
+              <div className="p-3 bg-[#0E091B] border border-[#1C142E] space-y-0.5">
+                <span className="text-[10px] text-zinc-400 block font-semibold uppercase">TOTAL STAKED</span>
                 <span className="text-sm font-bold text-white tabular-nums truncate block">
                   {selectedValidator.total_stake_pot.toLocaleString()} POT
                 </span>
-                <span className="text-[9px] text-[#848E9C] block">Active Bond</span>
+                <span className="text-[9px] text-zinc-500 block">Active Bond</span>
               </div>
-              <div className="p-3 bg-[#1E2329] border border-[#2B313A] space-y-0.5">
-                <span className="text-[10px] text-[#848E9C] block font-semibold uppercase">UPTIME RATIO</span>
-                <span className="text-base font-bold text-[#0ECB81] tabular-nums">
+              <div className="p-3 bg-[#0E091B] border border-[#1C142E] space-y-0.5">
+                <span className="text-[10px] text-zinc-400 block font-semibold uppercase">UPTIME RATIO</span>
+                <span className="text-base font-bold text-[#00FF9D] tabular-nums">
                   {selectedValidator.uptime_pct}%
                 </span>
-                <span className="text-[9px] text-[#848E9C] block">Era Health</span>
+                <span className="text-[9px] text-zinc-500 block">Era Health</span>
               </div>
             </div>
 
             {/* Institutional Specification Table */}
-            <div className="bg-[#121318] border border-[#2B313A] divide-y divide-[#2B313A] text-xs">
+            <div className="bg-[#06040A] border border-[#1C142E] divide-y divide-[#1C142E] text-xs">
               <div className="flex items-center justify-between p-2.5">
-                <span className="text-[#848E9C]">Nominator Capacity</span>
+                <span className="text-zinc-400">Nominator Capacity</span>
                 <div className="text-right">
                   <span className="text-white font-semibold tabular-nums">
                     {selectedValidator.nominator_count} / {selectedValidator.max_nominators}
                   </span>
-                  <span className="text-[10px] text-[#848E9C] ml-1.5">
+                  <span className="text-[10px] text-zinc-500 ml-1.5">
                     ({Math.round((selectedValidator.nominator_count / selectedValidator.max_nominators) * 100)}% filled)
                   </span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between p-2.5">
-                <span className="text-[#848E9C]">Slashing Infraction Record</span>
-                <span className={`font-semibold ${selectedValidator.slash_count === 0 ? 'text-[#0ECB81]' : 'text-[#F6465D]'}`}>
+                <span className="text-zinc-400">Slashing Infraction Record</span>
+                <span className={`font-semibold ${selectedValidator.slash_count === 0 ? 'text-[#00FF9D]' : 'text-rose-400'}`}>
                   {selectedValidator.slash_count === 0 ? 'Clean (0 Slashes)' : `${selectedValidator.slash_count} Infractions`}
                 </span>
               </div>
@@ -702,26 +702,26 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               {selectedValidator.pao_metrics && (
                 <>
                   <div className="flex items-center justify-between p-2.5">
-                    <span className="text-[#848E9C]">PAO Safety Rating</span>
+                    <span className="text-zinc-400">PAO Safety Rating</span>
                     <div className="text-right">
-                      <span className="text-[#0ECB81] font-semibold">
+                      <span className="text-[#C084FC] font-semibold">
                         {selectedValidator.pao_metrics.safety_margin_rating.replace(/_/g, ' ')}
                       </span>
-                      <span className="text-[10px] text-[#848E9C] ml-1.5">
+                      <span className="text-[10px] text-zinc-500 ml-1.5">
                         (Mᵥ = {selectedValidator.pao_metrics.safety_margin_mvu})
                       </span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between p-2.5">
-                    <span className="text-[#848E9C]">Minimum Rewarded Stake</span>
+                    <span className="text-zinc-400">Minimum Rewarded Stake</span>
                     <span className="text-white font-semibold tabular-nums">
                       {selectedValidator.pao_metrics.min_rewarded_stake_pot.toLocaleString()} POT
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between p-2.5">
-                    <span className="text-[#848E9C]">Median Stake Buffer</span>
+                    <span className="text-zinc-400">Median Stake Buffer</span>
                     <span className="text-white font-semibold tabular-nums">
                       {selectedValidator.pao_metrics.median_stake_pot.toLocaleString()} POT
                     </span>
@@ -731,13 +731,13 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-between pt-2 border-t border-[#2B313A]">
+            <div className="flex items-center justify-between pt-3 border-t border-[#1C142E]">
               <button
                 onClick={() => handleToggleTarget(selectedValidator.stash_address)}
                 className={`px-4 py-2 text-xs font-semibold border cursor-pointer transition-colors ${
                   selectedTargets.includes(selectedValidator.stash_address)
-                    ? 'bg-[#2B313A] text-amber-300 border-[#363C4E] hover:bg-[#363C4E]'
-                    : 'bg-[#1E2329] text-[#EAECEF] border-[#2B313A] hover:bg-[#2B313A]'
+                    ? 'bg-[#1C142E] text-amber-300 border-[#8B5CF6]/40 hover:bg-[#261B42]'
+                    : 'bg-[#120B20] text-zinc-300 border-[#2E1F4A] hover:bg-[#1C142E] hover:border-[#8B5CF6]/50'
                 }`}
               >
                 {selectedTargets.includes(selectedValidator.stash_address)
@@ -750,7 +750,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                   setSelectedValidator(null);
                   setIsDispatchModalOpen(true);
                 }}
-                className="px-5 py-2 text-xs font-bold bg-[#F0B90B] hover:bg-[#FCD535] text-black cursor-pointer transition-colors"
+                className="px-5 py-2 text-xs font-bold bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white cursor-pointer transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)]"
               >
                 STAKE &amp; NOMINATE
               </button>
@@ -759,20 +759,20 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
         </div>
       )}
 
-      {/* 5. MODAL: Extrinsic Dispatch & Order Studio (Binance Trading Style) */}
+      {/* 5. MODAL: Extrinsic Dispatch & Order Studio (DotNexus Dual-VM Dispatch) */}
       {isDispatchModalOpen && (
         <div
-          className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setIsDispatchModalOpen(false)}
         >
           <div
-            className="w-full max-w-2xl bg-[#181A20] border border-[#2B313A] shadow-2xl p-5 space-y-4 text-[#EAECEF] font-mono relative"
+            className="w-full max-w-2xl bg-[#0B0813] border border-[#261B42] shadow-[0_0_50px_rgba(139,92,246,0.15)] p-5 space-y-4 text-zinc-200 font-mono relative"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#2B313A] pb-3">
+            <div className="flex items-center justify-between border-b border-[#1C142E] pb-3">
               <div>
-                <span className="text-[10px] text-[#848E9C] tracking-wider uppercase font-semibold block">
+                <span className="text-[10px] text-[#C084FC] tracking-wider uppercase font-semibold block">
                   PORTALDOT V3.0 DUAL-VM · ORDER DISPATCH
                 </span>
                 <h3 className="text-sm sm:text-base font-bold text-white tracking-wide mt-0.5">
@@ -781,23 +781,23 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               </div>
               <button
                 onClick={() => setIsDispatchModalOpen(false)}
-                className="p-1.5 text-[#848E9C] hover:text-white hover:bg-[#2B313A] rounded transition-colors"
+                className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#1C142E] rounded transition-colors"
                 title="Close"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Protocol Mode Switch (Binance Segmented Tabs) */}
-            <div className="flex items-center justify-between p-2 bg-[#121318] border border-[#2B313A]">
-              <span className="text-xs text-[#848E9C] font-semibold uppercase">PROTOCOL ENGINE:</span>
-              <div className="flex items-center gap-1 bg-[#1E2329] p-0.5 border border-[#2B313A]">
+            {/* Protocol Mode Switch (Dual-VM Segmented Tabs) */}
+            <div className="flex items-center justify-between p-2 bg-[#06040A] border border-[#1C142E]">
+              <span className="text-xs text-zinc-400 font-semibold uppercase tracking-wider">PROTOCOL ENGINE:</span>
+              <div className="flex items-center gap-1 bg-[#0E091B] p-0.5 border border-[#1C142E]">
                 <button
                   onClick={() => setWalletMode('substrate')}
                   className={`px-3 py-1 text-xs font-semibold cursor-pointer transition-colors ${
                     walletMode === 'substrate'
-                      ? 'bg-[#2B313A] text-white border border-[#363C4E]'
-                      : 'text-[#848E9C] hover:text-white'
+                      ? 'bg-[#1C142E] text-white border border-[#E6007A]/60 font-bold shadow-[0_0_10px_rgba(230,0,122,0.2)]'
+                      : 'text-zinc-400 hover:text-white'
                   }`}
                 >
                   Substrate Native (SS58: 42)
@@ -806,8 +806,8 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                   onClick={() => setWalletMode('evm')}
                   className={`px-3 py-1 text-xs font-semibold cursor-pointer transition-colors ${
                     walletMode === 'evm'
-                      ? 'bg-[#2B313A] text-white border border-[#363C4E]'
-                      : 'text-[#848E9C] hover:text-white'
+                      ? 'bg-[#1C142E] text-white border border-[#6366F1]/60 font-bold shadow-[0_0_10px_rgba(99,102,241,0.2)]'
+                      : 'text-zinc-400 hover:text-white'
                   }`}
                 >
                   MetaMask EVM (Revive Precompile)
@@ -816,16 +816,16 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
             </div>
 
             {/* Order Parameters (Signer & Bond Allocation) */}
-            <div className="p-3 bg-[#1E2329] border border-[#2B313A] space-y-3">
+            <div className="p-3 bg-[#0E091B] border border-[#1C142E] space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <label className="text-[10px] text-[#848E9C] block font-semibold uppercase mb-1">
+                  <label className="text-[10px] text-[#C084FC] block font-semibold uppercase mb-1">
                     SIGNER ACCOUNT (PORTALDOT V3.0)
                   </label>
                   <select
                     value={signerKey}
                     onChange={(e) => setSignerKey(e.target.value)}
-                    className="w-full bg-[#121318] border border-[#2B313A] text-white px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-[#F0B90B]"
+                    className="w-full bg-[#06040A] border border-[#1C142E] text-white px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-[#8B5CF6]"
                   >
                     <option value="//Alice">//Alice (Portaldot Testnet Funded Keypair · 5GrwvaEF...)</option>
                     <option value="//Bob">//Bob (Backup Testnet Keypair · 5FHneW46...)</option>
@@ -834,7 +834,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                 </div>
 
                 <div>
-                  <label className="text-[10px] text-[#848E9C] block font-semibold uppercase mb-1">
+                  <label className="text-[10px] text-[#C084FC] block font-semibold uppercase mb-1">
                     BOND CAPITAL ALLOCATION (POT)
                   </label>
                   <div className="flex items-center gap-1.5">
@@ -844,55 +844,55 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                       step="1"
                       value={bondAmountPot}
                       onChange={(e) => setBondAmountPot(Math.max(1, parseFloat(e.target.value) || 1))}
-                      className="w-full bg-[#121318] border border-[#2B313A] text-white px-2.5 py-1.5 text-xs font-mono tabular-nums focus:outline-none focus:border-[#F0B90B]"
+                      className="w-full bg-[#06040A] border border-[#1C142E] text-white px-2.5 py-1.5 text-xs font-mono tabular-nums focus:outline-none focus:border-[#8B5CF6]"
                     />
-                    <span className="text-xs text-[#848E9C] font-semibold px-2 py-1 bg-[#121318] border border-[#2B313A]">POT</span>
+                    <span className="text-xs text-zinc-400 font-semibold px-2 py-1 bg-[#06040A] border border-[#1C142E]">POT</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Institutional Order Summary Table */}
-            <div className="bg-[#121318] border border-[#2B313A] divide-y divide-[#2B313A] text-xs">
+            <div className="bg-[#06040A] border border-[#1C142E] divide-y divide-[#1C142E] text-xs">
               <div className="flex items-center justify-between p-2.5">
-                <span className="text-[#848E9C]">Nomination Targets</span>
-                <span className="text-[#0ECB81] font-semibold tabular-nums">
+                <span className="text-zinc-400">Nomination Targets</span>
+                <span className="text-[#00FF9D] font-semibold tabular-nums">
                   {selectedTargets.length} Validators Selected
                 </span>
               </div>
               <div className="flex items-center justify-between p-2.5">
-                <span className="text-[#848E9C]">Capital per Validator</span>
+                <span className="text-zinc-400">Capital per Validator</span>
                 <span className="text-white font-semibold tabular-nums">
                   {selectedTargets.length > 0 ? (stakeInput / selectedTargets.length).toFixed(2) : 0} POT
                 </span>
               </div>
               <div className="flex items-center justify-between p-2.5">
-                <span className="text-[#848E9C]">Projected Annual Yield</span>
-                <span className="text-[#0ECB81] font-bold tabular-nums">
+                <span className="text-zinc-400">Projected Annual Yield</span>
+                <span className="text-[#00FF9D] font-bold tabular-nums">
                   +{compoundReturnPot.toLocaleString()} POT ({data.auto_compounded_apy}% APY)
                 </span>
               </div>
               <div className="flex items-center justify-between p-2.5">
-                <span className="text-[#848E9C]">Pre-Flight Verification</span>
-                <span className="text-[#0ECB81] font-semibold">
+                <span className="text-zinc-400">Pre-Flight Verification</span>
+                <span className="text-[#00FF9D] font-semibold">
                   PASSED (Election Window: Off | Gas Ratio: &gt; 3x)
                 </span>
               </div>
             </div>
 
             {/* Extrinsic Payload Preview */}
-            <div className="p-2.5 bg-[#121318] border border-[#2B313A] space-y-1">
-              <div className="flex items-center justify-between text-[10px] text-[#848E9C]">
-                <span className="font-semibold uppercase">RAW EXTRINSIC CALL PAYLOAD</span>
+            <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
+              <div className="flex items-center justify-between text-[10px] text-zinc-400">
+                <span className="font-semibold uppercase tracking-wider">RAW EXTRINSIC CALL PAYLOAD</span>
                 <button
                   onClick={() => copyToClipboard(`staking.nominate(targets=${JSON.stringify(selectedTargets)})`, 'payload')}
-                  className="flex items-center gap-1 text-[#0ECB81] hover:text-emerald-300 font-semibold cursor-pointer"
+                  className="flex items-center gap-1 text-[#00FF9D] hover:text-[#00FF9D]/80 font-semibold cursor-pointer"
                 >
                   <Copy className="w-3 h-3" />
                   <span>{copiedKey === 'payload' ? 'COPIED' : 'COPY CALL'}</span>
                 </button>
               </div>
-              <div className="p-2 bg-[#0B0E11] border border-[#202630] text-[11px] text-[#0ECB81] break-all font-mono">
+              <div className="p-2 bg-[#08050F] border border-[#1C142E] text-[11px] text-[#C084FC] break-all font-mono">
                 {walletMode === 'substrate' ? (
                   <>staking.nominate(targets=[{selectedTargets.slice(0, 3).join(', ')}... ({selectedTargets.length} total)])</>
                 ) : (
@@ -903,38 +903,38 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
 
             {/* Error Banner */}
             {dispatchError && (
-              <div className="p-3 bg-[#2B1B20] border border-[#F6465D]/50 text-xs text-[#F6465D] space-y-1 animate-in fade-in">
+              <div className="p-3 bg-rose-950/30 border border-rose-500/40 text-xs text-rose-300 space-y-1 animate-in fade-in">
                 <div className="flex items-center gap-2 font-bold">
-                  <AlertCircle className="w-4 h-4 text-[#F6465D]" />
+                  <AlertCircle className="w-4 h-4 text-rose-400" />
                   <span>TRANSACTION DISPATCH REJECTED:</span>
                 </div>
-                <p className="text-[11px] font-mono break-all text-[#F6465D]/90">
+                <p className="text-[11px] font-mono break-all text-rose-300/90">
                   {dispatchError}
                 </p>
               </div>
             )}
 
-            {/* Real On-Chain Receipt (Binance Staking Confirmation Card) */}
+            {/* Real On-Chain Receipt */}
             {broadcastStatus === 'success' && onchainReceipt && (
-              <div className="p-3.5 bg-[#0B1E17] border border-[#0ECB81]/60 text-xs text-[#EAECEF] space-y-2.5 animate-in fade-in">
+              <div className="p-3.5 bg-[#07130F] border border-[#00FF9D]/40 text-xs text-zinc-200 space-y-2.5 animate-in fade-in">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 font-bold text-[#0ECB81]">
-                    <CheckCircle2 className="w-4 h-4 text-[#0ECB81]" />
+                  <div className="flex items-center gap-2 font-bold text-[#00FF9D]">
+                    <CheckCircle2 className="w-4 h-4 text-[#00FF9D]" />
                     <span>EXTRINSIC INCLUDED &amp; CONFIRMED ON-CHAIN</span>
                   </div>
-                  <span className="text-[10px] bg-[#0ECB81]/15 text-[#0ECB81] border border-[#0ECB81]/30 px-2 py-0.5 font-semibold">
+                  <span className="text-[10px] bg-[#00FF9D]/15 text-[#00FF9D] border border-[#00FF9D]/30 px-2 py-0.5 font-semibold">
                     ERA {onchainReceipt.next_active_era || 'N+1'}
                   </span>
                 </div>
 
-                <div className="bg-[#121318] border border-[#2B313A] divide-y divide-[#2B313A] text-[11px] font-mono">
+                <div className="bg-[#06040A] border border-[#1C142E] divide-y divide-[#1C142E] text-[11px] font-mono">
                   <div className="flex items-center justify-between p-2">
-                    <span className="text-[#848E9C]">Transaction Hash</span>
+                    <span className="text-zinc-400">Transaction Hash</span>
                     <div className="flex items-center gap-1.5">
-                      <code className="text-[#0ECB81] break-all">{onchainReceipt.tx_hash}</code>
+                      <code className="text-[#00FF9D] break-all">{onchainReceipt.tx_hash}</code>
                       <button
                         onClick={() => copyToClipboard(onchainReceipt.tx_hash, 'tx')}
-                        className="text-[#848E9C] hover:text-white cursor-pointer"
+                        className="text-zinc-400 hover:text-white cursor-pointer"
                         title="Copy Tx Hash"
                       >
                         <Copy className="w-3 h-3" />
@@ -944,12 +944,12 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
 
                   {onchainReceipt.block_hash && (
                     <div className="flex items-center justify-between p-2">
-                      <span className="text-[#848E9C]">Block Hash</span>
+                      <span className="text-zinc-400">Block Hash</span>
                       <div className="flex items-center gap-1.5">
-                        <code className="text-[#EAECEF] break-all">{onchainReceipt.block_hash}</code>
+                        <code className="text-zinc-200 break-all">{onchainReceipt.block_hash}</code>
                         <button
                           onClick={() => copyToClipboard(onchainReceipt.block_hash || '', 'blk')}
-                          className="text-[#848E9C] hover:text-white cursor-pointer"
+                          className="text-zinc-400 hover:text-white cursor-pointer"
                           title="Copy Block Hash"
                         >
                           <Copy className="w-3 h-3" />
@@ -959,18 +959,18 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                   )}
 
                   <div className="flex items-center justify-between p-2">
-                    <span className="text-[#848E9C]">Signer Account</span>
+                    <span className="text-zinc-400">Signer Account</span>
                     <span className="text-white font-medium">{onchainReceipt.signer_address}</span>
                   </div>
 
                   {onchainReceipt.events && onchainReceipt.events.length > 0 && (
                     <div className="p-2 space-y-1">
-                      <span className="text-[#848E9C] block text-[10px] uppercase font-semibold">On-Chain Triggered Events</span>
+                      <span className="text-zinc-400 block text-[10px] uppercase font-semibold">On-Chain Triggered Events</span>
                       <div className="flex flex-wrap gap-1">
                         {onchainReceipt.events.map((ev, i) => (
                           <span
                             key={i}
-                            className="text-[10px] bg-[#0ECB81]/10 text-[#0ECB81] border border-[#0ECB81]/30 px-1.5 py-0.5 font-medium"
+                            className="text-[10px] bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 px-1.5 py-0.5 font-medium"
                           >
                             {ev}
                           </span>
@@ -980,26 +980,26 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                   )}
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] text-[#848E9C]">
+                <div className="flex items-center justify-between text-[10px] text-zinc-400">
                   <span>Action: <strong className="text-white font-semibold">{onchainReceipt.bonded_action || 'STAKING_NOMINATE'}</strong></span>
-                  <span>Network: <strong className="text-[#0ECB81] font-semibold">{onchainReceipt.network || 'Portaldot Network V3.0'}</strong></span>
+                  <span>Network: <strong className="text-[#00FF9D] font-semibold">{onchainReceipt.network || 'Portaldot Network V3.0'}</strong></span>
                 </div>
               </div>
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center justify-between pt-2 border-t border-[#2B313A] gap-2">
+            <div className="flex flex-wrap items-center justify-between pt-3 border-t border-[#1C142E] gap-2">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsDispatchModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-[#848E9C] hover:text-white cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white cursor-pointer"
                 >
                   Close
                 </button>
                 <button
                   onClick={handleBondExtra}
                   disabled={isBondingExtra}
-                  className="px-3.5 py-2 text-xs font-semibold bg-[#2B313A] hover:bg-[#363C4E] text-[#EAECEF] border border-[#363C4E] cursor-pointer transition-colors disabled:opacity-50"
+                  className="px-3.5 py-2 text-xs font-semibold bg-[#120B20] hover:bg-[#1C142E] text-zinc-200 border border-[#2E1F4A] hover:border-[#8B5CF6]/50 cursor-pointer transition-colors disabled:opacity-50"
                   title="Execute Staking.bond_extra directly on-chain"
                 >
                   {isBondingExtra ? 'BONDING ON-CHAIN...' : '⚡ TEST AUTO-COMPOUND (BOND EXTRA)'}
@@ -1009,7 +1009,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               <button
                 onClick={handleBroadcast}
                 disabled={broadcastStatus === 'broadcasting' || selectedTargets.length === 0}
-                className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold bg-[#0ECB81] hover:bg-[#0EB076] active:bg-[#0CA06B] text-black cursor-pointer transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold bg-[#00FF9D] hover:bg-[#00E58D] active:bg-[#00CC7D] text-black cursor-pointer transition-all shadow-[0_0_20px_rgba(0,255,157,0.25)] disabled:opacity-50"
               >
                 <Send className={`w-3.5 h-3.5 ${broadcastStatus === 'broadcasting' ? 'animate-spin' : ''}`} />
                 <span>

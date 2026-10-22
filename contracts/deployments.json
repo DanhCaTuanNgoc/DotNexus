@@ -1,0 +1,7 @@
+{
+  "network": "Portaldot Network V3.0 Testnet",
+  "chain_id": 420420777,
+  "evm_rpc": "https://test-evm-rpc-v3.portaldot.dev",
+  "deployer_address": "0xC5216e73898089269fdd377a1D4bD626b114E166",
+  "deployments": []
+}

@@ -2,6 +2,16 @@
   "network": "Portaldot Network V3.0 Testnet",
   "chain_id": 420420777,
   "evm_rpc": "https://test-evm-rpc-v3.portaldot.dev",
+  "substrate_ws": "wss://test-node-v3.portaldot.dev",
   "deployer_address": "0xC5216e73898089269fdd377a1D4bD626b114E166",
-  "deployments": []
+  "deployments": [
+    {
+      "name": "SlashGuardLeaseRegistry",
+      "contract_address": "0xba114d21CC41a30880CcfA53673B743316387355",
+      "tx_hash": "0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f",
+      "block_number": 147264,
+      "status": 1,
+      "gas_used": 4900497561615430
+    }
+  ]
 }

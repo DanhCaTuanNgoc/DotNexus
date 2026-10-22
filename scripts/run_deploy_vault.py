@@ -47,7 +47,7 @@ tx = contract.constructor(deployer.address).build_transaction({
 
 est_gas = w3.eth.estimate_gas(tx)
 print(f"Estimated Gas: {est_gas}")
-tx["gas"] = int(est_gas * 1.05)
+tx["gas"] = est_gas
 cost = tx["gas"] * gas_price
 print(f"Max Cost: {cost} wei ({w3.from_wei(cost, 'ether')} POT)")
 

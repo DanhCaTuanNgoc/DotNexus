@@ -12,6 +12,14 @@
       "block_number": 147264,
       "status": 1,
       "gas_used": 4900497561615430
+    },
+    {
+      "name": "DotNexusStakingVault",
+      "contract_address": "0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A",
+      "tx_hash": "0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb",
+      "block_number": 147358,
+      "status": 1,
+      "gas_used": 7671367968389514
     }
   ]
 }

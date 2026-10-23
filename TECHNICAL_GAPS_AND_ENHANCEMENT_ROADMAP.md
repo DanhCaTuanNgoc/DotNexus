@@ -1,187 +1,184 @@
 # DotNexus — Technical Gaps & Enhancement Roadmap (Pre-Final Code Freeze)
 
-> **Document Type:** Engineering Technical Specification & Gap Remediation Blueprint  
+> **Document Type:** Comprehensive Technical Specification, Audit Remediation & Mainnet Readiness Blueprint  
 > **Track:** Node Operations & Tooling — Portaldot Hacker House 2026  
 > **Target Network:** Portaldot Network V3.0 (Substrate WASM + EVM `pallet-revive`, SS58: 42, Decimals: 14)  
-> **Reference Timeline:** Oct 24 (Check-in) $\rightarrow$ Nov 6, 2026 (Final Submission & Code Freeze)  
+> **Reference Timeline:** Oct 24 (Week 2 Check-in) $\rightarrow$ Nov 6, 2026 (Final Submission & Code Freeze)  
+> **Companion Document:** [`NODE_INFRASTRUCTURE_AUDIT_REPORT.md`](NODE_INFRASTRUCTURE_AUDIT_REPORT.md)  
 
 ---
 
-## 🌟 Executive Summary
+## 🌟 1. Executive Summary & Architectural Positioning
 
-Tài liệu này tổng hợp toàn bộ các **khoảng trống kỹ thuật (Technical Gaps)**, **nợ kỹ thuật (Technical Debts)** và **hạng mục nâng cấp bắt buộc** của 4 trụ cột cốt lõi trong dự án **DotNexus**.
+Tài liệu này là bản đặc tả kỹ thuật toàn diện nhằm hợp nhất hai luồng công việc trọng tâm trước hạn chót **Final Submission (November 6, 2026)**:
+1. **Khắc phục triệt để 7 lỗ hổng an ninh hạ tầng** được phát hiện trong [`NODE_INFRASTRUCTURE_AUDIT_REPORT.md`](NODE_INFRASTRUCTURE_AUDIT_REPORT.md) (`SEC-01` đến `CONC-01`).
+2. **Nâng cấp toàn diện 4 trụ cột nghiệp vụ** (Node Monitoring, Automated Staking, Data Visualization, Network Security) để đáp ứng trọn vẹn tiêu chuẩn của **Chương trình Node Chất lượng Cao Toàn cầu (Global High-Quality Node Program)** của Portaldot Network V3.0.
 
-Mục tiêu tối thượng là chuyển đổi DotNexus từ một **Bản mẫu khả thi (MVP / Working Prototype đạt chuẩn Week 2 Check-in)** thành một **Bộ công cụ vận hành và bảo mật chuẩn công nghiệp (Enterprise Grade Operations & Maintenance Toolset)** phục vụ trực tiếp cho **Chương trình Node Chất lượng Cao Toàn cầu (Global High-Quality Node Program)** của Portaldot Network V3.0.
-
----
-
-## 📊 Ma Trận Tổng Hợp Khoảng Trống Kỹ Thuật (4 Pillars Gap Matrix)
-
-| Trụ cột kỹ thuật | Hiện trạng (Đã hoàn thành Week 2) | Khoảng trống kỹ thuật (Technical Gaps) | Giải pháp kiến trúc kỹ thuật | Mức độ ưu tiên | File chịu trách nhiệm |
-|---|---|---|---|:---:|---|
-| **1. Node Monitoring** | Telemetry song song `:9944` & `:8545`, phân lập 3 tầng desync, mempool segregation, 14 decimals. | **Chưa có Host OS Metrics:** Chưa giám sát CPU, RAM, Disk I/O, tốc độ phình to cơ sở dữ liệu RocksDB/ParityDB của máy chủ. | Tích hợp module `psutil` và file system watcher vào daemon nền Python, đẩy metrics qua WebSocket stream. | 🔥 **CAO (P1)** | `engine/dual_tracker.py`<br/>`front-end/src/views/DualEngineView.tsx` |
-| **2. Automated Staking** | Sequential Phragmén mô phỏng, storage map `ErasStakersOverview`, 3 chốt chặn an toàn, Staking Vault contract. | **Chưa tự động hóa chu kỳ 24/7:** Re-nominate và Compound vẫn cần kích hoạt thủ công qua UI/API/DAG, chưa có Keeper Bot tự trị theo Era. | Xây dựng `StakingKeeperDaemon` tự động lắng nghe sự kiện sang Era mới trên Substrate WS để tự động tính toán và re-stake. | 🔥 **CAO (P1)** | `engine/npos_optimizer.py`<br/>`engine/server.py` |
-| **3. Data Visualization** | Giao diện HUD Dark Obsidian, Three.js 3D Mesh, D3 Geo Map, Interactive DAG Canvas kéo thả. | **Chưa có Prometheus Exporter & Grafana:** Thiếu endpoint chuẩn `/metrics` và file JSON dashboard mẫu cho các validator doanh nghiệp. | Xây dựng Prometheus metrics generator chuẩn OpenMetrics và xuất bản file `dotnexus-grafana-template.json`. | 🟡 **TRUNG BÌNH (P2)** | `engine/server.py`<br/>`dashboards/grafana-dashboard.json` |
-| **4. Network Security** | Dead Man's Switch ($10\text{s} < 12\text{s} < 15\text{s}$), Lease Registry contract on-chain, RPC Shield payload $<256\text{KB}$, batch $\le 20$. | **Peer Topology còn phụ thuộc fallback; chưa có script Firewall eBPF/iptables bảo vệ cổng Libp2p `30333`:** RPC Shield mới bảo vệ cổng HTTP/WS. | Bóc tách 100% live peers từ RPC `system_peers` kết hợp GeoIP offline; cung cấp script Linux hardening cho cổng `30333`. | 🟡 **TRUNG BÌNH (P2)** | `engine/rpc_shield.py`<br/>`scripts/harden_node_firewall.sh` |
+Mục tiêu chiến lược là đưa DotNexus từ một **Bản mẫu hoạt động kiểm chứng (Working Prototype đạt chuẩn Week 2 Check-in)** thành một **Hệ thống Kiểm soát & Tác chiến Hạ tầng Cấp Doanh nghiệp (Enterprise-Grade Operational Control Plane)** có độ tin cậy $99.99\%$ và khả năng chống Slashing bằng toán học.
 
 ---
 
-## 🔬 Chi Tiết Kỹ Thuật & Kế Hoạch Khắc Phục Từng Trụ Cột
+## 🛡️ 2. Bảng Ma Trận Khắc Phục 7 Lỗ Hổng Kiểm Toán (Audit Findings Remediation)
+
+Dưới đây là phương án xử lý chi tiết cho 7 vấn đề cốt tử được phát hiện từ đợt kiểm toán hạ tầng:
+
+| Mã ID | Lỗ hổng kiểm toán | Mức độ | Hiện trạng tại Week 2 | Phương án kỹ thuật vá triệt để cho Final (Nov 6) | File chịu trách nhiệm |
+|:---:|---|:---:|---|---|---|
+| **SEC-01** | Bypass Xác thực Gateway API | 🔴 **CRITICAL** | `check_auth` fallback `return True` khi thiếu header token để hỗ trợ dev cục bộ. | Thiết lập **Environment-Aware Auth Guard**: Khi `DOTNEXUS_ENV=production`, bắt buộc header `X-DotNexus-Auth` hoặc Bearer Token với thuật toán so sánh hằng số thời gian `secrets.compare_digest`. Chỉ cho phép fallback khi cấu hình rõ `DOTNEXUS_ENV=development`. | `engine/server.py`<br/>`engine/config.py` |
+| **NODE-01** | Ghost Keystore Fencing (Double-Signing) | 🔴 **CRITICAL** | Đã có contract [`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol) on-chain, nhưng tầng OS chỉ đổi cờ trong RAM và ghi log. | Bổ sung **OS-Level Fencing Subprocess**: Khi Dead Man's Switch chạm mốc 10.0s, daemon kích hoạt lệnh OS hạ thổ: `chmod 000` trên thư mục keystore của validator và gửi tín hiệu `SIGTERM` / `systemctl stop portaldot-node` để chắc chắn node cũ câm lặng trước khi Standby nhận lease ở giây thứ 15. | `engine/slash_guard.py`<br/>`scripts/fence_node.sh` |
+| **KEY-01** | Fallback Session Keys ngẫu nhiên | 🔴 **CRITICAL** | Khi RPC `author_rotateKeys` fail, code tự sinh 128 bytes hex ngẫu nhiên (`secrets.token_hex(32)`). | **Tuyệt đối cấm sinh key giả:** Nếu `author_rotateKeys` không phản hồi, hàm phải ném ra biệt lệ `RPCKeyGenerationError` và trả về mã lỗi HTTP 503 với thông báo từ chối ký; cấm không cho phép đẩy public key rác lên chuỗi làm node bị Unresponsiveness Slash. | `engine/slash_guard.py`<br/>`engine/server.py` |
+| **PROXY-01**| RPC Shield chưa phải Inline Reverse Proxy | 🟠 **HIGH** | Thuật toán kiểm tra (256KB, batch $\le 20$, block range $\le 2000$) chạy độc lập, chưa làm gateway chuyển tiếp traffic thật. | Triển khai **Asynchronous Aiohttp Reverse Proxy Gateway** trung chuyển traffic thật từ client: Nghe tại cổng `:8546` (EVM) và `:9945` (Substrate WS), kiểm tra an ninh trong $< 1\text{ms}$ rồi mới chuyển tiếp (forward) vào node thật `:8545`/`:9944`. | `engine/rpc_shield.py`<br/>`engine/proxy_gateway.py` |
+| **SYNC-01** | Silent Mock Data Fallback | 🟠 **HIGH** | Tự động cộng dồn số block ảo khi node rớt mạng để giữ giao diện UI không bị vỡ. | Bổ sung chế độ **Strict Real-Time Indicator**: Khi mất kết nối thật, dashboard hiển thị banner cảnh báo đỏ rực `NODE_OFFLINE_CIRCUIT_OPEN` và đóng băng số khối, ngừng ngay việc sinh block ảo ru ngủ người vận hành. | `engine/dual_tracker.py`<br/>`front-end/src/views/DualEngineView.tsx` |
+| **NPOS-01** | Phragmén mang tính Heuristic Greedy | 🟡 **MEDIUM** | Mới là greedy score, đã đọc Storage Substrate thật và deploy Vault contract thật, nhưng chưa tính Voter Load Vector. | Cài đặt thuật toán **Sequential Phragmén chuẩn học thuật**: Duy trì vector tải trọng cử tri (Voter Load Vector $L_v$), cập nhật tải trọng qua từng vòng lặp chọn ứng viên cho đến khi đủ 16 validator có độ phân tán rủi ro tối ưu nhất. | `engine/npos_optimizer.py`<br/>`tests/test_engine.py` |
+| **CONC-01** | AsyncNonceManager & Kahn's Tuần Tự | 🟡 **MEDIUM** | `get_next_nonce` thiếu lock bất đồng bộ; các node trong cùng Kahn tier chạy vòng lặp `for` tuần tự. | 1. Sửa `AsyncNonceManager` thành `async def get_next_nonce(...)` với `async with self._locks[account]:`.<br/>2. Chuyển đổi duyệt Kahn Tiers sang thực thi song song bất đồng bộ: `await asyncio.gather(*(self.execute_node(n) for n in tier))`. | `engine/npos_optimizer.py`<br/>`engine/dag_engine.py` |
 
 ---
 
-### 1️⃣ Trụ cột 1: Node Monitoring (Giám sát Node Vật Lý & Máy Ảo)
-
-#### 🛑 Vấn đề hiện tại:
-Engine hiện tại (`engine/dual_tracker.py`) phản ánh cực tốt trạng thái **Logic Chuỗi (Protocol Telemetry)**: số khối, mempool, độ lệch thời gian, phí gas. Tuy nhiên, một máy chủ Validator trong chương trình High-Quality Node thường gặp sự cố từ **tầng hạ tầng vật lý** trước khi chuỗi bị ảnh hưởng:
-* RAM bị rò rỉ (memory leak) do node cache dữ liệu WASM.
-* Đĩa cứng SSD/NVMe bị đầy do dữ liệu khối RocksDB tăng nhanh (~1.5 GB/tuần).
-* Nghẽn Disk I/O IOPS khiến node không kịp ghi dữ liệu trạng thái khối mới, dẫn đến rớt block.
-
-#### 🛠️ Giải pháp kỹ thuật nâng cấp:
-1. **Host Resource Telemetry Collector:**
-   * Bổ sung module thu thập định kỳ (chu kỳ 3 giây) sử dụng `psutil`:
-     ```python
-     # Logic bổ sung trong engine/dual_tracker.py
-     import psutil
-     from pathlib import Path
-
-     def get_host_hardware_metrics(db_path: str = "/var/lib/portaldot/chains/portaldot_v3/db/full") -> dict:
-         disk_usage = psutil.disk_usage("/")
-         db_size_bytes = sum(f.stat().st_size for f in Path(db_path).glob("**/*") if f.is_file()) if Path(db_path).exists() else 0
-         return {
-             "cpu_percent": psutil.cpu_percent(interval=None),
-             "ram_used_percent": psutil.virtual_memory().percent,
-             "ram_available_mb": psutil.virtual_memory().available // (1024 * 1024),
-             "disk_used_percent": disk_usage.percent,
-             "disk_free_gb": disk_usage.free // (1024 * 1024 * 1024),
-             "db_size_mb": db_size_bytes // (1024 * 1024),
-             "io_counters": psutil.disk_io_counters()._asdict() if psutil.disk_io_counters() else {}
-         }
-     ```
-2. **Causal Lag Index (CLI) 2.0:**
-   * Tích hợp thêm trọng số biến động của Disk IOPS vào công thức phát hiện nghẽn `fc-db`:
-     $$\text{CLI} = \alpha \cdot \frac{|B_{\text{sub}} - B_{\text{evm}}|}{B_{\text{threshold}}} + \beta \cdot \frac{\text{DiskIO}_{\text{latency}}}{\text{IO}_{\text{max}}} + \gamma \cdot \text{MempoolSaturation}$$
+## 🔬 3. Chi Tiết Kế Hoạch Nâng Cấp 4 Trụ Cột Nghiệp Vụ
 
 ---
 
-### 2️⃣ Trụ cột 2: Automated Staking (Tối ưu & Tự Động Hóa Staking)
+### 1️⃣ Trụ cột 1: Node Monitoring (Giám sát Vật lý & Máy ảo Dual-VM)
 
-#### 🛑 Vấn đề hiện tại:
-* Thuật toán Sequential Phragmén và Pre-Flight Checks (`CurrentPhase == 'Off'`, lợi nhuận $> 3 \times \text{Phí}`) chạy rất mượt nhưng chỉ được thực thi khi có sự kiện can thiệp từ người dùng (nhấn nút trên UI hoặc gọi lệnh CLI `python -m engine.cli npos --top16`).
-* Một hệ thống quản lý staking chuẩn doanh nghiệp cho Validator cần phải **tự động thức giấc (Autonomous Re-Nomination Keeper)** mỗi khi Runtime Substrate phát sinh sự kiện chuyển kỷ nguyên Era (mỗi 24 giờ trên mainnet hoặc mỗi 1-2 giờ trên testnet).
+#### A. Giám sát Tài nguyên Phần cứng Vật lý (Host OS Telemetry)
+* **Mục tiêu:** Phát hiện nguy cơ sập node từ tầng phần cứng (RAM rò rỉ, NVMe đầy, CPU tăng đột biến) trước khi mạng blockchain ghi nhận rớt block.
+* **Đặc tả Module:** Tạo class `HostHardwareMonitor` sử dụng `psutil` đo lường định kỳ mỗi 3.0s:
+  * **CPU Utilization:** Đo `%` CPU tổng thể và phân tách riêng tiến trình binary validator (`portaldot`).
+  * **RAM Saturation:** Ngưỡng cảnh báo vàng khi RAM $> 80\%$, ngưỡng đỏ khi RAM $> 92\%$ (nguy cơ bị Linux OOM-Killer dập tắt).
+  * **NVMe Storage Growth:** Giám sát thư mục RocksDB/ParityDB (`/chains/portaldot_v3/db/full`), tính toán tốc độ tăng trưởng dung lượng ($\text{GB/ngày}$) và ước tính số ngày còn lại trước khi đầy ổ đĩa.
+  * **Disk IOPS & Latency:** Đo lường thời gian đáp ứng đọc/ghi đĩa; cảnh báo khi độ trễ ghi đĩa $> 50\text{ms}$ (nguyên nhân hàng đầu gây trễ block Substrate).
 
-#### 🛠️ Giải pháp kỹ thuật nâng cấp:
-1. **Headless Era-Triggered Staking Keeper (`engine/staking_keeper.py`):**
-   * Chạy một tiến trình nền bất đồng bộ (`asyncio`) đăng ký lắng nghe (subscription) storage `Staking.ActiveEra`:
-     ```python
-     async def watch_active_era_loop(substrate_client, optimizer, vault_contract):
-         last_known_era = None
-         while True:
-             current_era = await get_active_era(substrate_client)
-             if last_known_era is not None and current_era > last_known_era:
-                 logger.info(f"🚨 New Era Detected: {current_era}. Running Sequential Phragmén re-evaluation...")
-                 
-                 # 1. Kiểm tra cửa sổ bầu cử an toàn
-                 if optimizer.is_election_phase_off(substrate_client):
-                     # 2. Tính toán Top 16 tối ưu mới
-                     optimal_targets = optimizer.compute_optimal_top16()
-                     
-                     # 3. Tính toán chênh lệch APY so với Era trước
-                     if optimizer.is_profitable_to_renominate(optimal_targets):
-                         logger.info("Executing automated re-nomination transaction...")
-                         optimizer.dispatch_nomination_extrinsic(optimal_targets)
-                         
-             last_known_era = current_era
-             await asyncio.sleep(30)
-     ```
-2. **Unbonding Queue & Slashing Insurance Reserve Visualizer:**
-   * Thêm hàm truy vấn danh sách các khoản tiền đang trong thời gian mở khóa (Unbonding chunks qua `Staking.Ledger(controller)`).
-   * Hiển thị biểu đồ thanh đếm ngược số Era còn lại trước khi tiền về ví an toàn.
+#### B. Causal Lag Index (CLI) 2.0
+* Tích hợp thêm trọng số tài nguyên phần cứng vào công thức tính chỉ số lệch pha Dual-VM:
+
+$$
+\text{CLI} = 0.40 \cdot \frac{|B_{\text{sub}} - B_{\text{evm}}|}{B_{\text{max\_tol}}} + 0.30 \cdot \frac{\text{DiskWriteLatency}}{50\text{ms}} + 0.20 \cdot \frac{\text{EVM\_MempoolPending}}{\text{MempoolMax}} + 0.10 \cdot (1 - \frac{\text{Peers}}{20})
+$$
+
+Khi $\text{CLI} \ge 0.75$, hệ thống tự động kích hoạt chế độ **RPC Circuit Breaker** để bảo vệ cơ sở dữ liệu `fc-db`.
 
 ---
 
-### 3️⃣ Trụ cột 3: Node Data Visualization (Trực quan hóa Dữ liệu)
+### 2️⃣ Trụ cột 2: Automated Staking (Tự Động Hóa Vận Hành Staking)
 
-#### 🛑 Vấn đề hiện tại:
-* UI của DotNexus (`front-end`) được xây dựng xuất sắc với React 19 + Three.js, nhưng mang tính đóng (Standalone Web App).
-* Đối với các đơn vị vận hành chuyên nghiệp (như Blockdaemon, Figment, Allnodes tham gia High-Quality Node Program), họ có trung tâm điều hành NOC riêng chạy Grafana / Prometheus tập trung. Nếu DotNexus không xuất được dữ liệu sang Prometheus thì họ buộc phải mở thêm tab web riêng.
+#### A. Headless Era-Triggered Staking Keeper Daemon (`engine/staking_keeper.py`)
+* **Mục tiêu:** Tự động hóa $100\%$ quy trình tái ủy quyền (Re-nominate) và tự động cộng dồn lãi (Auto-Compound) mà không cần con người can thiệp.
+* **Quy trình hoạt động tự trị 24/7:**
+  1. Daemon nền duy trì kết nối WebSocket tới Substrate RPC `:9944`, đăng ký lắng nghe thay đổi storage `Staking.ActiveEra`.
+  2. Ngay khi block bắt đầu của Era mới được xác nhận:
+     * **Kiểm tra chốt an toàn 1 (Election Phase):** Gọi `ElectionProviderMultiPhase.CurrentPhase()`. Chỉ tiếp tục nếu trạng thái là `'Off'`.
+     * **Mô phỏng Phragmén:** Chạy giải thuật Sequential Phragmén lấy danh sách 16 Validator tối ưu nhất từ storage runtime thật.
+     * **Kiểm tra chốt an toàn 2 (Ngưỡng lợi nhuận):** So sánh với danh sách 16 Validator của Era trước. Chỉ tạo và ký giao dịch `staking.nominate` nếu:
+       $$
+       (\text{APY}_{\text{mới}} - \text{APY}_{\text{cũ}}) \times \text{BondedStake} > 3 \times \text{ExtrinsicFee}
+       $$
+     * **Ký & Gửi Extrinsic:** Sử dụng `AsyncNonceManager` cấp phát nonce chuẩn xác và gửi giao dịch lên chuỗi.
 
-#### 🛠️ Giải pháp kỹ thuật nâng cấp:
-1. **Chuẩn hóa Endpoint Prometheus (`/metrics`):**
-   * Nâng cấp `engine/server.py` xuất bản đầy đủ metrics chuẩn OpenMetrics:
-     ```text
-     # HELP dotnexus_substrate_block_height Current block height on Substrate WASM layer
-     # TYPE dotnexus_substrate_block_height gauge
-     dotnexus_substrate_block_height{chain="portaldot_v3"} 161450
-
-     # HELP dotnexus_evm_block_height Current block height on EVM pallet-revive
-     # TYPE dotnexus_evm_block_height gauge
-     dotnexus_evm_block_height{chain="portaldot_v3"} 161450
-
-     # HELP dotnexus_dual_vm_lag_blocks Block discrepancy between Substrate and EVM
-     # TYPE dotnexus_dual_vm_lag_blocks gauge
-     dotnexus_dual_vm_lag_blocks{chain="portaldot_v3"} 0
-
-     # HELP dotnexus_lease_ttl_seconds Remaining lease time for active signing authority
-     # TYPE dotnexus_lease_ttl_seconds gauge
-     dotnexus_lease_ttl_seconds{role="primary"} 11.2
-
-     # HELP dotnexus_rpc_shield_blocked_total Total abusive requests blocked by RPC shield
-     # TYPE dotnexus_rpc_shield_blocked_total counter
-     dotnexus_rpc_shield_blocked_total 42
-     ```
-2. **Phát hành file cấu hình mẫu Grafana (`dashboards/dotnexus-grafana-dashboard.json`):**
-   * Tạo sẵn 1 file JSON chứa 6 Panels biểu đồ dựng sẵn (Dual-VM Lag, Lease Countdown Gauge, Top 16 APY Radar, Mempool Segregation, RPC Shield Reject Rate). Node Operator chỉ cần 1 click là import thẳng vào Grafana có sẵn.
+#### B. Giám sát Hàng Đợi Mở Khóa Cọc (Unbonding Queue & Slashing Buffer)
+* Hiển thị danh sách các khoản tiền đang unbond theo dõi qua `Staking.Ledger`.
+* Trực quan hóa tiến trình đếm ngược thời gian mở khóa (thường là 28 Eras) và kiểm tra quỹ bảo hiểm rủi ro SLA ký quỹ trong hợp đồng [`DotNexusStakingVault.sol`](contracts/DotNexusStakingVault.sol).
 
 ---
 
-### 4️⃣ Trụ cột 4: Network Security Analysis Tools (Phân tích An ninh Mạng)
+### 3️⃣ Trụ cột 3: Node Data Visualization (Trực quan hóa Dữ liệu Chuẩn Doanh nghiệp)
 
-#### 🛑 Vấn đề hiện tại:
-* File [`engine/rpc_shield.py`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/engine/rpc_shield.py) đã thực hiện xuất sắc việc lọc các truy vấn HTTP JSON-RPC độc hại (như `eth_getLogs` trên diện rộng).
-* Tuy nhiên, các Validator trong mạng Substrate còn đối mặt với nguy cơ tấn công từ chối dịch vụ (DDoS) trực tiếp vào **cổng giao thức mạng ngang hàng Libp2p `30333`** (UDP/TCP SYN Flood, Eclipse Attack tập trung kết nối peer giả).
-* Danh sách P2P Topology hiện tại có cơ chế fallback dùng danh sách tĩnh khi chưa bắt tay được với node local.
+#### A. Prometheus Exporter Endpoint (`/metrics`)
+* **Mục tiêu:** Cho phép các trung tâm vận hành mạng (NOC) của các validator lớn scrape toàn bộ chỉ số DotNexus vào hệ sinh thái Prometheus / VictoriaMetrics sẵn có.
+* **Danh mục Metrics chuẩn hóa:**
+  * `dotnexus_substrate_block_height` (Gauge)
+  * `dotnexus_evm_block_height` (Gauge)
+  * `dotnexus_dual_vm_lag_blocks` (Gauge)
+  * `dotnexus_causal_lag_index` (Gauge: 0.0 - 1.0)
+  * `dotnexus_host_cpu_percent` (Gauge)
+  * `dotnexus_host_memory_used_percent` (Gauge)
+  * `dotnexus_host_disk_free_bytes` (Gauge)
+  * `dotnexus_lease_time_remaining_seconds` (Gauge)
+  * `dotnexus_active_fencing_epoch` (Counter)
+  * `dotnexus_rpc_shield_requests_total{status="allowed|blocked|throttled"}` (Counter)
+  * `dotnexus_npos_optimal_apy_percent` (Gauge)
 
-#### 🛠️ Giải pháp kỹ thuật nâng cấp:
-1. **100% Dynamic Peer Scraping & Sybil Cluster Detection:**
-   * Khi kết nối với node live, gọi trực tiếp lệnh RPC `system_peers`.
-   * Bóc tách các trường: `peerId`, `roles`, `bestNumber`, `bestHash`.
-   * Chạy giải thuật gom cụm (Clustering) theo dải mạng `/24` hoặc Autonomous System Number (ASN). Nếu phát hiện $> 40\%$ số lượng peer đến từ cùng 1 ASN $\rightarrow$ Cảnh báo nguy cơ **Sybil / Eclipse Attack**.
-2. **Kịch bản Linux Firewall Hardening Script (`scripts/harden_node_firewall.sh`):**
-   * Cung cấp một shell script tự động cấu hình `iptables` / `ufw` trên máy chủ validator:
-     * Cổng `:9944` và `:8545`: Chỉ lắng nghe nội bộ (`127.0.0.1`) hoặc đi qua reverse proxy của DotNexus.
-     * Cổng `30333` (Libp2p P2P): Áp dụng luật giới hạn tốc độ kết nối mới (Connection Rate Limit) để chống SYN Flood:
-       ```bash
-       iptables -A INPUT -p tcp --dport 30333 -m state --state NEW -m recent --set
-       iptables -A INPUT -p tcp --dport 30333 -m state --state NEW -m recent --update --seconds 1 --hitcount 20 -j DROP
-       ```
+#### B. Cung Cấp File Mẫu Grafana Dashboard (`dashboards/dotnexus-production-dashboard.json`)
+* Xây dựng sẵn 1 Dashboard Grafana tiêu chuẩn công nghiệp gồm:
+  * **Panel 1 (Dual-VM Sync Gauge):** Đồng hồ đo độ lệch pha khối Substrate vs EVM.
+  * **Panel 2 (Slashing Guard Lease Countdown):** Thanh tiến trình đếm ngược thời hạn Lease an toàn (12s TTL).
+  * **Panel 3 (RPC Traffic & Filter Throughput):** Biểu đồ miền thể hiện lưu lượng truy vấn và tỷ lệ các request bị chặn.
+  * **Panel 4 (Host Hardware Health):** 3 đồ thị nhiệt theo dõi CPU, RAM và Disk IOPS.
 
 ---
 
-## 📅 Lộ Trình Triển Khai Chi Tiết Từ Nay Đến Code Freeze (Nov 6)
+### 4️⃣ Trụ cột 4: Network Security Analysis Tools (Phân tích An ninh & Phòng Thủ)
+
+#### A. Inline Reverse Proxy Gateway Thực Tế (`engine/proxy_gateway.py`)
+* **Mục tiêu:** Chuyển đổi RPC Shield từ thư viện kiểm tra tĩnh thành một cổng Proxy trung chuyển giao thông mạng thực tế bảo vệ node.
+* **Cơ chế chuyển tiếp:**
+  ```text
+  [ Traffic Công Cộng / DApp ]
+                │ (Cổng :8546)
+                ▼
+  ┌─────────────────────────────────────────────────────────────────┐
+  │         DOTNEXUS ASYNC REVERSE PROXY GATEWAY (< 1ms)           │
+  │ • Kiểm tra kích thước gói tin: len(body) <= 256KB               │
+  │ • Giới hạn mảng Batch request: len(batch) <= 20                 │
+  │ • Phân tích eth_getLogs: Delta(toBlock - fromBlock) <= 2000     │
+  │ • Chặn namespace nguy hiểm: author_*, debug_*, state_getPairs   │
+  │ • Quản lý Token-Bucket IP Rate Limit (60 req/min)               │
+  └─────────────────┬───────────────────────────────────────────────┘
+                    │ (Nếu HỢP LỆ)
+                    ▼
+     [ Node Portaldot Nội Bộ (127.0.0.1:8545 / :9944) ]
+  ```
+
+#### B. Bóc Tách 100% Live Peers từ RPC `system_peers` & Phát Hiện Tấn Công Sybil
+* Thay thế hoàn toàn danh sách peer tĩnh:
+  * Gọi trực tiếp RPC `system_peers` để lấy danh sách node đang kết nối.
+  * Ánh xạ IP ra vị trí địa lý GeoIP bằng MaxMind GeoLite2 cục bộ (không phụ thuộc internet).
+  * **Thuật toán phát hiện Sybil / Eclipse:**
+    * Phân tích tỷ lệ phân bổ địa chỉ IP theo dải Subnet `/24` và theo mã vùng ASN nhà mạng.
+    * Nếu một tổ chức/ASN chiếm giữ $> 35\%$ tổng số kết nối ngang hàng của node $\rightarrow$ Kích hoạt cảnh báo mức độ **HIGH: POTENTIAL_ECLIPSE_ATTACK** và tự động bơm thêm các `reserved_peers` tin cậy vào node qua RPC `system_addReservedPeer`.
+
+#### C. Kịch Bản Gia Cố Tường Lửa Linux Node (`scripts/harden_node_firewall.sh`)
+* Cung cấp shell script tự động thiết lập luật `iptables` / `nftables` trên máy chủ:
+  * Khóa cổng `:9944` và `:8545`, chỉ cho phép `127.0.0.1` truy cập.
+  * Áp dụng luật giới hạn tần suất kết nối mới cho cổng Libp2p `30333` để triệt tiêu tấn công SYN Flood:
+    ```bash
+    iptables -A INPUT -p tcp --dport 30333 -m state --state NEW -m recent --set
+    iptables -A INPUT -p tcp --dport 30333 -m state --state NEW -m recent --update --seconds 1 --hitcount 20 -j DROP
+    ```
+
+---
+
+## 📅 4. Lộ Trình Triển Khai Thực Chiến (Implementation Timeline to Nov 6)
 
 ```mermaid
 gantt
-    title DotNexus Pre-Final Implementation Roadmap (Oct 24 - Nov 6)
+    title DotNexus Final Engineering Sprint (Oct 24 - Nov 6, 2026)
     dateFormat  YYYY-MM-DD
-    section Week 2 Check-in
-    Check-in DoraHacks Submission       :done,    des1, 2026-10-24, 2026-10-24
-    section Sprint 1: Hardening & Metrics
-    Integrate Host OS Metrics (psutil)  :active,  p1, 2026-10-25, 2026-10-28
-    Prometheus /metrics & Grafana JSON  :         p2, 2026-10-27, 2026-10-30
-    section Sprint 2: Autonomous Automation
-    Headless Era-Triggered Keeper Daemon:         p3, 2026-10-30, 2026-11-02
-    Dynamic system_peers Sybil Detector :         p4, 2026-11-01, 2026-11-04
-    section Final Submission
-    Full Integration Test (160+ Tests)  :         p5, 2026-11-04, 2026-11-05
-    Final Code Freeze & Demo Day Prep   :         p6, 2026-11-05, 2026-11-06
+    section Giai đoạn 1: Vá Lỗ Hổng Kiểm Toán
+    SEC-01 & NODE-01 (Auth + OS Fencing)   :active, a1, 2026-10-25, 2026-10-28
+    KEY-01 & SYNC-01 (Safe Key + Mock Cut) :        a2, 2026-10-27, 2026-10-29
+    CONC-01 (Async Lock + Kahn Concurrency):        a3, 2026-10-29, 2026-10-31
+    section Giai đoạn 2: Nâng Cấp 4 Trụ Cột
+    Host OS Telemetry Collector (psutil)   :        b1, 2026-10-28, 2026-10-31
+    Prometheus /metrics & Grafana Template :        b2, 2026-10-30, 2026-11-02
+    Headless Staking Keeper Daemon         :        b3, 2026-11-01, 2026-11-03
+    Inline Reverse Proxy Gateway           :        b4, 2026-11-02, 2026-11-04
+    Dynamic Peer Scraping & Sybil Detector :        b5, 2026-11-03, 2026-11-05
+    section Giai đoạn 3: Nghiệm Thu & Đóng Băng
+    Full System Chaos Fire Drill (160+ T)  :        c1, 2026-11-04, 2026-11-05
+    Final Code Freeze & Pitch Deck Video   :        c2, 2026-11-05, 2026-11-06
 ```
 
 ---
 
-## ✅ Tiêu Chuẩn Nghiệm Thu Kỹ Thuật (Acceptance Criteria)
+## ✅ 5. Tiêu Chuẩn Nghiệm Thu & Kiểm Thử Cuối Cùng (Acceptance Criteria)
 
-1. **Bộ test tự động:** Nâng số lượng bài test từ 147 tests hiện tại lên $\ge 160\text{ tests}$, bao phủ thêm module `psutil`, `StakingKeeperDaemon`, và bộ phân tích cụm peer Sybil.
-2. **Hiệu năng hệ thống:** Toàn bộ tiến trình thu thập chỉ số (Host + Dual-VM Telemetry) duy trì mức tiêu thụ CPU $< 2\%$ và RAM $< 80\text{ MB}$.
-3. **Zero-Downtime Verification:** Kịch bản kiểm thử chuyển giao dự phòng Standby Takeover duy trì tính đúng đắn tuyệt đối, đảm bảo $0\%$ xảy ra tình trạng ký đúp (Equivocation) trên Testnet V3.0.
+1. **Bộ Kiểm Thử Tự Động (Automated Test Suite):**
+   * Số lượng bài test tự động trong `tests/test_engine.py` tăng từ **147 tests lên $\ge 165$ tests**.
+   * Đạt tỷ lệ Pass $100\%$ bao phủ toàn bộ 7 bản vá lỗi và 4 tính năng nâng cấp.
+2. **Hiệu Năng & Độ Tiêu Hao Tài Nguyên:**
+   * Tầng Reverse Proxy Gateway có độ trễ chuyển tiếp trung bình $< 1.2\text{ms}$.
+   * Toàn bộ tiến trình daemon của DotNexus hoạt động chiếm dụng $< 2\%$ CPU và $< 85\text{ MB}$ RAM trên máy chủ Linux Ubuntu 22.04 LTS.
+3. **Bằng Chứng Chống Double-Signing Tuyệt Đối:**
+   * Diễn tập kịch bản rút dây mạng bất đối xứng (Split-Brain Simulation): Chứng minh node Primary tự ngắt kết nối keystore tại $t=10\text{s}$, node Standby tiếp quản lease on-chain tại $t=15\text{s}$ trên Portaldot V3 Testnet mà **$0\%$ phát sinh block trùng lặp (Equivocation Free)**.
+4. **Sẵn Sàng Cho Portaldot Mainnet V3.0:**
+   * Cả 2 hợp đồng [`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol) và [`DotNexusStakingVault.sol`](contracts/DotNexusStakingVault.sol) đạt $100\%$ tiêu chuẩn tương thích `pallet-revive`, dung lượng bytecode tối ưu hóa tiết kiệm phí lưu trữ Storage Deposit (~0.08 POT/byte).

@@ -181,4 +181,49 @@ Projects that do not win prizes but show strong execution, clear product directi
 Support resources will be unlocked based on project progress, product readiness, on-chain activity, community growth, and milestone review. Application details will be announced after the Hacker House.
 
 Official Discord
-https://discord.gg/portaldot
+https://discord.gg/portaldot 
+
+
+PORTALDOT HACKER HOUSE 2026 — WEEK 2 CHECK-IN**
+Attention, Hacker House builders!
+
+Submission Deadline: October 24, 2026, 12:00 UTC (20:00 UTC+8)
+Submit via DoraHacks: https://dorahacks.io/hackathon/2362/detail
+
+REQUIREMENTS
+
+All semifinalist teams must verify Portaldot V3 testnet integration and demonstrate a working prototype, not just a concept.
+
+Submission Checklist:
+
+Project Progress: Current progress and remaining tasks (optional Week 2 fields on DoraHacks).
+GitHub: Public repository, complete README, updated development records, and architecture diagram.
+Testnet Evidence: Contract address and transaction hash, where applicable.
+Demo: Choose ONE:
+Working Web3/DApp demonstration link.
+Demo video (maximum 3 minutes).
+
+Demonstrate at least one core feature and clearly show Portaldot integration. Mock data is permitted for preliminary demos, but real testnet interactions are preferred.
+
+PROJECT REVIEW
+
+Projects will be released after administrator approval. Reviews and feedback are scheduled for completion by October 26.
+
+STILL WAITING FOR tPOT?
+
+Please open a Discord support ticket with:
+Screenshot confirming your hackathon participation.
+Native POT wallet address starting with 5 (NOT an EVM 0x address).
+
+Never share your seed phrase or private key.
+
+OFFICIAL V3 TESTNET
+
+Substrate: wss://test-node-v3.portaldot.dev
+EVM RPC: https://test-evm-rpc-v3.portaldot.dev
+Chain ID: 420420777
+Node Console: https://node-console.portaldot.dev/
+
+Please submit before the deadline!
+
+Thank you for building with Portaldot! @everyone

@@ -1,153 +1,401 @@
-# DotNexus ⚡
+<div align="center">
+<p align="center">
+  <img src="./front-end/src/assets/Logo-v1.png" width="120" height="120" alt="DotNexus Logo" />
+</p>
 
-> **The Visual Control Plane & Automated Security Operations Engine for Portaldot Network V3.0**
+# DotNexus
+### *The Visual Control Plane & Automated Security Operations Engine for Portaldot Network V3.0*
+### *Track: Node Operations & Tooling — Portaldot Hacker House 2026*
+<br/>
 
-[![Portaldot V3.0 Dual-VM](https://img.shields.io/badge/Portaldot-V3.0%20Dual--VM-24C6DC?style=for-the-badge&logo=polkadot&logoColor=white)](https://portaldot.network)
-[![Track: Node Operations & Tooling](https://img.shields.io/badge/Track-Node%20Operations%20%26%20Tooling-FF6B6B?style=for-the-badge)](https://dorahacks.io/hackathon/2362/detail)
-[![Test Suite: 147/147 Passed](https://img.shields.io/badge/Engine%20Tests-147%2F147%20Passed-10B981?style=for-the-badge&logo=checkmarx&logoColor=white)](tests/test_engine.py)
-[![Testnet Contracts](https://img.shields.io/badge/Portaldot%20V3%20EVM-Contracts%20Verified-8B5CF6?style=for-the-badge&logo=solidity&logoColor=white)](DEPLOYMENT.md)
-[![Substrate WASM](https://img.shields.io/badge/Substrate-WASM%20Runtime%20(SS58%3A42)-282C34?style=for-the-badge&logo=rust&logoColor=white)](https://substrate.io)
-[![React 19 + TypeScript](https://img.shields.io/badge/Frontend-React%2019%20%2B%20TypeScript-61DAFB?style=for-the-badge&logo=react&logoColor=black)](front-end/)
+**Track Dual-VM state. Prevent slashing equivocation. Optimize NPoS yield. Shield RPC endpoints.**
+
+<br/>
+
+[![Portaldot V3.0 Testnet](https://img.shields.io/badge/Portaldot-V3.0_Testnet_(420420777)-24C6DC?style=for-the-badge&logo=polkadot&logoColor=white)](https://portaldot.network)
+[![Track: Node Operations & Tooling](https://img.shields.io/badge/Track-Node_Operations_%26_Tooling-FF6B6B?style=for-the-badge)](https://dorahacks.io/hackathon/2362/detail)
+[![Smart Contracts](https://img.shields.io/badge/Smart_Contracts-SlashGuard_%26_Vault-8B5CF6?style=for-the-badge&logo=solidity&logoColor=white)](contracts/)
+[![Tests Passing](https://img.shields.io/badge/Tests-147%2F147_Passed_(100%25)-00e676?style=for-the-badge&logo=checkmarx&logoColor=white)](tests/test_engine.py)
+[![Substrate WASM Engine](https://img.shields.io/badge/Substrate-WASM_Runtime_(SS58%3A42)-282C34?style=for-the-badge&logo=rust&logoColor=white)](https://substrate.io)
+[![pallet-revive EVM](https://img.shields.io/badge/Dual--VM-pallet--revive_(Paris)-627EEA?style=for-the-badge&logo=ethereum&logoColor=white)](contracts/build/)
+[![React 19](https://img.shields.io/badge/Frontend-React_19_%2B_Vite_6-61DAFB?style=for-the-badge&logo=react&logoColor=black)](front-end/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+
+<br/>
+
+🌐 **Live Gateway Server:** `http://127.0.0.1:5050` &nbsp;•&nbsp; ⚡ **Portaldot V3 Testnet:** `Chain ID: 420420777` &nbsp;•&nbsp; 📜 **Lease Registry:** [`0xba114d21CC41a30880CcfA53673B743316387355`](contracts/SlashGuardLeaseRegistry.sol) &nbsp;•&nbsp; 📜 **Staking Vault:** [`0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A`](contracts/DotNexusStakingVault.sol)
+
+<br/>
+</div>
+
+> **Core Philosophy:** *"Autonomous node security through deterministic physics & verifiable on-chain arbitration"*  
+> DotNexus transforms complex, high-stakes Portaldot Network V3.0 node operations, anti-equivocation security, and NPoS staking into an actionable, real-time 5-stage decision loop: **DETECT $\rightarrow$ ISOLATE $\rightarrow$ SHIELD $\rightarrow$ OPTIMIZE $\rightarrow$ AUTOMATE & FENCE**. In a Dual-VM architecture combining Substrate WASM consensus with EVM `pallet-revive`, DotNexus neutralizes split-brain double-signing slashing via mathematical time invariants ($10\text{s} < 12\text{s} < 15\text{s}$), isolates desync root causes across 3 architectural tiers, simulates Sequential Phragmén for +1.16% APY boost, and executes drag-and-drop DAG operational runbooks 24/7.
 
 ---
 
-## 🌟 Executive Summary
+## 📑 Table of Contents
 
-**DotNexus** transforms complex, high-stakes Portaldot Network V3.0 node operations, anti-equivocation security, and NPoS staking into an intuitive, real-time **Visual Control Plane** and **Autonomous Operations Engine**.
+- [⚡ 1. Fast-Track Briefing for Judges](#-1-fast-track-briefing-for-judges)
+- [🔄 2. The Core Problem & The 5-Pillar Operational Matrix](#-2-the-core-problem--the-5-pillar-operational-matrix)
+- [📐 3. Mathematical & Algorithmic Foundation](#-3-mathematical--algorithmic-foundation)
+- [🤖 4. Autonomous DAG Runbook Engine & Self-Fencing Daemon](#-4-autonomous-dag-runbook-engine--self-fencing-daemon)
+- [📜 5. Verified On-Chain Proof Matrix (Portaldot V3.0 Testnet `420420777`)](#-5-verified-on-chain-proof-matrix-portaldot-v30-testnet-420420777)
+- [🎯 6. Hackathon Judging Criteria Alignment](#-6-hackathon-judging-criteria-alignment)
+- [🌐 7. Systemic Value & Ecosystem Acceleration (Grounded Impact)](#-7-systemic-value--ecosystem-acceleration-grounded-impact)
+- [🖥️ 8. Cybernetic Control Center & Visual Cockpit Studio](#-8-cybernetic-control-center--visual-cockpit-studio)
+- [🏗️ 9. Full System Architecture & Multi-Tier Data Flow](#️-9-full-system-architecture--multi-tier-data-flow)
+- [🧪 10. Developer Diagnostics & Test Verification (147/147 Tests)](#-10-developer-diagnostics--test-verification-147147-tests)
+- [📁 11. Repository Structure](#-11-repository-structure)
+- [🛠️ 12. Portaldot V3.0 Dual-VM & Substrate/EVM Developer Feedback Report](#️-12-portaldot-v30-dual-vm--substrateevm-developer-feedback-report)
+- [⚡ 13. Local Installation & Development Guide](#-13-local-installation--development-guide)
+- [🗺️ 14. Future Roadmap & Acknowledgements](#️-14-future-roadmap--acknowledgements)
 
-Operating a Dual-VM validator node (Substrate WASM + EVM via `pallet-revive`) introduces unprecedented operational hazards: split-brain double signing leading to 100% stake slashing, runtime state desync between `:9944` and `:8545`, unshielded RPC exhaustion, and oversubscribed nominator yield loss. 
+---
 
-DotNexus eliminates these risks by pairing deep on-chain telemetry with a **24/7 Headless Security Daemon**, **Verified On-Chain Lease Arbiters**, and an **Interactive Drag-and-Drop DAG Runbook Canvas**.
+## ⚡ 1. Fast-Track Briefing for Judges
+
+| Evaluation Dimension | DotNexus Technical Implementation | Verified Proof / Code Link |
+| :--- | :--- | :--- |
+| **What is DotNexus?** | Visual Control Plane and autonomous security operations engine built specifically for Portaldot Network V3.0 Dual-VM. | [Live Control Room](front-end/) &nbsp;•&nbsp; [`App.tsx`](front-end/src/App.tsx) |
+| **The Core Problem** | Solves split-brain double-signing slashing, Substrate/EVM runtime desync, RPC starvation attacks, and nominator yield erosion. | [Problem Analysis](#-2-the-core-problem--the-5-pillar-operational-matrix) |
+| **Consensus & Slashing Defense** | Mathematically proven **Dead Man's Switch** ($10\text{s} < 12\text{s} < 15\text{s}$) paired with on-chain lease arbiter contract on `pallet-revive`. | [`slash_guard.py`](engine/slash_guard.py) &nbsp;•&nbsp; [`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol) |
+| **Dual-VM Telemetry Core** | **3-Tier Root-Cause Isolator** (P2P Stall vs Frontier Mapping Lag vs EVM Mempool Congestion) + Dynamic Decimals 14 normalization. | [`dual_tracker.py`](engine/dual_tracker.py) |
+| **NPoS Yield Optimization** | Client-side **Sequential Phragmén Simulator** selecting optimal Top 16 validators with non-custodial auto-compounding (+1.16% APY). | [`npos_optimizer.py`](engine/npos_optimizer.py) &nbsp;•&nbsp; [`DotNexusStakingVault.sol`](contracts/DotNexusStakingVault.sol) |
+| **RPC Shield & P2P Defense** | Asynchronous reverse proxy with $< 1\text{ms}$ overhead, 256KB payload filter, batch $\le 20$ limiter, and 3D P2P topology radar. | [`rpc_shield.py`](engine/rpc_shield.py) &nbsp;•&nbsp; [`TopologyRadarView.tsx`](front-end/src/views/TopologyRadarView.tsx) |
+| **Orchestration & Runbooks** | Interactive **Visual DAG Canvas** with built-in safety linter compiling drag-and-drop nodes into headless 24/7 daemon execution. | [`dag_engine.py`](engine/dag_engine.py) &nbsp;•&nbsp; [`CanvasBoard.tsx`](front-end/src/views/CanvasBoard.tsx) |
+| **Reliability & Tests** | **147/147 passing tests (100% pass rate)**, 0 mock dependencies, verified on official Portaldot V3.0 Testnet (`420420777`). | [`test_engine.py`](tests/test_engine.py) &nbsp;•&nbsp; [Test Run](#-10-developer-diagnostics--test-verification-147147-tests) |
+
+---
+
+## 🔄 2. The Core Problem & The 5-Pillar Operational Matrix
+
+Operating a Dual-VM validator or RPC node on Portaldot V3.0 (Substrate WASM + EVM `pallet-revive`) introduces three critical structural hazards that conventional DevOps tools (Grafana, Prometheus) cannot resolve:
+
+### The 3 Critical Operational Bottlenecks & How DotNexus Solves Them
+
+1. **The Slashing Nightmare: Split-Brain Equivocation & Flapping Failover:**
+   * **The Bottleneck:** When running a standby backup server, asymmetric network partitions (split-brain) or premature failovers after missed blocks cause **both servers to sign the same block slot (Double-Signing)**. In Substrate NPoS, equivocation triggers an unrecoverable **100% slashing penalty** and permanent ejection from the active validator set.
+   * **DotNexus Solution (`FENCE & SHIELD`):** Replaces brittle local file-locks with an **On-Chain Distributed Lease Arbiter** ([`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol)) combined with a strict **Dead Man's Switch Time Invariant**:
+     $$\text{Primary Self-Fencing (10s)} < \text{Distributed Lease TTL (12s)} < \text{Standby Takeover Delay (15s)}$$
+     If heartbeat is lost, Primary forcefully fences its own keystore at $t=10\text{s}$ before Standby is physically authorized to take over at $t=15\text{s}$.
+
+2. **The Dual-VM State Desync & Decimals Discrepancy (Planck vs Wei):**
+   * **The Bottleneck:** Portaldot V3.0 executes parallel runtimes: Substrate WASM on `:9944` and EVM on `:8545`. When block heights diverge, operators cannot tell if lag originates from Substrate P2P networking, `fc-mapping-sync` database contention, or EVM smart contract mempool spikes. Additionally, Portaldot native POT uses **14 decimals ($10^{14}$ Planck)** while EVM uses 18 decimals ($10^{18}$ Wei), leading to catastrophic JavaScript 64-bit integer overflow bugs.
+   * **DotNexus Solution (`DETECT & ISOLATE`):** The **3-Tier Root-Cause Isolator** continuously cross-references Substrate `system_peers` ($T1$), Frontier mapping delta ($T2$), and EVM base fee / gas dynamics ($T3$). A dynamic **Decimals Normalizer** dynamically reads `tokenDecimals = 14` from chain metadata and applies a deterministic $10^4$ multiplier for EVM balance parity with pure BigInt safety.
+
+3. **RPC Exhaustion Bombs & Nominator Yield Traps:**
+   * **The Bottleneck:** External bots bombard validator public RPC with wide-span `eth_getLogs` (spanning hundreds of thousands of blocks) or recursive `state_getPairs`, causing Out-Of-Memory (OOM) node crashes. Concurrently, delegators stake on oversubscribed validators ($> 512$ nominators) or nodes with sudden 100% commission increases, resulting in **zero staking rewards**.
+   * **DotNexus Solution (`OPTIMIZE & AUTOMATE`):** An **Asynchronous Reverse Proxy** ($< 1\text{ms}$ latency) enforces hard 256KB request limits, caps batch calls at $\le 20$, and auto-bans broad `eth_getLogs` spans ($> 2,000$ blocks). The **Client-Side Phragmén Simulator** models on-chain election distribution to guarantee optimal Top 16 validator allocation with dynamic yield compounding (+1.16% APY boost).
+
+### 🥊 Blind CLI / Bash Operations vs. DotNexus Control Plane
+
+| Operational Dimension | Blind Terminal & Passive Dashboards | DotNexus Visual Control Plane |
+| :--- | :--- | :--- |
+| **Operator Mindset** | **Reactive & Fragile:** Manual CLI, human panic under outage | **Autonomous & Resilient:** Deterministic physics & visual runbooks |
+| **Operational Loop** | Manual monitoring $\rightarrow$ Human error in hex keys $\rightarrow$ Node slashed | **DETECT $\rightarrow$ ISOLATE $\rightarrow$ SHIELD $\rightarrow$ OPTIMIZE $\rightarrow$ AUTOMATE** |
+| **Double-Signing Defense** | Local file lock (fails during network split-brain) | **Dead Man's Switch (10s < 12s < 15s)** + On-chain Lease Arbiter |
+| **Dual-VM Diagnostics** | Surface-level block height delta, unknown cause | **3-Tier Root-Cause Isolation** (P2P vs fc-db mapping vs EVM) |
+| **Decimal Precision** | Hardcoded 18 decimals (crashes with $10^{14}$ POT Planck) | **Dynamic Decimals Policy** ($10^{14}$ Planck $\times 10^4 = 10^{18}$ Wei) |
+| **RPC Protection** | Exposed raw ports; vulnerable to large JSON-bombs | **Async Reverse Proxy Shield** ($< 1\text{ms}$, 256KB, batch $\le 20$) |
+| **NPoS Staking** | Random 16 nominations; risks oversubscribed 0% yield | **Sequential Phragmén Simulator** with +1.16% APY boost |
+| **Workflow Execution** | Untracked shell scripts and manual SSH pipelines | **Interactive Drag & Drop DAG Canvas** with visual safety linter |
+
+```text
+[ 1. DETECT ]       ──► [ 2. ISOLATE ]     ──► [ 3. SHIELD ]      ──► [ 4. OPTIMIZE ]    ──► [ 5. AUTOMATE & FENCE ]
+Substrate WS + EVM      3-Tier Root-Cause       Async RPC Shield        Phragmén Simulator      Visual DAG Runbooks
+Dual-VM Telemetry       Desync Diagnostic       Token-Bucket & Range    Top 16 Staking Vault    Dead Man's Switch
+```
+
+### The 5-Pillar Operational Architecture Breakdown
+
+| Stage | Objective | Data Inputs & Algorithmic Engine | Operational Invariant & Deliverable |
+| :--- | :--- | :--- | :--- |
+| **1️⃣ DETECT** | *Dual-VM Real-Time Sensing* | • Substrate WS (`:9944`) via `substrate-interface`<br/>• EVM JSON-RPC (`:8545`) via `Web3.py`<br/>• Mempool segregation (Extrinsics vs Transactions) | Live Dual-VM state visualizer with block height parity, epoch telemetry, and mempool composition metrics. |
+| **2️⃣ ISOLATE** | *3-Tier Root-Cause Diagnosis* | • Tier 1: Substrate `system_peers` & sync state<br/>• Tier 2: `fc-mapping-sync` lag ($|B_{\text{sub}} - B_{\text{evm}}| \ge 2$)<br/>• Tier 3: EVM gas saturation & pending tx buildup | Automated root-cause banner isolating network partition vs database bottleneck vs EVM smart contract congestion. |
+| **3️⃣ SHIELD** | *Zero-Overhead RPC Defense* | • Asynchronous Reverse Proxy (`< 1ms` overhead)<br/>• Deep query parser (block range $\le 2000$)<br/>• 256KB payload & batch $\le 20$ limiter | Instant `-32600` drop on abusive RPC queries, dynamic IP rate-limiting, and 3D P2P node topology mesh. |
+| **4️⃣ OPTIMIZE** | *NPoS Staking Yield Maximizer* | • On-chain storage: `Staking.ErasStakersOverview`<br/>• Sequential Phragmén allocation algorithm<br/>• Pre-flight guards: `CurrentPhase == Off`, fee buffer | Auto-compounding staking vault contract, Top 16 optimal validator nomination, eliminating oversubscription loss. |
+| **5️⃣ AUTOMATE** | *Slashing Guard & Runbooks* | • On-chain `SlashGuardLeaseRegistry.sol`<br/>• Dead Man's Switch local self-fencing daemon<br/>• Interactive Visual DAG Runbook engine | Strict anti-equivocation invariant ($10\text{s} < 12\text{s} < 15\text{s}$), automated session key rotation, zero double-signing. |
+
+---
+
+## 📐 3. Mathematical & Algorithmic Foundation
+
+DotNexus anchors its security architecture on deterministic mathematics, immutable time invariants, and formal verification:
+
+### 1. The Anti-Equivocation Timing Invariant & Monotonic Epoch Fencing
+To guarantee that Primary and Standby validators can **never sign concurrently**, the system enforces a strict time-domain inequality:
+
+$$T_{\text{fence}} < T_{\text{lease}} < T_{\text{standby}} \quad \Longleftrightarrow \quad 10.0\text{s} < 12.0\text{s} < 15.0\text{s}$$
+
+* **Primary Self-Fencing Daemon ($T_{\text{fence}} = 10.0\text{s}$):** The local watcher on the primary node monitors continuous lease renewal. If the heartbeat to the lease store or on-chain contract drops for $\ge 10.0\text{s}$, the daemon immediately self-fences:
+  $$\Delta t_{\text{loss}} \ge 10.0\text{s} \implies \text{exec}(\texttt{kill -9 node\_pid} \lor \texttt{chmod 000 keystore})$$
+* **On-Chain Lease Expiration ($T_{\text{lease}} = 12.0\text{s}$):** The on-chain lease recorded in [`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol) expires.
+* **Standby Takeover Authorization ($T_{\text{standby}} = 15.0\text{s}$):** The standby node may only claim the lease if:
+  $$t_{\text{current}} - t_{\text{lease\_granted}} \ge 15.0\text{s} \quad \land \quad \text{Port } 30333 (\text{Primary}) == \text{CLOSED}$$
+  Upon takeover, Standby atomically increments the monotonic fencing epoch:
+  $$\text{epoch}_{\text{new}} = \text{epoch}_{\text{prev}} + 1$$
+  Any delayed block broadcast by Primary signed with an older epoch is permanently rejected by the consensus layer.
+
+### 2. Client-Side Sequential Phragmén Simulation & Pre-Flight Economics
+Substrate's `staking.nominate(targets: Vec<AccountId>)` takes at most 16 targets without allocation weights. The Python NPoS Optimizer computes validator utility $U_v$:
+
+$$U_v = w_1 \cdot \text{Score}_{\text{points}} + w_2 \cdot (100\% - \text{Commission}) + w_3 \cdot \text{Capacity}_{\text{free}} - w_4 \cdot \text{SlashHistory}$$
+
+Subject to hard pre-flight constraints:
+1. **Oversubscription Gate:** $\text{Nominators}(v) < 512$ (prevents zero-reward payout clipping).
+2. **Phase Lockout Check:** Query `ElectionProviderMultiPhase.CurrentPhase()`. Extrinsics are rejected unless $\text{Phase} == \texttt{'Off'}$.
+3. **Economic Profit Invariant:** Re-nomination is triggered only when:
+   $$\Delta \text{APY}_{\text{expected}} \times \text{Bonded Stake} > 3 \times \text{Estimated Extrinsic Fee}$$
+
+### 3. Dynamic Decimals & Planck-to-Wei Conversion
+Portaldot V3.0 native Substrate token decimals are $D_{\text{sub}} = 14$, whereas EVM standards expect $D_{\text{evm}} = 18$:
+
+$$1 \text{ POT} = 10^{14} \text{ Planck}$$
+$$\text{Wei}_{\text{EVM}} = \text{Planck} \times 10^{(D_{\text{evm}} - D_{\text{sub}})} = \text{Planck} \times 10^4$$
+
+All calculations in the Python engine strictly use arbitrary-precision `int`, and frontend representations use native `BigInt` to eliminate the `Number.MAX_SAFE_INTEGER` ($9.007 \times 10^{15} \approx 90\text{ POT}$) overflow barrier.
+
+### 4. Deep Query Range & Token-Bucket Rate Limiter
+The Asynchronous RPC Shield calculates block spans for incoming `eth_getLogs` requests:
+
+$$\Delta \text{Span} = \text{toBlock} - \text{fromBlock}$$
+
+$$\text{Action} = \begin{cases} 
+\text{ALLOW}, & \text{if } \Delta \text{Span} \le 2,000 \land \text{Payload} \le 256\text{KB} \land \text{Batch} \le 20 \\
+\text{REJECT (-32600) \& BAN(60s)}, & \text{if } \Delta \text{Span} > 2,000 \lor \text{Payload} > 256\text{KB}
+\end{cases}$$
+
+---
+
+## 🤖 4. Autonomous DAG Runbook Engine & Self-Fencing Daemon
+
+DotNexus bridges visual operator design with headless 24/7 background security automation:
+
+```text
+[ Event Trigger ] ──► [ Safety Linter ] ──► [ Deterministic Policy ] ──► [ Atomic Dispatch ] ──► [ Audit Trail ]
+• BlockLag > 5        • Cycle Detection     • Invariant: 10s < 12s < 15s  • Substrate Extrinsic     • Real-Time WebSocket
+• Heartbeat Missed    • Type Checking       • Monotonic Epoch Guard       • Session Key Rotation    • Downloadable JSON
+• High Gas Anomaly    • Deadlock Prevent    • Pre-Flight Balance Buffer   • Lease State Transition  • Monospace Terminal
+```
+
+* **Visual DAG Canvas (`CanvasBoard.tsx`):** Drag-and-drop orchestrator allowing node operators to connect trigger nodes (`BlockLagAlert`, `HeartbeatLoss`, `HighSpamRate`) to action nodes (`RotateKeys`, `TriggerStandbyTakeover`, `FlushRPCMempool`).
+* **Visual Safety Linter (`useCanvasSafetyLinter`):** Graph-theoretic validator analyzing node connectivity, circular dependency loops, and unreachable terminal states before compilation.
+* **Headless Background Executor (`dag_engine.py`):** Compiles user DAG runbooks into async event-driven execution loops running 24/7 inside the Python engine.
+* **Non-Custodial Failover Safety:** The system never exposes or stores validator private seed phrases; session keys are rotated using native Substrate RPC `author_rotateKeys` and on-chain leases.
+
+---
+
+## 📜 5. Verified On-Chain Proof Matrix (Portaldot V3.0 Testnet `420420777`)
+
+Every core on-chain capability of DotNexus is deployed, verified, and active on the official Portaldot Network V3.0 Testnet:
+
+| Proof Dimension | Target / Contract | On-Chain Anchor / Transaction Hash | Status | Operational Significance |
+| :--- | :--- | :--- | :---: | :--- |
+| **On-Chain Lease Arbiter** | [`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol) | [`0xba114d21CC41a30880CcfA53673B743316387355`](contracts/SlashGuardLeaseRegistry.sol)<br/>Tx: `0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f` | `VERIFIED` | Deployed in Block `#147264` on `pallet-revive`. Enforces monotonic fencing epochs and atomic standby takeover leases. |
+| **NPoS Staking Vault** | [`DotNexusStakingVault.sol`](contracts/DotNexusStakingVault.sol) | [`0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A`](contracts/DotNexusStakingVault.sol)<br/>Tx: `0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb` | `VERIFIED` | Deployed in Block `#147358` on `pallet-revive`. Non-custodial NPoS yield vault with dynamic compounding operator hooks. |
+| **Deployer Dual-VM Address** | Multi-VM Identity | EVM: `0xC5216e73898089269fdd377a1D4bD626b114E166`<br/>Substrate SS58: `5GXBDoveYazDtNXTTsNSnHToacTyAYtbikRahKoPudpkV9r9` | `CONFIRMED` | Verified Dual-VM address binding with SS58 prefix `42` and EVM mapped identity. |
+| **Dead Man's Switch Trigger** | Slashing Guard Engine | [Local Daemon Verification](engine/slash_guard.py) | `VERIFIED` | Invariant test: At lease loss $t = 11.0\text{s} > 10.0\text{s}$, daemon triggers `CRITICAL DEAD MAN'S SWITCH: Keystore FENCED/ISOLATED`. |
+| **RPC Shield Attack Neutralization** | Deep Query Parser | [Engine Test Suite #8](tests/test_engine.py) | `VERIFIED` | Invariant test: 500,000-block `eth_getLogs` query blocked with `JSON-RPC -32600` and IP placed on 60s quarantine within `< 1ms`. |
+
+---
+
+## 🎯 6. Hackathon Judging Criteria Alignment
+
+Alignment with the **4 primary judging criteria** specified in [`hackathon_details.md`](hackathon_details.md):
+
+| Judging Criterion & Weight | Hackathon Focus (from `hackathon_details.md`) | DotNexus Technical Implementation & Verified Proof |
+| :--- | :--- | :--- |
+| **1. Technical Feasibility**<br/>`30% Weight` | *• Technical approach, system architecture, code completeness, and actual delivery.<br/>• Verified GitHub development activity & testnet interactions.* | • **100% Production Codebase:** Zero mocks or stubbed responses. Engine connects directly to `wss://test-node-v3.portaldot.dev` and `https://test-evm-rpc-v3.portaldot.dev`.<br/>• **Verified Testnet Contracts:** 2 smart contracts compiled with Paris-EVM and deployed on Portaldot V3.0 `pallet-revive`.<br/>• **Comprehensive Test Coverage:** **147/147 automated unit tests passed** in [`tests/test_engine.py`](tests/test_engine.py).<br/>• **Full-Stack Execution:** Python 3.10+ async core + React 19 / TypeScript 5 frontend. |
+| **2. Innovation**<br/>`30% Weight` | *• Effective use of Portaldot V3.0 features (WASM/EVM compatibility, modular architecture).<br/>• Delivering real value beyond existing solutions.* | • **Dead Man's Switch & On-Chain Lease Arbiter:** First anti-equivocation solution mathematically proving zero double-signing under asymmetric network partition ($10\text{s} < 12\text{s} < 15\text{s}$).<br/>• **3-Tier Dual-VM Root-Cause Isolation:** Differentiates Substrate P2P sync stalls from `fc-mapping-sync` lag and EVM mempool spikes.<br/>• **Client-Side Sequential Phragmén Simulation:** Predicts on-chain NPoS election payouts to prevent nominator clipping. |
+| **3. Ecosystem Contribution**<br/>`20% Weight` | *• Contribution to Portaldot infrastructure, developer tools, node ecosystem, and user growth.<br/>• Potential for sustained open-source building.* | • **Critical Infrastructure Tool:** Empowers both professional validator operators and retail stakers on Portaldot V3.0.<br/>• **RPC Shield for Node Operators:** Prevents public RPC crash vulnerabilities across the entire testnet and future mainnet.<br/>• **Open-Source Runbook Standard:** Shareable, visual DAG runbooks for automated network remediation.<br/>• **Dynamic Decimals Standard:** Establishes reference handling for $10^{14}$ Planck vs $10^{18}$ Wei. |
+| **4. Business Potential**<br/>`20% Weight` | *• Real market needs, clear target users, sustainable growth path, and delivery capability.* | • **B2B Infrastructure & Validator-as-a-Service (VaaS):** Essential software license for institutional Portaldot staking operators.<br/>• **Slashing Insurance & SLA Guarantee:** Unlocks institutional delegator capital by eliminating double-signing risk.<br/>• **Staking Yield Monetization:** Staking Vault contract supports non-custodial performance fees on optimized compounding APY.<br/>• **Extensible Modular Plugin Architecture:** Ready for integration with future Portaldot parachains and cross-chain bridges. |
+
+---
+
+## 🌐 7. Systemic Value & Ecosystem Acceleration (Grounded Impact)
+
+DotNexus serves as an **operational and security backbone layer** accelerating the stability and decentralization of Portaldot Network V3.0:
 
 ```mermaid
-flowchart TD
-    subgraph Portaldot ["🌐 Portaldot Network V3.0 Testnet"]
-        sub_ws["Substrate WS (:9944)<br/>WASM Consensus BABE/GRANDPA"]
-        evm_rpc["EVM JSON-RPC (:8545)<br/>pallet-revive Dual-VM Engine"]
-        onchain_lease["SlashGuardLeaseRegistry.sol<br/>0xba114d21CC...7355"]
-        onchain_vault["DotNexusStakingVault.sol<br/>0x97e5707FC...610A"]
-    end
+graph TD
+    A["🚀 Low Barrier Visual Control Plane"] -->|"Attracts New Node Operators"| B["👥 Expanding Validator Active Set"]
+    B -->|"Dead Man's Switch (10s < 12s < 15s)"| C["🛡️ Zero Slashing & Stable Consensus"]
+    C -->|"Client-Side Sequential Phragmén"| D["💰 Higher Staking Ratio & +1.16% APY"]
+    D -->|"Asynchronous RPC Shield (<1ms)"| E["⚡ Robust, Crash-Proof RPC Infrastructure"]
+    E -->|"Recycles Protected Yield via Staking Vault"| B
+```
 
-    subgraph DotNexusEngine ["⚡ DotNexus Python 3.10+ Ops Engine"]
-        dual_tracker["Dual-Engine Tracker<br/>3-Tier Root-Cause Desync Isolation"]
-        slash_guard["Slashing Guard & Dead Man's Switch<br/>Invariant: 10s < 12s < 15s"]
-        npos_opt["NPoS Yield Optimizer<br/>Client-Side Sequential Phragmén"]
-        rpc_shield["Asynchronous RPC Shield<br/>Payload Filter & P2P Topology Radar"]
-        dag_runner["Visual DAG Runbook Engine<br/>Automated Node Recovery Pipelines"]
-        gateway["Central Gateway REST/WS Server<br/>Port :5050"]
-    end
+### 🏛️ The 4 Pillars of DotNexus's Ecosystem Value:
 
-    subgraph ControlRoom ["🖥️ DotNexus Cyber Control Center (React 19)"]
-        view_dual["Dual-Engine Desync Monitor"]
-        view_guard["Slashing Guard & Lease Status"]
-        view_npos["NPoS Validator Yield Optimizer"]
-        view_shield["P2P Network Topology Radar"]
-        view_dag["Interactive Drag-and-Drop DAG Canvas"]
-    end
+1. **🛡️ Pillar 1: Slashing-Proof Validator Infrastructure:**
+   * *The Problem:* The terror of 100% slashing from double-signing deters prospective validators from running automated backup nodes.
+   * *DotNexus Solution:* [`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol) and the 10s/12s/15s timing invariant provide mathematical certainty against double signing, giving operators the confidence to maintain high availability.
 
-    sub_ws <-->|Telemetry & Storage Query| dual_tracker
-    evm_rpc <-->|Web3 JSON-RPC| dual_tracker
-    dual_tracker --> gateway
-    
-    slash_guard <-->|Atomic Mutex Lease| onchain_lease
-    slash_guard --> gateway
-    
-    npos_opt <-->|Query ErasStakers & Stake Vault| onchain_vault
-    npos_opt --> gateway
-    
-    rpc_shield <-->|Zero-Copy Inspection <1ms| evm_rpc
-    rpc_shield --> gateway
-    
-    dag_runner --> gateway
-    gateway <-->|REST API & Live WebSocket| ControlRoom
+2. **🔍 Pillar 2: Dual-VM Operational Transparency:**
+   * *The Problem:* Operating both Substrate WASM and EVM runtimes creates complex failure states that traditional tools cannot diagnose.
+   * *DotNexus Solution:* The 3-Tier Root-Cause Isolator pinpoints whether issues stem from P2P network sync, database mapping lag, or EVM execution congestion within milliseconds.
+
+3. **📈 Pillar 3: Maximized Economic Security (NPoS Optimization):**
+   * *The Problem:* Inactive or oversubscribed validators lead to lost rewards and reduced network staking participation.
+   * *DotNexus Solution:* Algorithmic Phragmén scoring directs delegator capital to top-performing, reliable validators, increasing overall network security and staker returns.
+
+4. **⚡ Pillar 4: Public RPC Resiliency & Anti-Spam Protection:**
+   * *The Problem:* Public RPC nodes are frequently crippled by heavy queries and malicious traffic.
+   * *DotNexus Solution:* The Asynchronous RPC Shield transparently neutralizes malicious queries before they consume node resources, maintaining high uptime for the entire ecosystem.
+
+---
+
+## 🖥️ 8. Cybernetic Control Center & Visual Cockpit Studio
+
+The DotNexus frontend is engineered with an uncompromising **Dark Obsidian HUD** aesthetic (`#0B0813` background, `#8B5CF6` electric violet accents, monospace data typography, and zero generic AI slop):
+
+### The 5 Core Interactive Control Workspaces
+
+| Workspace View | Underlying Component | Operational Capabilities |
+| :--- | :--- | :--- |
+| **1. Dual-Engine Tracker** | [`DualEngineView.tsx`](front-end/src/views/DualEngineView.tsx) | Live Substrate WS (`:9944`) vs EVM RPC (`:8545`) block height parity, 3-Tier Desync diagnostic badge, mempool segregation (WASM extrinsics vs EVM txs), and dynamic Decimals 14 Planck normalization. |
+| **2. Slashing Guard & Lease** | [`SecurityGuardView.tsx`](front-end/src/views/SecurityGuardView.tsx) | Visualizes the active on-chain lease arbiter, monotonic fencing epoch counter, Dead Man's Switch countdown timer, and 1-click safe session key rotation (`session.setKeys`). |
+| **3. Staking Yield Optimizer** | [`StakingYieldView.tsx`](front-end/src/views/StakingYieldView.tsx) | Algorithmic Top 16 validator scoring table, commission/oversubscription filters, auto-compounding APY calculation (+1.16% boost), and non-custodial Staking Vault integration. |
+| **4. P2P Topology Radar** | [`TopologyRadarView.tsx`](front-end/src/views/TopologyRadarView.tsx) | Interactive 3D Three.js cyber mesh and geographic world map showing connected Substrate peers, latency gradients, RPC query rate metrics, and active IP defense blocks. |
+| **5. Visual DAG Runbook Canvas** | [`CanvasBoard.tsx`](front-end/src/views/CanvasBoard.tsx) | Interactive drag-and-drop operational canvas with built-in graph safety linter (`useCanvasSafetyLinter`), compiling reactive node incident workflows into 24/7 background execution. |
+
+---
+
+## 🏗️ 9. Full System Architecture & Multi-Tier Data Flow
+
+### End-to-End Architectural Data Flow
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                1. INGESTION & SENSING TIER                                      │
+│  [Substrate WebSocket (:9944)]     [EVM JSON-RPC (:8545)]          [On-Chain Lease Registry]    │
+│  (BABE/GRANDPA, Storage, Peers)    (pallet-revive, Web3, Blocks)   (SlashGuardLeaseRegistry)    │
+└─────────────────────────────────┬───────────────────────────────┬───────────────────────────────┘
+                                  │                               │
+                                  ▼                               ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                2. INTELLIGENCE & SECURITY ENGINE                                │
+│  ┌──────────────────────────────┐                ┌───────────────────────────────────────────┐  │
+│  │ Dual-Engine Tracker Core     │   Diagnostic   │ Slashing Guard & Dead Man's Switch        │  │
+│  │ • 3-Tier Root-Cause Isolator │◄──────────────►│ • Invariant: 10s < 12s < 15s          │  │
+│  │ • Dynamic Decimals (14 POT)  │   Correlation  │ • Monotonic Fencing Epoch Tracker         │  │
+│  │ • Mempool WASM/EVM Split     │                │ • author_rotateKeys Session Key Struct    │  │
+│  └──────────────────────────────┘                └───────────────────────────────────────────┘  │
+│  ┌──────────────────────────────┐                ┌───────────────────────────────────────────┐  │
+│  │ NPoS Yield Optimizer         │   Operational  │ Asynchronous RPC Reverse Proxy Shield     │  │
+│  │ • Sequential Phragmén Sim    │◄──────────────►│ • < 1ms Zero-Copy Payload Inspector       │  │
+│  │ • Top 16 Non-Clipped Set     │   Pipelines    │ • Block Range Filter (<= 2000 blocks)     │  │
+│  │ • Auto-Compounding Vault     │                │ • 256KB Payload & Batch <= 20 Limiter     │  │
+│  └──────────────────────────────┘                └───────────────────────────────────────────┘  │
+└─────────────────────────────────┬───────────────────────────────────────────────────────────────┘
+                                  │ Real-Time Diagnostics & WebSocket Stream
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                3. ORCHESTRATION & CONTROL TIER                                  │
+│   [ Visual DAG Runbook Canvas ]     [ Headless 24/7 Daemon ]            [ Terminal HUD Drawer ] │
+│   • Drag-and-Drop Reactive Nodes    • Compiles DAG to Async Pipelines   • Real-Time Monospace   │
+│   • Graph Safety Linter             • Self-Fencing Watcher Loops        • Downloadable Logs     │
+│   • Automated Runbook Catalog       • Port 5050 REST & WS Gateway       • Latency Benchmarks    │
+└─────────────────────────────────┬───────────────────────────────────────────────────────────────┘
+                                  │ Signed Transactions & On-Chain Leases
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                4. ON-CHAIN VERIFICATION & L1 TIER                               │
+│   [ Portaldot V3.0 Testnet ]        [ pallet-revive Smart Contracts ]   [ Substrate WASM Layer] │
+│   • Chain ID: 420420777             • SlashGuardLeaseRegistry.sol       • BABE Block Production │
+│   • Substrate SS58 Prefix: 42       • DotNexusStakingVault.sol          • GRANDPA Finality      │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🔗 Verified Testnet Deployments (Portaldot V3.0)
+## 🧪 10. Developer Diagnostics & Test Verification (147/147 Tests)
 
-Both smart contracts are fully compiled with `evmVersion: "paris"` targeting the Portaldot V3.0 `pallet-revive` Dual-VM environment and actively live on the official testnet:
+DotNexus maintains a rigorous test suite of **147 tests** covering all operational pillars, smart contract interactions, mathematical invariants, and attack vector mitigations:
 
-* **Substrate WS Endpoint:** `wss://test-node-v3.portaldot.dev`
-* **EVM JSON-RPC Endpoint:** `https://test-evm-rpc-v3.portaldot.dev`
-* **Chain ID (EVM):** `420420777` | **SS58 Prefix:** `42` | **Token Decimals:** `14` (POT)
-* **Official Node Console:** [https://node-console.portaldot.dev/](https://node-console.portaldot.dev/)
-
-| Smart Contract | Deployed Contract Address | Deployment Tx Hash | Block | Status | Verified Capabilities |
-|---|---|---|:---:|:---:|---|
-| **[`SlashGuardLeaseRegistry`](contracts/SlashGuardLeaseRegistry.sol)** | [`0xba114d21CC41a30880CcfA53673B743316387355`](contracts/SlashGuardLeaseRegistry.sol) | `0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f` | `#147264` | **PASS (1)** | Monotonic fencing epoch lease arbiter; guarantees zero double-signing during standby failover |
-| **[`DotNexusStakingVault`](contracts/DotNexusStakingVault.sol)** | [`0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A`](contracts/DotNexusStakingVault.sol) | `0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb` | `#147358` | **PASS (1)** | Non-custodial NPoS staking vault with dynamic compounding yield optimization |
-
-> Detailed ABI definitions, bytecodes, and validation scripts are documented in [`DEPLOYMENT.md`](DEPLOYMENT.md) and [`FOR_JUDGES.md`](FOR_JUDGES.md).
-
----
-
-## 🛡️ The 5 Core Pillars of DotNexus
-
-### 1. Dual-Engine State Tracker & Desync Root-Cause Isolation
-Portaldot V3.0 operates Substrate WASM consensus alongside an EVM runtime layer. When a node experiences lag between `:9944` and `:8545`, DotNexus's **3-Tier Root-Cause Isolator** pinpoints the exact failure layer in real time:
-* **Tier 1 (Substrate P2P Stall):** Evaluates `system_peers` and `highestBlock - currentBlock > 10`.
-* **Tier 2 (Frontier Mapping Sync Lag):** Measures `fc-mapping-sync` lag (`substrate_best_block - evm_latest_block >= 2`).
-* **Tier 3 (EVM Execution Congestion):** Diagnoses EVM mempool buildup (`eth_pendingTransactions`) vs Substrate extrinsics.
-* **Dynamic Decimals Policy:** Automatically reads `tokenDecimals = 14` directly from Substrate chain metadata, safely bridging $10^{14}$ Planck to $10^{18}$ display Wei without JavaScript 64-bit integer overflows.
-
-### 2. Slashing Guard & Dead Man's Switch (Anti-Equivocation)
-In Substrate NPoS, equivocation (double-signing) triggers a catastrophic 100% slashing penalty and permanent ejection. Standard file-locks fail under asymmetric network splits.
-DotNexus enforces a mathematically sound **Timing Invariant**:
-$$\text{Primary Self-Fencing Timeout (10s)} < \text{Distributed Lease TTL (12s)} < \text{Standby Takeover Delay (15s)}$$
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Primary as Primary Validator
-    participant Registry as On-Chain SlashGuardLeaseRegistry
-    participant Standby as Standby Validator
-
-    Primary->>Registry: acquireLease(12s TTL, epoch N)
-    Registry-->>Primary: Lease Granted (Active Signer)
-    Note over Primary: Healthy block production
-    
-    rect rgb(30, 20, 25)
-        Note over Primary,Standby: Asymmetric Network Partition (Heartbeat Lost)
-        Primary->>Primary: Local Lease Timer reaches 10s (T_fence)
-        Primary->>Primary: DEAD MAN'S SWITCH: Isolate Keystore & Halt!
-    end
-
-    Standby->>Registry: Query lease state at t = 12s (TTL expired)
-    Standby->>Registry: claimTakeover(epoch N + 1) at t = 15s (T_standby)
-    Registry-->>Standby: Lease Transfer Approved
-    Standby->>Standby: Safe Keystore Unseal & Resume Block Production
-    Note over Standby: Zero Double-Signing Equivocation Possible!
+```bash
+python -m unittest tests/test_engine.py
 ```
 
-### 3. NPoS Dynamic Yield Optimizer (Sequential Phragmén Simulation)
-Substrate's `staking.nominate(targets: Vec<AccountId>)` accepts a maximum of 16 targets without custom weights. DotNexus features a client-side **Sequential Phragmén Simulator**:
-* **Storage Compatibility:** Dual-schema reader querying `Staking.ErasStakersOverview` with fallback to `ErasStakersClipped`.
-* **Oversubscription & 100% Commission Filter:** Rejects capped validator pools and zero-reward nodes.
-* **Pre-Flight Guards:** Validates `ElectionProviderMultiPhase.CurrentPhase == 'Off'` and ensures $\Delta \text{APY} \times \text{Stake} > 3 \times \text{Fee}$ to eliminate fee erosion.
-* **Measured Result:** Delivers an average **+1.16% APY compounding yield boost** over naive random nominations.
+```text
+Ran 147 tests in 19.976s
 
-### 4. Asynchronous Reverse Proxy & RPC Shield
-Validator RPC endpoints are vulnerable to memory exhaustion attacks (JSON-RPC bombs, huge block range queries). DotNexus provides an ultra-lightweight reverse proxy ($< 1\text{ms}$ overhead):
-* **Payload Enforcer:** Rejects payloads $> 256\text{ KB}$ before JSON deserialization to thwart OOM attacks.
-* **Batch Request Limiter:** Caps batches at $\le 20$ calls (`JSON-RPC -32600`).
-* **Deep `eth_getLogs` Parser:** Dynamically converts `"latest"` and `"earliest"` tags and auto-blocks queries spanning $> 2,000$ blocks with an automatic IP cooldown timer.
-* **P2P Topology Radar:** 3D Three.js cyber mesh visualizing peer geo-locations, latency gradients, and anomalous handshake bursts.
+OK
+```
 
-### 5. Visual DAG Workflow Canvas (Interactive Runbooks)
-Operators can drag, drop, and link reactive node operational workflows:
-* Event triggers (e.g., `BlockLag > 5`, `HeartbeatMissed`, `HighGasAnomaly`) automatically route to remediation actions (`RotateKeys`, `TriggerStandbyTakeover`, `FlushRPCMempool`).
-* Built-in visual safety linter (`useCanvasSafetyLinter`) prevents cyclic loops and invalid state transitions.
+### Test Suite Coverage Breakdown
+
+| Test Domain | Test Methods | Invariants & Behaviors Verified | Status |
+| :--- | :---: | :--- | :---: |
+| **Dual-Engine Tracker** | 28 tests | Parallel WS/EVM ingestion, 3-tier desync root cause, dynamic decimals 14, mempool segregation | `PASS (100%)` |
+| **Slashing Guard** | 35 tests | Dead Man's Switch, $10\text{s} < 12\text{s} < 15\text{s}$ invariant, session key struct parsing, monotonic epoch | `PASS (100%)` |
+| **NPoS Yield Optimizer** | 32 tests | Client-side Sequential Phragmén, oversubscription filtering, pre-flight election phase lock, APY boost | `PASS (100%)` |
+| **RPC Shield & Proxy** | 34 tests | 256KB payload limit, batch $\le 20$ limiter, broad `eth_getLogs` block range ($> 2000$) rejection, IP quarantine | `PASS (100%)` |
+| **DAG Runbook Engine** | 18 tests | Graph topological sort, cycle detection, trigger-action dispatch, headless daemon execution | `PASS (100%)` |
+| **Total Test Suite** | **147 tests** | **Complete Engine & Contract Integration Test Suite** | **147 / 147 PASS** |
 
 ---
 
-## ⚡ 60-Second Quickstart Guide
+## 📁 11. Repository Structure
+
+```text
+DotNexus/
+├── contracts/                             # Portaldot V3.0 EVM Smart Contracts (pallet-revive)
+│   ├── SlashGuardLeaseRegistry.sol        # On-chain anti-equivocation lease arbiter
+│   ├── DotNexusStakingVault.sol           # Non-custodial NPoS staking vault & SLA bond
+│   ├── compile_and_deploy.py              # Paris-EVM solc compiler & Web3.py deployment script
+│   └── build/                             # Compiled contract ABIs and bytecode artifacts
+├── engine/                                # Core Python 3.10+ Ops & Security Engine
+│   ├── config.py                          # Portaldot V3 parameters (SS58: 42, Decimals: 14)
+│   ├── dual_tracker.py                    # 3-Tier Dual-VM desync isolator & mempool tracker
+│   ├── slash_guard.py                     # Dead Man's Switch, session key rotation & lease client
+│   ├── npos_optimizer.py                  # Client-side Sequential Phragmén & dynamic re-nominator
+│   ├── rpc_shield.py                      # Asynchronous reverse proxy & deep query defense (<1ms)
+│   ├── dag_engine.py                      # Visual DAG Runbook workflow executor
+│   ├── server.py                          # Gateway REST & WebSocket server (port 5050)
+│   └── cli.py                             # Interactive administrative CLI tool
+├── front-end/                             # React 19 + TypeScript + Tailwind CSS UI
+│   ├── src/
+│   │   ├── components/                    # CyberHeader, CyberWorldMap, TerminalDrawer, CyberModal
+│   │   ├── views/                         # DualEngineView, SecurityGuardView, StakingYieldView,
+│   │   │                                  # TopologyRadarView, CanvasBoard (Interactive DAG)
+│   │   ├── services/api.ts                # Backend API bridge
+│   │   └── App.tsx                        # Master layout & real-time telemetry state
+├── tests/
+│   └── test_engine.py                     # Full test suite (147/147 passing tests)
+├── DEPLOYMENT.md                          # Live testnet contract verification & one-liners
+├── FOR_JUDGES.md                          # 60-Second evaluation guide & compliance matrix
+├── PROJECT_BLUEPRINT.md                   # Comprehensive 750+ line technical specification
+├── hackathon_details.md                   # Competition guidelines & Week 2 Check-in criteria
+├── requirements.txt                       # Python dependencies (substrate-interface, web3, etc.)
+└── README.md                              # Main project terminal briefing & documentation
+```
+
+---
+
+## 🛠️ 12. Portaldot V3.0 Dual-VM & Substrate/EVM Developer Feedback Report
+
+*(Full comprehensive audit report available at [`NODE_INFRASTRUCTURE_AUDIT_REPORT.md`](NODE_INFRASTRUCTURE_AUDIT_REPORT.md))*.
+
+### 🟢 Strengths Identified
+1. **High-Performance Dual-VM Architecture:** Portaldot V3.0's integration of `pallet-revive` allows EVM smart contracts to execute seamlessly alongside Substrate WASM consensus.
+2. **Deterministic Block Times:** Consistent 6-second BABE slot allocations provide predictable finality windows for automated operational runbooks.
+3. **Unified Address Mapping:** Clean interoperability between SS58 (Prefix 42) Substrate addresses and `0x` EVM addresses enables smooth cross-runtime tooling.
+
+### 💡 High-Value Protocol Opportunities
+1. **Native Anti-Equivocation Precompile:** Exposing a native precompile for validator lease arbitration directly in `pallet-revive` would allow sub-second lease verification without external contract calls.
+2. **WebSocket Event Subscriptions for Frontier:** Enhancing the EVM RPC layer with rich WebSocket pub/sub for new pending transactions would reduce mempool polling overhead for RPC operators.
+3. **Chain Metadata Decimal Standardization:** Explicitly declaring `tokenDecimals: 14` across all RPC endpoint discovery responses eliminates confusion between Substrate Planck ($10^{14}$) and EVM Wei ($10^{18}$).
+
+---
+
+## ⚡ 13. Local Installation & Development Guide
 
 ### Prerequisites
 * **Python 3.10+**
-* **Node.js 18+** and **npm**
+* **Node.js 18+** & **npm**
 
-### 1. Installation
+### 1. Clone & Install
 ```bash
 # Clone the repository
 git clone https://github.com/DanhCaTuanNgoc/DotNexus.git
@@ -162,36 +410,40 @@ npm install
 cd ..
 ```
 
-### 2. Verify Test Suite (147/147 Tests Passing)
-Run the automated test suite verifying all 5 core pillars, live testnet bindings, and edge cases:
+### 2. Configure Environment
+```bash
+cp .env.example .env
+```
+*(Default configuration is pre-wired to the official Portaldot V3.0 Testnet endpoints)*.
+
+### 3. Run Automated Tests
 ```bash
 python -m unittest tests/test_engine.py
 ```
 
-### 3. Native Operational CLI Commands
-Inspect live testnet status directly from your terminal:
+### 4. Administrative CLI Utilities
 ```bash
 # Query live Substrate & EVM Dual-VM parity
 python -m engine.cli dual-vm
 
-# Run NPoS Sequential Phragmén scoring for optimal Top 16
+# Optimal Top 16 validator selection & APY boost
 python -m engine.cli npos --top16
 
-# Verify RPC Shield neutralizing heavy 500,000-block eth_getLogs attack
+# Verify RPC Shield against heavy 500,000-block getLogs spam
 python -m engine.cli shield-test --type HEAVY_GETLOGS
 
 # Execute operational DAG Runbook pipeline
 python -m engine.cli runbook runbook-slash-guard
 ```
 
-### 4. Launch Full Control Center
+### 5. Launch Full Control Center
 Start the backend gateway and frontend user interface:
 
 **Terminal 1 — Backend Gateway Server:**
 ```bash
 python -m engine.server
 ```
-*(Runs REST & WebSocket Gateway on `http://127.0.0.1:5050`)*
+*(Gateway runs on `http://127.0.0.1:5050`)*
 
 **Terminal 2 — Cyberpunk Control Center Web UI:**
 ```bash
@@ -202,52 +454,11 @@ Open **[http://localhost:5173](http://localhost:5173)** in your browser.
 
 ---
 
-## 📂 Project Architecture & Repository Map
+## 🗺️ 14. Future Roadmap & Acknowledgements
 
-```txt
-DotNexus/
-├── contracts/                             # Portaldot V3.0 EVM Smart Contracts (pallet-revive)
-│   ├── SlashGuardLeaseRegistry.sol        # On-chain anti-equivocation lease arbiter (Deployed)
-│   ├── DotNexusStakingVault.sol           # Non-custodial NPoS yield staking vault (Deployed)
-│   ├── compile_and_deploy.py              # Paris-EVM compilation & deployment pipeline
-│   └── build/                             # Compiled contract ABIs and bytecodes
-├── engine/                                # Core Python Ops & Security Engine
-│   ├── config.py                          # Chain config (Substrate WS, EVM RPC, SS58:42, Dec:14)
-│   ├── dual_tracker.py                    # 3-Tier Dual-VM desync isolator & mempool tracker
-│   ├── slash_guard.py                     # Dead Man's Switch, session key rotation & lease client
-│   ├── npos_optimizer.py                  # Client-side Sequential Phragmén & dynamic re-nominator
-│   ├── rpc_shield.py                      # Asynchronous reverse proxy & deep query defense (<1ms)
-│   ├── dag_engine.py                      # Interactive DAG Runbook executor
-│   ├── server.py                          # Gateway REST & WebSocket server (port 5050)
-│   └── cli.py                             # Interactive administrative CLI tool
-├── front-end/                             # React 19 + TypeScript + Tailwind CSS UI
-│   ├── src/
-│   │   ├── components/                    # CyberHeader, CyberWorldMap, TerminalDrawer, CyberModal
-│   │   ├── views/                         # DualEngineView, SecurityGuardView, StakingYieldView,
-│   │   │                                  # TopologyRadarView, CanvasBoard (Interactive DAG)
-│   │   ├── services/                      # API client bridging backend endpoints
-│   │   └── App.tsx                        # Master layout & real-time telemetry state
-├── tests/
-│   └── test_engine.py                     # 147 Unit & integration tests (100% Pass)
-├── DEPLOYMENT.md                          # Live testnet contract verification & one-liners
-├── FOR_JUDGES.md                          # 60-Second evaluation guide & compliance matrix
-├── PROJECT_BLUEPRINT.md                   # Comprehensive 750+ line technical specification
-└── hackathon_details.md                   # Competition guidelines & Week 2 Check-in criteria
-```
+* **Phase 1 (Current — Hackathon MVP / Week 2 Check-in):** Full Dual-Engine Tracker, Slashing Guard with on-chain lease registry, NPoS Sequential Phragmén Optimizer, Asynchronous RPC Shield, and Drag-and-Drop DAG Runbook Canvas.
+* **Phase 2 (Post-Hackathon — Q4 2026):** Portaldot Mainnet launch support, native Rust/WASM daemon compilation, hardware security module (HSM/YubiKey) session key signing integration, and multi-validator fleet management.
+* **Phase 3 (2027+):** Cross-chain validator orchestration across Portaldot parachains, decentralized slashing insurance pools, and autonomous AI-driven anomaly detection agents.
 
----
-
-## 🎯 Portaldot Hacker House 2026 Checklist
-
-- **Competition:** Portaldot Hacker House 2026
-- **Track:** Node Operations & Tooling
-- **Week 2 Check-in Status:** Verified & Submitted (Oct 24, 2026)
-- **Target Network:** Portaldot Network V3.0 (`pallet-revive` Dual-VM)
-- **Official Discord:** [discord.gg/portaldot](https://discord.gg/portaldot)
-- **DoraHacks URL:** [dorahacks.io/hackathon/2362/detail](https://dorahacks.io/hackathon/2362/detail)
-
----
-
-## ⚖️ License & Attribution
-
-This project is open-source under the [MIT License](LICENSE). Built with dedication for the **Portaldot Network Ecosystem**.
+### Acknowledgements
+MIT License — see the [LICENSE](LICENSE) file for details. Built with dedication for the **Portaldot Network Ecosystem Foundation** and the **Portaldot Hacker House 2026**. Special thanks to the **Portaldot Network** core engineering team.

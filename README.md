@@ -8,8 +8,6 @@
 ### *Track: Node Operations & Tooling — Portaldot Hacker House 2026*
 <br/>
 
-**Track Dual-VM state. Prevent slashing equivocation. Optimize NPoS yield. Shield RPC endpoints.**
-
 <br/>
 
 [![Portaldot V3.0 Testnet](https://img.shields.io/badge/Portaldot-V3.0_Testnet_(420420777)-24C6DC?style=for-the-badge&logo=polkadot&logoColor=white)](https://portaldot.network)
@@ -29,7 +27,7 @@
 </div>
 
 > **Core Philosophy:** *"Autonomous node security through deterministic physics & verifiable on-chain arbitration"*  
-> DotNexus transforms complex, high-stakes Portaldot Network V3.0 node operations, anti-equivocation security, and NPoS staking into an actionable, real-time 5-stage decision loop: **DETECT $\rightarrow$ ISOLATE $\rightarrow$ SHIELD $\rightarrow$ OPTIMIZE $\rightarrow$ AUTOMATE & FENCE**. In a Dual-VM architecture combining Substrate WASM consensus with EVM `pallet-revive`, DotNexus neutralizes split-brain double-signing slashing via mathematical time invariants ($10\text{s} < 12\text{s} < 15\text{s}$), isolates desync root causes across 3 architectural tiers, simulates Sequential Phragmén for +1.16% APY boost, and executes drag-and-drop DAG operational runbooks 24/7.
+> DotNexus transforms complex, high-stakes Portaldot Network V3.0 node operations, anti-equivocation security, and NPoS staking into an autonomous, real-time 5-stage security operations loop: **DETECT $\rightarrow$ ISOLATE $\rightarrow$ SHIELD $\rightarrow$ OPTIMIZE $\rightarrow$ AUTO-REMEDIATE & FENCE**. In a Dual-VM architecture combining Substrate WASM consensus with EVM `pallet-revive`, DotNexus neutralizes split-brain double-signing slashing via mathematical time invariants ($10\text{s} < 12\text{s} < 15\text{s}$), isolates desync root causes across 3 architectural tiers, simulates Sequential Phragmén for +1.16% APY boost, and executes drag-and-drop DAG operational runbooks 24/7.
 
 ---
 
@@ -128,29 +126,30 @@ To guarantee that Primary and Standby validators can **never sign concurrently**
 $$T_{\text{fence}} < T_{\text{lease}} < T_{\text{standby}} \quad \Longleftrightarrow \quad 10.0\text{s} < 12.0\text{s} < 15.0\text{s}$$
 
 * **Primary Self-Fencing Daemon ($T_{\text{fence}} = 10.0\text{s}$):** The local watcher on the primary node monitors continuous lease renewal. If the heartbeat to the lease store or on-chain contract drops for $\ge 10.0\text{s}$, the daemon immediately self-fences:
-  $$\Delta t_{\text{loss}} \ge 10.0\text{s} \implies \text{exec}(\texttt{kill -9 node\_pid} \lor \texttt{chmod 000 keystore})$$
+  $$\Delta t_{\text{loss}} \ge 10.0\text{s} \implies \text{Trigger}(\text{SelfFenceKeystore} \lor \text{StopProcess})$$
+  *(Executes emergency keystore chmod isolation or graceful node halt)*.
 * **On-Chain Lease Expiration ($T_{\text{lease}} = 12.0\text{s}$):** The on-chain lease recorded in [`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol) expires.
 * **Standby Takeover Authorization ($T_{\text{standby}} = 15.0\text{s}$):** The standby node may only claim the lease if:
-  $$t_{\text{current}} - t_{\text{lease\_granted}} \ge 15.0\text{s} \quad \land \quad \text{Port } 30333 (\text{Primary}) == \text{CLOSED}$$
+  $$t_{\text{current}} - t_{\text{lease-granted}} \ge 15.0\text{s} \quad \land \quad \text{Port}_{30333}(\text{Primary}) = \text{CLOSED}$$
   Upon takeover, Standby atomically increments the monotonic fencing epoch:
-  $$\text{epoch}_{\text{new}} = \text{epoch}_{\text{prev}} + 1$$
+  $$\text{Epoch}_{k+1} = \text{Epoch}_k + 1$$
   Any delayed block broadcast by Primary signed with an older epoch is permanently rejected by the consensus layer.
 
 ### 2. Client-Side Sequential Phragmén Simulation & Pre-Flight Economics
 Substrate's `staking.nominate(targets: Vec<AccountId>)` takes at most 16 targets without allocation weights. The Python NPoS Optimizer computes validator utility $U_v$:
 
-$$U_v = w_1 \cdot \text{Score}_{\text{points}} + w_2 \cdot (100\% - \text{Commission}) + w_3 \cdot \text{Capacity}_{\text{free}} - w_4 \cdot \text{SlashHistory}$$
+$$U_v = w_1 \cdot \text{Score}_v + w_2 \cdot (100\% - \text{Commission}_v) + w_3 \cdot \text{Capacity}_v - w_4 \cdot \text{SlashHistory}_v$$
 
 Subject to hard pre-flight constraints:
 1. **Oversubscription Gate:** $\text{Nominators}(v) < 512$ (prevents zero-reward payout clipping).
-2. **Phase Lockout Check:** Query `ElectionProviderMultiPhase.CurrentPhase()`. Extrinsics are rejected unless $\text{Phase} == \texttt{'Off'}$.
+2. **Phase Lockout Check:** Query `ElectionProviderMultiPhase.CurrentPhase()`. Extrinsics are rejected unless $\text{Phase} == \text{"Off"}$.
 3. **Economic Profit Invariant:** Re-nomination is triggered only when:
-   $$\Delta \text{APY}_{\text{expected}} \times \text{Bonded Stake} > 3 \times \text{Estimated Extrinsic Fee}$$
+   $$\Delta \text{APY} \times \text{BondedStake} > 3 \times \text{ExtrinsicFee}$$
 
 ### 3. Dynamic Decimals & Planck-to-Wei Conversion
 Portaldot V3.0 native Substrate token decimals are $D_{\text{sub}} = 14$, whereas EVM standards expect $D_{\text{evm}} = 18$:
 
-$$1 \text{ POT} = 10^{14} \text{ Planck}$$
+$$1\text{ POT} = 10^{14}\text{ Planck}$$
 $$\text{Wei}_{\text{EVM}} = \text{Planck} \times 10^{(D_{\text{evm}} - D_{\text{sub}})} = \text{Planck} \times 10^4$$
 
 All calculations in the Python engine strictly use arbitrary-precision `int`, and frontend representations use native `BigInt` to eliminate the `Number.MAX_SAFE_INTEGER` ($9.007 \times 10^{15} \approx 90\text{ POT}$) overflow barrier.
@@ -161,8 +160,8 @@ The Asynchronous RPC Shield calculates block spans for incoming `eth_getLogs` re
 $$\Delta \text{Span} = \text{toBlock} - \text{fromBlock}$$
 
 $$\text{Action} = \begin{cases} 
-\text{ALLOW}, & \text{if } \Delta \text{Span} \le 2,000 \land \text{Payload} \le 256\text{KB} \land \text{Batch} \le 20 \\
-\text{REJECT (-32600) \& BAN(60s)}, & \text{if } \Delta \text{Span} > 2,000 \lor \text{Payload} > 256\text{KB}
+\text{ALLOW}, & \text{if } \Delta \text{Span} \le 2000 \land \text{Payload} \le 256\text{KB} \land \text{Batch} \le 20 \\
+\text{BLOCK (-32600)}, & \text{if } \Delta \text{Span} > 2000 \lor \text{Payload} > 256\text{KB}
 \end{cases}$$
 
 ---

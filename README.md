@@ -1,6 +1,6 @@
 <div align="center">
 <p align="center">
-  <img src="./front-end/src/assets/Logo-v1.png" width="120" height="120" alt="DotNexus Logo" />
+  <img src="./front-end/src/assets/Icon.png" width="120" height="120" alt="DotNexus Logo" />
 </p>
 
 # DotNexus

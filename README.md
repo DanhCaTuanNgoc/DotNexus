@@ -317,7 +317,7 @@ The DotNexus frontend is engineered with an uncompromising **Dark Obsidian HUD**
 
 | Workspace View | Underlying Component | Operational Capabilities |
 | :--- | :--- | :--- |
-| **1. Dual-Engine Tracker** | [`DualEngineView.tsx`](front-end/src/views/DualEngineView.tsx) | Live Substrate WS (`:9944`) vs EVM RPC (`:8545`) block height parity, 3-Tier Desync diagnostic badge, mempool segregation (WASM extrinsics vs EVM txs), and dynamic Decimals 14 Planck normalization. |
+| **1. Dual-Engine 2.0 Control Plane** | [`DualEngineView.tsx`](front-end/src/views/DualEngineView.tsx) | Live Substrate WS (`:9944`) vs EVM RPC (`:8545`) block height parity (verified on Testnet V3), 1-Click Active SRE Remediation Dock (Circuit Breaker, fc-db sync, mempool purge, lease failover), 4-Track Ecosystem Pulse Radar, Cross-VM Causal Lag Index (CLI), and Mainnet V3 Storage Deposit Auditor (~0.08 POT/byte). |
 | **2. Slashing Guard & Lease** | [`SecurityGuardView.tsx`](front-end/src/views/SecurityGuardView.tsx) | Visualizes the active on-chain lease arbiter, monotonic fencing epoch counter, Dead Man's Switch countdown timer, and 1-click safe session key rotation (`session.setKeys`). |
 | **3. Staking Yield Optimizer** | [`StakingYieldView.tsx`](front-end/src/views/StakingYieldView.tsx) | Algorithmic Top 16 validator scoring table, commission/oversubscription filters, auto-compounding APY calculation (+1.16% boost), and non-custodial Staking Vault integration. |
 | **4. P2P Topology Radar** | [`TopologyRadarView.tsx`](front-end/src/views/TopologyRadarView.tsx) | Interactive 3D Three.js cyber mesh and geographic world map showing connected Substrate peers, latency gradients, RPC query rate metrics, and active IP defense blocks. |

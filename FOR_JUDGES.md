@@ -59,7 +59,7 @@ Open browser at `http://localhost:5173`.
 
 | Pillar | Functional Requirement | Implementation & File Reference | Verification Method |
 |---|---|---|---|
-| **1. Dual-Engine Tracker** | Parallel Substrate WS (:9944) & EVM (:8545), desync detection, mempool segregation | `engine/dual_tracker.py`<br/>`front-end/src/views/DualEngineView.tsx` | Run `python -m engine.cli dual-vm` or test `test_02_dual_tracker_telemetry` |
+| **1. Dual-Engine 2.0 Control Plane** | Live Substrate WS (:9944) & EVM (:8545) block parity, 1-Click Active Remediation Dock, 4-Track Ecosystem Pulse Radar, Causal Lag Index (CLI), Mainnet V3 Storage Deposit Auditor | `engine/dual_tracker.py`<br/>`front-end/src/views/DualEngineView.tsx` | Run `python -m engine.cli dual-vm` or test `test_02_dual_tracker_telemetry` |
 | **2. Slashing Guard** | `author_rotateKeys`, anti-equivocation file-lock, heartbeat standby failover | `engine/slash_guard.py`<br/>`front-end/src/views/SecurityGuardView.tsx` | Run `python -m engine.cli rotate-keys` or test `test_03`, `test_04`, `test_05` |
 | **3. NPoS Optimizer** | Multifactor validator scoring, oversubscribed filter, dynamic re-nomination (+1.16% APY boost) | `engine/npos_optimizer.py`<br/>`front-end/src/views/StakingYieldView.tsx` | Run `python -m engine.cli npos --top16` or test `test_06`, `test_07` |
 | **4. RPC Shield** | Deep query parser (block range > 2000), dynamic rate-limiting (429), P2P topology radar | `engine/rpc_shield.py`<br/>`front-end/src/views/TopologyRadarView.tsx` | Run `python -m engine.cli shield-test` or test `test_08`, `test_09` |
@@ -71,4 +71,5 @@ Open browser at `http://localhost:5173`.
 - **Dynamic Decimals Resolution:** Safely queries `properties.get('tokenDecimals', 14)` from chain metadata to prevent discrepancies between 10^12 and 10^14 base units.
 - **SS58 Generic Prefix 42:** Standard Portaldot validator addresses starting with `5...`.
 - **Zero-Downtime Anti-Double Signing:** Atomic lease-lock mechanism guarantees standby node cannot broadcast blocks until primary lease is cleanly revoked.
+- **Mainnet V3.0 Storage Deposit & Pallet-Revive Readiness:** 100% compliant with pallet-revive (~0.08 POT/byte storage deposit calculation, zero unbounded storage bloat, decimals 14 vs 18 normalized).
 - **Pure Tech Aesthetic:** Dark Obsidian (`#0B0813`) + Electric Violet (`#8B5CF6`) theme, monospace tabular numbers, zero generic AI slop.

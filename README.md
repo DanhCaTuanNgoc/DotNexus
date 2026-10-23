@@ -59,7 +59,7 @@
     - [The 5 Core Interactive Control Workspaces](#the-5-core-interactive-control-workspaces)
   - [🏗️ 9. Full System Architecture \& Multi-Tier Data Flow](#️-9-full-system-architecture--multi-tier-data-flow)
     - [End-to-End Architectural Data Flow](#end-to-end-architectural-data-flow)
-  - [🧪 10. Developer Diagnostics \& Test Verification (162/162 Tests)](#-10-developer-diagnostics--test-verification-162162-tests)
+  - [🧪 10. Developer Diagnostics \& Test Verification (168/168 Tests)](#-10-developer-diagnostics--test-verification-168168-tests)
     - [Test Suite Coverage Breakdown](#test-suite-coverage-breakdown)
   - [📁 11. Repository Structure](#-11-repository-structure)
   - [🛠️ 12. Portaldot V3.0 Dual-VM \& Substrate/EVM Developer Feedback Report](#️-12-portaldot-v30-dual-vm--substrateevm-developer-feedback-report)
@@ -88,7 +88,7 @@
 | **NPoS Yield Optimization** | Client-side **Sequential Phragmén Simulator** selecting optimal Top 16 validators with non-custodial auto-compounding (+1.16% APY). | [`npos_optimizer.py`](engine/npos_optimizer.py) &nbsp;•&nbsp; [`DotNexusStakingVault.sol`](contracts/DotNexusStakingVault.sol) |
 | **RPC Shield & P2P Defense** | Asynchronous reverse proxy with $< 1\text{ms}$ overhead, 256KB payload filter, batch $\le 20$ limiter, and 3D P2P topology radar. | [`rpc_shield.py`](engine/rpc_shield.py) &nbsp;•&nbsp; [`TopologyRadarView.tsx`](front-end/src/views/TopologyRadarView.tsx) |
 | **Orchestration & Runbooks** | Interactive **Visual DAG Canvas** with built-in safety linter compiling drag-and-drop nodes into headless 24/7 daemon execution. | [`dag_engine.py`](engine/dag_engine.py) &nbsp;•&nbsp; [`CanvasBoard.tsx`](front-end/src/views/CanvasBoard.tsx) |
-| **Reliability & Tests** | **162/162 passing tests (100% pass rate)**, 0 mock dependencies, verified on official Portaldot V3.0 Testnet (`420420777`). | [`test_engine.py`](tests/test_engine.py) &nbsp;•&nbsp; [Test Run](#-10-developer-diagnostics--test-verification-162162-tests) |
+| **Reliability & Tests** | **168/168 passing tests (100% pass rate)**, 0 mock dependencies, verified on official Portaldot V3.0 Testnet (`420420777`). | [`test_engine.py`](tests/test_engine.py) &nbsp;•&nbsp; [Test Run](#-10-developer-diagnostics--test-verification-168168-tests) |
 
 ---
 
@@ -269,7 +269,7 @@ Alignment with the **4 primary judging criteria** specified in [`hackathon_detai
 
 | Judging Criterion & Weight | Hackathon Focus (from `hackathon_details.md`) | DotNexus Technical Implementation & Verified Proof |
 | :--- | :--- | :--- |
-| **1. Technical Feasibility**<br/>`30% Weight` | *• Technical approach, system architecture, code completeness, and actual delivery.<br/>• Verified GitHub development activity & testnet interactions.* | • **100% Production Codebase:** Zero mocks or stubbed responses. Engine connects directly to `wss://test-node-v3.portaldot.dev` and `https://test-evm-rpc-v3.portaldot.dev`.<br/>• **Verified Testnet Contracts:** 2 smart contracts compiled with Paris-EVM and deployed on Portaldot V3.0 `pallet-revive`.<br/>• **Comprehensive Test Coverage:** **162/162 automated unit tests passed** in [`tests/test_engine.py`](tests/test_engine.py).<br/>• **Full-Stack Execution:** Python 3.10+ async core + React 19 / TypeScript 5 frontend. |
+| **1. Technical Feasibility**<br/>`30% Weight` | *• Technical approach, system architecture, code completeness, and actual delivery.<br/>• Verified GitHub development activity & testnet interactions.* | • **100% Production Codebase:** Zero mocks or stubbed responses. Engine connects directly to `wss://test-node-v3.portaldot.dev` and `https://test-evm-rpc-v3.portaldot.dev`.<br/>• **Verified Testnet Contracts:** 2 smart contracts compiled with Paris-EVM and deployed on Portaldot V3.0 `pallet-revive`.<br/>• **Comprehensive Test Coverage:** **168/168 automated unit tests passed** in [`tests/test_engine.py`](tests/test_engine.py).<br/>• **Full-Stack Execution:** Python 3.10+ async core + React 19 / TypeScript 5 frontend. |
 | **2. Innovation**<br/>`30% Weight` | *• Effective use of Portaldot V3.0 features (WASM/EVM compatibility, modular architecture).<br/>• Delivering real value beyond existing solutions.* | • **Dead Man's Switch & On-Chain Lease Arbiter:** First anti-equivocation solution mathematically proving zero double-signing under asymmetric network partition ($10\text{s} < 12\text{s} < 15\text{s}$).<br/>• **3-Tier Dual-VM Root-Cause Isolation:** Differentiates Substrate P2P sync stalls from `fc-mapping-sync` lag and EVM mempool spikes.<br/>• **Client-Side Sequential Phragmén Simulation:** Predicts on-chain NPoS election payouts to prevent nominator clipping. |
 | **3. Ecosystem Contribution**<br/>`20% Weight` | *• Contribution to Portaldot infrastructure, developer tools, node ecosystem, and user growth.<br/>• Potential for sustained open-source building.* | • **Critical Infrastructure Tool:** Empowers both professional validator operators and retail stakers on Portaldot V3.0.<br/>• **RPC Shield for Node Operators:** Prevents public RPC crash vulnerabilities across the entire testnet and future mainnet.<br/>• **Open-Source Runbook Standard:** Shareable, visual DAG runbooks for automated network remediation.<br/>• **Dynamic Decimals Standard:** Establishes reference handling for $10^{14}$ Planck vs $10^{18}$ Wei. |
 | **4. Business Potential**<br/>`20% Weight` | *• Real market needs, clear target users, sustainable growth path, and delivery capability.* | • **B2B Infrastructure & Validator-as-a-Service (VaaS):** Essential software license for institutional Portaldot staking operators.<br/>• **Slashing Insurance & SLA Guarantee:** Unlocks institutional delegator capital by eliminating double-signing risk.<br/>• **Staking Yield Monetization:** Staking Vault contract supports non-custodial performance fees on optimized compounding APY.<br/>• **Extensible Modular Plugin Architecture:** Ready for integration with future Portaldot parachains and cross-chain bridges. |
@@ -373,16 +373,16 @@ The DotNexus frontend is engineered with an uncompromising **Dark Obsidian HUD**
 
 ---
 
-## 🧪 10. Developer Diagnostics & Test Verification (162/162 Tests)
+## 🧪 10. Developer Diagnostics & Test Verification (168/168 Tests)
 
-DotNexus maintains a rigorous test suite of **162 tests** covering all operational pillars, smart contract interactions, mathematical invariants, and attack vector mitigations:
+DotNexus maintains a rigorous test suite of **168 tests** covering all operational pillars, smart contract interactions, mathematical invariants, and attack vector mitigations:
 
 ```bash
 python -m unittest tests/test_engine.py
 ```
 
 ```text
-Ran 162 tests in 23.813s
+Ran 168 tests in 26.075s
 
 OK
 ```
@@ -393,10 +393,10 @@ OK
 | :--- | :---: | :--- | :---: |
 | **Dual-Engine Tracker** | 39 tests | Parallel WS/EVM ingestion, 3-tier desync root cause, dynamic decimals 14, mempool segregation, 1-Click SRE remediation, RPC circuit breaker gating, Pallet-Revive Mainnet V3 storage deposit calculator | `PASS (100%)` |
 | **Slashing Guard** | 35 tests | Dead Man's Switch, $10\text{s} < 12\text{s} < 15\text{s}$ invariant, session key struct parsing, monotonic epoch | `PASS (100%)` |
-| **NPoS Yield Optimizer** | 32 tests | Client-side Sequential Phragmén, oversubscription filtering, pre-flight election phase lock, APY boost | `PASS (100%)` |
-| **RPC Shield & Proxy** | 36 tests | 256KB payload limit, batch $\le 20$ limiter, broad `eth_getLogs` block range ($> 2000$) rejection, IP quarantine, /24 Sybil subnet cluster detection & eclipse mitigation | `PASS (100%)` |
+| **NPoS Yield Optimizer & Staking Keeper** | 38 tests | Client-side Sequential Phragmén, oversubscription filtering, pre-flight election phase lock, APY boost, dynamic unbonding queue, profit invariant ($\Delta\text{APY} \times \text{Stake} > 3 \times \text{Fee}$) | `PASS (100%)` |
+| **RPC Shield & Proxy** | 38 tests | 256KB payload limit, batch $\le 20$ limiter, broad `eth_getLogs` block range ($> 2000$) rejection, IP quarantine, /24 Sybil subnet cluster detection & eclipse mitigation | `PASS (100%)` |
 | **DAG Runbook Engine** | 18 tests | Graph topological sort, cycle detection, trigger-action dispatch, headless daemon execution | `PASS (100%)` |
-| **Total Test Suite** | **162 tests** | **Complete Engine & Contract Integration Test Suite** | **162 / 162 PASS** |
+| **Total Test Suite** | **168 tests** | **Complete Engine & Contract Integration Test Suite** | **168 / 168 PASS** |
 
 ---
 
@@ -414,6 +414,7 @@ DotNexus/
 │   ├── dual_tracker.py                    # 3-Tier Dual-VM desync isolator & mempool tracker
 │   ├── slash_guard.py                     # Dead Man's Switch, session key rotation & lease client
 │   ├── npos_optimizer.py                  # Client-side Sequential Phragmén & dynamic re-nominator
+│   ├── staking_keeper.py                  # Autonomous staking keeper & dynamic unbonding queue
 │   ├── rpc_shield.py                      # Asynchronous reverse proxy & deep query defense (<1ms)
 │   ├── dag_engine.py                      # Visual DAG Runbook workflow executor
 │   ├── server.py                          # Gateway REST & WebSocket server (port 5050)
@@ -426,7 +427,7 @@ DotNexus/
 │   │   ├── services/api.ts                # Backend API bridge
 │   │   └── App.tsx                        # Master layout & real-time telemetry state
 ├── tests/
-│   └── test_engine.py                     # Full test suite (162/162 passing tests)
+│   └── test_engine.py                     # Full test suite (168/168 passing tests)
 ├── DEPLOYMENT.md                          # Live testnet contract verification & one-liners
 ├── FOR_JUDGES.md                          # 60-Second evaluation guide & compliance matrix
 ├── PROJECT_BLUEPRINT.md                   # Comprehensive 750+ line technical specification

@@ -117,6 +117,39 @@ def get_dual_tracker():
     return jsonify({"success": True, "data": data})
 
 
+@app.route("/api/dual-tracker/remediate", methods=["POST"])
+def remediate_dual_tracker():
+    """Executes active self-healing action on Dual-Engine node"""
+    body = request.get_json(silent=True) or {}
+    action = body.get("action", "force_fc_sync")
+    details = body.get("details", {})
+    res = DUAL_TRACKER.execute_remediation(action, details)
+    return jsonify({"success": res.get("success", True), "data": res})
+
+
+@app.route("/api/dual-tracker/circuit-breaker", methods=["POST"])
+def toggle_circuit_breaker():
+    """Toggles or sets RPC Circuit Breaker protective gating mode"""
+    body = request.get_json(silent=True) or {}
+    enabled = body.get("enabled", None)
+    res = DUAL_TRACKER.toggle_circuit_breaker(enabled)
+    return jsonify({"success": True, "data": res})
+
+
+@app.route("/api/dual-tracker/contract-audit", methods=["GET", "POST"])
+def audit_contract():
+    """Audits smart contract suitability for Portaldot Mainnet V3.0 (pallet-revive)"""
+    if request.method == "POST":
+        body = request.get_json(silent=True) or {}
+        contract_name = body.get("contract_name", "SlashGuardLeaseRegistry")
+        custom_code = body.get("custom_code", None)
+    else:
+        contract_name = request.args.get("contract_name", "SlashGuardLeaseRegistry")
+        custom_code = None
+    res = DUAL_TRACKER.audit_contract_for_mainnet(contract_name, custom_code)
+    return jsonify({"success": True, "data": res})
+
+
 @app.route("/api/slash-guard", methods=["GET"])
 def get_slash_guard():
     """Slashing guard status, session keys, Dead Man's Switch, and security log"""

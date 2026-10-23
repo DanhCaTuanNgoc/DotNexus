@@ -93,6 +93,63 @@ export interface DualTelemetryState {
     scale_factor: number;
     pot_readable: number;
   };
+  circuit_breaker?: {
+    enabled: boolean;
+    status: 'ARMED' | 'TRIPPED' | 'BYPASSED';
+    auto_gate_threshold_blocks: number;
+    protected_traffic_routes: string[];
+    last_remediation?: any;
+  };
+  ecosystem_pulse?: {
+    track_1_middleware: {
+      label: string;
+      status: string;
+      rpc_shield_mode: string;
+      fc_db_latency_ms: number;
+      throughput_qps: number;
+    };
+    track_2_cross_chain: {
+      label: string;
+      status: string;
+      babe_slot_duration_sec: number;
+      grandpa_finality_lag: number;
+      causal_lag_index: number;
+    };
+    track_3_node_ops: {
+      label: string;
+      status: string;
+      active_authority: string;
+      equivocation_guard: string;
+      connected_peers: number;
+    };
+    track_4_ecosystem_dapps: {
+      label: string;
+      status: string;
+      base_fee_gwei: number;
+      storage_deposit_rate: string;
+      pallet_revive_ready: boolean;
+    };
+  };
+}
+
+export interface ContractAuditResult {
+  contract_name: string;
+  source_file: string;
+  bytecode_size_bytes: number;
+  storage_deposit_rate_pot_per_byte: number;
+  estimated_storage_deposit_pot: number;
+  estimated_storage_deposit_wei: string;
+  mainnet_v3_checklist: {
+    pallet_revive_compatible: boolean;
+    custom_errors_gas_lean: boolean;
+    decimals_14_to_18_normalized: boolean;
+    compiler_target_shanghai: boolean;
+    via_ir_optimizer_enabled: boolean;
+    zero_unbounded_storage_slots: boolean;
+  };
+  suitability_score_pct: number;
+  status: string;
+  recommendation: string;
 }
 
 export interface SecurityDashboardState {
@@ -262,6 +319,30 @@ export const api = {
   },
   getDualTracker: async (): Promise<{ success: boolean; data: DualTelemetryState }> => {
     const res = await fetch(`${BASE_URL}/dual-tracker`);
+    return res.json();
+  },
+  remediateDualEngine: async (action: string, details?: any): Promise<{ success: boolean; data: any }> => {
+    const res = await fetch(`${BASE_URL}/dual-tracker/remediate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, details })
+    });
+    return res.json();
+  },
+  toggleCircuitBreaker: async (enabled?: boolean): Promise<{ success: boolean; data: any }> => {
+    const res = await fetch(`${BASE_URL}/dual-tracker/circuit-breaker`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled })
+    });
+    return res.json();
+  },
+  auditContractMainnet: async (contractName?: string, customCode?: string): Promise<{ success: boolean; data: ContractAuditResult }> => {
+    const res = await fetch(`${BASE_URL}/dual-tracker/contract-audit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contract_name: contractName, custom_code: customCode })
+    });
     return res.json();
   },
   getSlashGuard: async (): Promise<{ success: boolean; data: SecurityDashboardState }> => {

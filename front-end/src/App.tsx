@@ -214,9 +214,9 @@ export const App: React.FC = () => {
     <div className="h-screen flex flex-col bg-[#0B0813] text-[#E2E8F0] overflow-hidden">
       {/* Global Cluster Header */}
       <Header
-        bestBlock={dualData?.substrate?.best_block || 4120912}
-        finalizedBlock={dualData?.substrate?.finalized_block || 4120909}
-        evmBlock={dualData?.evm?.block_number || 4120911}
+        bestBlock={dualData?.substrate?.best_block || 161450}
+        finalizedBlock={dualData?.substrate?.finalized_block || 161448}
+        evmBlock={dualData?.evm?.block_number || 161450}
         delta={dualData?.sync?.delta_blocks || 1}
         syncStatus={dualData?.sync?.status || 'SYNCED'}
         activeNode={secData?.active_node || 'PRIMARY'}

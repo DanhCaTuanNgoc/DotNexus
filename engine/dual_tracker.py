@@ -64,11 +64,11 @@ class DualEngineTracker:
         self._probe_cooldown_seconds: float = 10.0
 
         # Simulation fallback state (in case local node is offline)
-        self._mock_substrate_block = 4120912
-        self._mock_finalized_block = 4120909
-        self._mock_evm_block = 4120911
+        self._mock_substrate_block = 161450
+        self._mock_finalized_block = 161448
+        self._mock_evm_block = 161450
         self._mock_peers_count = 14
-        self._mock_highest_block = 4120912
+        self._mock_highest_block = 161450
         self._mock_last_tick = time.time()
 
     def _init_substrate(self) -> bool:

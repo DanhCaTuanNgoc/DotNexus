@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <!-- Master Color Gradients -->
+    <linearGradient id="violet-cyan-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C084FC" />
+      <stop offset="50%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+
+    <linearGradient id="core-glow-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#8B5CF6" stop-opacity="1" />
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0.9" />
+    </linearGradient>
+
+    <linearGradient id="orbital-beam" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0" />
+      <stop offset="50%" stop-color="#00F5FF" stop-opacity="1" />
+      <stop offset="100%" stop-color="#C084FC" stop-opacity="0" />
+    </linearGradient>
+
+    <radialGradient id="ambient-radial" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.45" />
+      <stop offset="45%" stop-color="#4C1D95" stop-opacity="0.2" />
+      <stop offset="70%" stop-color="#06B6D4" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#0B0813" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Multi-stage Neon Glow Filter -->
+    <filter id="neon-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.5" result="blur1" />
+      <feGaussianBlur stdDeviation="8" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="hyper-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 2 0" />
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <style>
+      .pulsing-aura {
+        animation: pulseAura 3s ease-in-out infinite alternate;
+        transform-origin: 100px 100px;
+      }
+      .ring-cw {
+        animation: rotateCW 16s linear infinite;
+        transform-origin: 100px 100px;
+      }
+      .ring-ccw {
+        animation: rotateCCW 22s linear infinite;
+        transform-origin: 100px 100px;
+      }
+      .pulse-core {
+        animation: coreBreathing 2.4s ease-in-out infinite alternate;
+        transform-origin: 100px 100px;
+      }
+      .beacon-dot {
+        animation: beaconPing 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+        transform-origin: 100px 100px;
+      }
+      .circuit-flicker {
+        animation: flicker 4s ease-in-out infinite;
+      }
+      
+      @keyframes rotateCW {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @keyframes rotateCCW {
+        from { transform: rotate(360deg); }
+        to { transform: rotate(0deg); }
+      }
+      @keyframes pulseAura {
+        0% { transform: scale(0.92); opacity: 0.5; }
+        50% { transform: scale(1.04); opacity: 0.85; }
+        100% { transform: scale(0.92); opacity: 0.5; }
+      }
+      @keyframes coreBreathing {
+        0% { transform: scale(0.97); filter: drop-shadow(0 0 6px #8B5CF6); }
+        100% { transform: scale(1.03); filter: drop-shadow(0 0 16px #00F5FF); }
+      }
+      @keyframes beaconPing {
+        0% { transform: scale(0.6); opacity: 1; }
+        100% { transform: scale(2.2); opacity: 0; }
+      }
+      @keyframes flicker {
+        0%, 100% { opacity: 0.8; }
+        25% { opacity: 0.4; }
+        50% { opacity: 1; }
+        75% { opacity: 0.6; }
+      }
+    </style>
+  </defs>
+
+  <!-- Ambient Pulsing Background Glow -->
+  <circle cx="100" cy="100" r="92" fill="url(#ambient-radial)" class="pulsing-aura" />
+
+  <!-- Outer Cyber Hexagonal Chassis -->
+  <polygon points="100,12 176,55 176,145 100,188 24,145 24,55" 
+           fill="none" stroke="#2E1B4E" stroke-width="1.5" stroke-dasharray="8 6" opacity="0.6" />
+
+  <!-- Outer Orbital Rotating Ring (Clockwise) -->
+  <g class="ring-cw">
+    <circle cx="100" cy="100" r="78" fill="none" stroke="url(#orbital-beam)" stroke-width="2" stroke-linecap="round" stroke-dasharray="45 80 30 110" opacity="0.85" filter="url(#neon-glow)" />
+    <!-- Substrate WASM Node Marker -->
+    <circle cx="178" cy="100" r="4.5" fill="#C084FC" filter="url(#neon-glow)" />
+    <circle cx="178" cy="100" r="2" fill="#FFFFFF" />
+    <!-- EVM pallet-revive Node Marker -->
+    <circle cx="22" cy="100" r="4.5" fill="#00F5FF" filter="url(#neon-glow)" />
+    <circle cx="22" cy="100" r="2" fill="#FFFFFF" />
+  </g>
+
+  <!-- Inner Telemetry Ring (Counter-Clockwise) -->
+  <g class="ring-ccw">
+    <circle cx="100" cy="100" r="66" fill="none" stroke="#6D28D9" stroke-width="1.5" stroke-dasharray="15 35 40 25" opacity="0.7" />
+    <!-- Orbiting Satellite Data Dots -->
+    <circle cx="100" cy="34" r="3" fill="#00F5FF" filter="url(#neon-glow)" />
+    <circle cx="100" cy="166" r="3" fill="#A855F7" filter="url(#neon-glow)" />
+    <circle cx="146" cy="146" r="2.5" fill="#38BDF8" opacity="0.8" />
+    <circle cx="54" cy="54" r="2.5" fill="#C084FC" opacity="0.8" />
+  </g>
+
+  <!-- Cybernetic Crosshair Guides -->
+  <g opacity="0.3" stroke="#8B5CF6" stroke-width="1" class="circuit-flicker">
+    <line x1="100" y1="20" x2="100" y2="38" />
+    <line x1="100" y1="162" x2="100" y2="180" />
+    <line x1="20" y1="100" x2="38" y2="100" />
+    <line x1="162" y1="100" x2="180" y2="100" />
+  </g>
+
+  <!-- Central Dynamic DotNexus Emblem (The Dual-VM Lightning Nexus) -->
+  <g class="pulse-core" filter="url(#hyper-glow)">
+    <!-- Backlit Soft Shadow Polygon -->
+    <path d="M107.5 174.5 c-2.6 3.4 -8 1.5 -8 -2.8 v-44 a9 9 0 0 0 -9 -9 h-43 c-3.7 0 -5.8 -4.2 -3.7 -7.2 l30 -41.9 c4.3 -6 0 -14.3 -7.4 -14.3 h-37.5 c-3.7 0 -5.8 -4.2 -3.7 -7.2 l35.1 -49 c.9 -1.2 2.2 -1.9 3.7 -1.9 h115.5 c3.7 0 5.8 4.2 3.7 7.2 l-30 41.9 c-4.3 6 0 14.3 7.4 14.3 h45.5 c3.8 0 5.9 4.4 3.6 7.3 z"
+          fill="url(#core-glow-grad)" opacity="0.95" />
+
+    <!-- Inner Core Facet (Specular Light) -->
+    <path d="M105 162 c-1.5 2 -4.8 1 -4.8 -1.5 v-41 a9 9 0 0 0 -9 -9 h-38 c-2.2 0 -3.4 -2.4 -2.2 -4.1 l27 -38 c3.8 -5.3 0 -12.7 -6.5 -12.7 h-31 c-2.2 0 -3.4 -2.4 -2.2 -4.1 l29 -40 c.6 -.8 1.5 -1.2 2.5 -1.2 h95 c2.2 0 3.4 2.4 2.2 4.1 l-27 38 c-3.8 5.3 0 12.7 6.5 12.7 h36 c2.3 0 3.6 2.6 2.2 4.4 z"
+          fill="url(#violet-cyan-grad)" />
+
+    <!-- Crystal White Core Edge Highlights -->
+    <path d="M72 17 L172 17 L142 59 C138 64 142 72 148 72 L185 72 L105 162" 
+          fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.75" />
+
+    <path d="M28 59 L58 17 L85 17" 
+          fill="none" stroke="#00F5FF" stroke-width="2" stroke-linecap="round" opacity="0.9" filter="url(#neon-glow)" />
+
+    <path d="M46 112 L84 112 C90 112 95 117 95 123 L95 165" 
+          fill="none" stroke="#C084FC" stroke-width="2" stroke-linecap="round" opacity="0.9" filter="url(#neon-glow)" />
+  </g>
+
+  <!-- Central Anti-Equivocation Beacon Pulse (Heartbeat Core) -->
+  <g transform="translate(100, 100)">
+    <circle cx="0" cy="0" r="14" fill="#00F5FF" opacity="0.2" class="beacon-dot" />
+    <circle cx="0" cy="0" r="7" fill="#8B5CF6" opacity="0.3" class="beacon-dot" style="animation-delay: 0.6s;" />
+    <circle cx="0" cy="0" r="4.5" fill="#FFFFFF" filter="url(#neon-glow)" />
+    <circle cx="0" cy="0" r="2" fill="#00F5FF" />
+  </g>
+</svg>

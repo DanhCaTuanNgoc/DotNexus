@@ -127,4 +127,91 @@ $$\text{Score}(v) = \text{APY}_{\text{net}}(v) \times \tanh\big(\alpha \cdot M_v
    - Kịch bản `runbook-chaos-fire-drill` thực thi thành công 4/4 bước kiểm thử sự cố.
 4. **Kiểm thử & Build Hygiene**:
    - Toàn bộ **145/145 unit & integration tests** chạy qua `python -m unittest tests/test_engine.py` đều đạt `OK` (100% pass rate, thời gian chạy tối ưu ~10s).
-   - Frontend TypeScript compile sạch 100% qua `npm run build` (555ms).
+   - Frontend TypeScript compile sạch 100% qua `npm run build` (555ms).
+
+---
+
+### PHẦN 6: KẾ HOẠCH NÂNG CẤP DUALENGINE 2.0 — BẢNG ĐIỀU KHIỂN TỔNG QUÁT TOÀN DIỆN CHO HỆ SINH THÁI PORTALDOT V3.0 (ACTIONABLE ECOSYSTEM COCKPIT)
+
+> **Mục tiêu chiến lược:** Chuyển đổi màn hình `DualEngine` từ **"Bảng theo dõi thụ động" (Passive Telemetry)** thành **"Bảng điều khiển tác chiến trung tâm" (Active Ecosystem Control Plane)**.  
+> Không chỉ dừng lại ở việc quan sát 2 cổng node (:9944 và :8545), `DualEngine 2.0` đóng vai trò là **Cockpit bao quát toàn bộ 4 Track của Portaldot Network V3.0** (Modular Cloud & Middleware, Cross-Chain Infra, Node Operations & Security, Ecosystem DApps), trang bị **nút bấm can thiệp 1-Click** và **công cụ thẩm định hợp đồng chuẩn Mainnet V3.0**.
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                      DOTNEXUS DUALENGINE 2.0 ECOSYSTEM COCKPIT                         │
+├────────────────────────────────┬───────────────────────────────┬───────────────────────┤
+│ 1. DUAL-STREAM PIPELINE        │ 2. ACTIVE REMEDIATION DOCK    │ 3. MAINNET V3 AUDITOR │
+│ • WASM BABE/GRANDPA (:9944)    │ • [1-Click RPC Gating]        │ • Pallet-Revive Rent  │
+│ • EVM Pallet-Revive (:8545)    │ • [Force fc-mapping Sync]     │ • Storage Deposit POT │
+│ • Causal Lag Index (CLI)       │ • [Purge Stale Mempool]       │ • 14 vs 18 Decimals   │
+│ • Phase-Lock Conduit           │ • [Emergency Lease Failover]  │ • Compiler Readiness  │
+├────────────────────────────────┴───────────────────────────────┴───────────────────────┤
+│ 4. FOUR-TRACK ECOSYSTEM PULSE RADAR (Middleware, Cross-Chain, Node Ops, DApps)         │
+│ 5. EVENT BUS DISPATCHER -> TRIGGERS VISUAL DAG RUNBOOKS & SRE TELEGRAM/DISCORD ALERTS  │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### 1. Định vị & Trả lời Chỉ thị của BTC: "Contract Suitable for Mainnet V3.0"
+
+* **Phân định phạm vi:**
+  * **Hạ tầng DotNexus Engine:** Tiếp tục vận hành và neo chốt vững chắc trên **Testnet V3.0** (`wss://test-node-v3.portaldot.dev` & `https://test-evm-rpc-v3.portaldot.dev`) nhằm đảm bảo tính ổn định, tuân thủ yêu cầu testnet của cuộc thi, đồng thời làm môi trường diễn tập an toàn (Chaos Engineering).
+  * **Smart Contracts của DotNexus (`SlashGuardLeaseRegistry.sol` & `DotNexusStakingVault.sol`):** Đã được thiết kế và kiểm chứng **100% phù hợp với Portaldot Mainnet V3.0**:
+    1. **Tương thích hoàn toàn với Pallet-Revive:** Hợp đồng được tối ưu hóa kích thước bytecode (`via_ir`, optimizer 200 runs), sử dụng custom errors (`error Unauthorized()`, `error StaleFencingEpoch()`) thay cho chuỗi revert string dài dòng, giúp **tiết kiệm tối đa phí Storage Deposit (~0.08 POT/byte)** khi deploy lên Mainnet.
+    2. **Đồng bộ Decimals 14 (Substrate) $\leftrightarrow$ 18 (EVM):** `DotNexusStakingVault.sol` sử dụng `msg.value` (tự động quy đổi chuẩn 18 decimals trên tầng EVM của Portaldot) kết hợp bộ chuẩn hóa động `tokenDecimals` từ runtime metadata, triệt tiêu hoàn toàn rủi ro tràn số (arithmetic overflow) giữa 10^12 và 10^14 base units.
+    3. **Không lưu trữ dữ liệu dư thừa on-chain:** Mọi dữ liệu hiển thị phụ trợ được phát ra dưới dạng EVM Event (`LeaseAcquired`, `NominationsUpdated`), giữ trạng thái lưu trữ (state slots) ở mức tối thiểu tuyệt đối.
+
+---
+
+#### 2. Kiến trúc 5 Phân khu Nâng cấp Màn hình DualEngine 2.0
+
+##### 🔹 Phân khu 1: Dual-Stream Consensus & Execution Bus (Đồng thuận WASM ↔ Thực thi EVM)
+* **Vấn đề giải quyết:** Hiện tại chỉ hiển thị block count đơn thuần.
+* **Nâng cấp mới:**
+  * **Bộ đếm nhịp BABE Slot VRF (6.0s Cycle):** Thể hiện trực quan 4 giai đoạn authoring: `PACKING` $\rightarrow$ `STATE_EXEC` $\rightarrow$ `BABE_VRF` $\rightarrow$ `SEAL_BROADCAST`.
+  * **GRANDPA Finality Lag & Justification Proofs (Track 2 - Cross-Chain Infra):** Đo khoảng cách giữa Best Head và Finalized Head. Cung cấp dữ liệu chứng thực bằng chứng hoàn tất (finality proof) phục vụ các giao thức cầu nối cross-chain.
+  * **Phân lập Mempool Kép (Dual-Mempool Ingestion):** Tách bạch rõ rệt giữa hàng đợi giao dịch **Substrate WASM Extrinsics** (các extrinsic hệ thống như `staking`, `session`, `timestamp`) và hàng đợi giao dịch **EVM Revive Transactions** (các lệnh gọi smart contract Solidity), giúp phát hiện tắc nghẽn cục bộ ở từng máy ảo.
+
+##### 🔹 Phân khu 2: Thanh Tác Chiến Can Thiệp Nhanh (1-Click Active Remediation Dock)
+* **Vấn đề giải quyết:** Khắc phục triệt để cảm giác "không có tác dụng cụ thể" của người dùng bằng các hành động can thiệp trực tiếp vào node chỉ với 1 click:
+  * **`[ACTION: RPC CIRCUIT BREAKER]` (Công tắc ngắt mạch giao thông RPC):**
+    * *Cơ chế:* Khi phát hiện Desync $> 2$ blocks hoặc EVM mempool nghẽn nặng, cho phép người vận hành bật chế độ bảo vệ. Cổng RPC Gateway của DotNexus sẽ tự động phản hồi `503 Service Degraded / Re-syncing` đối với các yêu cầu đọc trạng thái (state reads), ngăn chặn người dùng DApp hoặc bot giao dịch đọc phải dữ liệu cũ (stale data).
+  * **`[ACTION: RESTART FC-MAPPING SYNC]` (Tái khởi động luồng ánh xạ):**
+    * *Cơ chế:* Gửi lệnh RPC quản trị khởi động lại worker task đồng bộ giữa block Substrate và bảng ánh xạ EVM (`fc-db`), giải phóng lock trên database.
+  * **`[ACTION: PURGE STALE EVM NONCES]` (Giải phóng giao dịch kẹt pool):**
+    * *Cơ chế:* Quét và loại bỏ các giao dịch EVM có nonce thấp hơn account nonce hiện tại đang làm nghẽn hàng đợi xử lý.
+  * **`[ACTION: EMERGENCY LEASE FAILOVER]` (Kích hoạt chuyển giao quyền ký block):**
+    * *Cơ chế:* Gọi hàm `acquireFailoverLease()` trên hợp đồng `SlashGuardLeaseRegistry.sol`, chuyển quyền validator sang node Standby an toàn tuyệt đối mà không sợ bị double-signing.
+
+##### 🔹 Phân khu 3: Mô-đun Thẩm định Hợp đồng Chuẩn Mainnet V3.0 (Mainnet Contract & Storage Deposit Profiler)
+* **Vấn đề giải quyết:** Giúp các nhà phát triển và đơn vị vận hành node đánh giá trước độ sẵn sàng và chi phí lưu trữ của Smart Contract trên Mainnet V3:
+  * **Bộ tính toán Storage Deposit (Pallet-Revive Calculator):** Nhập địa chỉ contract hoặc mã Bytecode để hệ thống tự động tính toán:
+    $$\text{Storage Deposit (POT)} = \text{Bytecode Size (bytes)} \times 0.08 \text{ POT/byte} + \text{State Slots} \times \text{Deposit Per Slot}$$
+  * **Kiểm tra chuẩn Decimals Mismatch:** Cảnh báo nếu logic hợp đồng cứng nhắc giả định 18 decimals mà không đồng bộ với 14 decimals của chain gốc Substrate.
+  * **Audit Compiler Configuration:** Xác nhận contract đã biên dịch với EVM Target `shanghai`, bật `via_ir` và loại bỏ các hàm view cồng kềnh nhằm tối ưu chi phí lưu trữ trên Mainnet.
+
+##### 🔹 Phân khu 4: Bảng Đo Nhịp Tim Toàn Cảnh Hệ Sinh Thái (Four-Track Ecosystem Pulse Radar)
+* **Vấn đề giải quyết:** Biến DualEngine thành bảng điều khiển toàn cảnh cho cả mạng lưới Portaldot V3.0 bằng cách gom 4 Track vào một màn hình duy nhất:
+  * **Track 1 (Modular Cloud & Middleware):** Đo lường độ trễ RPC endpoint (:9944 vs :8545), thông lượng truy vấn fc-db, tỷ lệ lọc spam độc hại của RPC Shield.
+  * **Track 2 (Multi-Chain & Cross-Chain Infra):** Giám sát trạng thái BABE/GRANDPA finality, chỉ số lệch pha liên máy ảo (Cross-VM Causal Lag Index - CLI).
+  * **Track 3 (Node Operations & Tooling):** Trực quan hóa danh sách Validator đang hoạt động (Authority Set), tình trạng xoay Session Keys (`author_rotateKeys`), thời hạn thuê Signing Lease.
+  * **Track 4 (Ecosystem DApps):** Biến động thị trường phí gas EVM (`baseFeePerGas` tính bằng Gwei), độ sâu mempool, tốc độ đốt/ký quỹ Storage Deposit của DApps.
+
+##### 🔹 Phân khu 5: Liên kết Runbooks Tự Động (Visual DAG Pipeline Integration)
+* **Vấn đề giải quyết:** Kết nối trực tiếp giữa **Quan sát (DualEngine)** và **Hành động (DAG Canvas)**:
+  * Khi các chỉ số của DualEngine vượt ngưỡng an toàn (ví dụ: `CLI_INDEX > 0.65` hoặc `DESYNC_DETECTED == true`), hệ thống tự động bắn tín hiệu sang **Visual DAG Canvas**.
+  * Pipeline kịch bản (Runbook) tương ứng được kích hoạt tự động theo thứ tự topo (Topological Sort).
+  * Đồng thời gửi thông báo cảnh báo tức thì kèm mã lỗi về **Telegram / Discord Webhook** của đội ngũ SRE / DevOps.
+
+---
+
+#### 3. Bảng Phân Công Hạng Mục Triển Khai Kỹ Thuật (Technical Implementation Tasks)
+
+| STT | Hạng mục công việc | Tệp tin chịu trách nhiệm | Mô tả chi tiết | Tiêu chuẩn nghiệm thu |
+| :---: | :--- | :--- | :--- | :--- |
+| **1** | **Backend Smart Circuit Breaker** | `engine/dual_tracker.py`<br/>`engine/server.py` | Bổ sung cờ `is_circuit_open`, endpoint `/api/engine/circuit-breaker` và `/api/engine/remediate` cho phép ngắt mở luồng RPC an toàn. | Unit test pass, phản hồi đúng mã trạng thái khi desync $> 2$ blocks. |
+| **2** | **Mainnet Contract Profiler API** | `engine/config.py`<br/>`engine/server.py` | Viết hàm phân tích dung lượng contract bytecode, ước tính Storage Deposit POT theo tỷ lệ `0.08 POT/byte`. | Kiểm thử chính xác dung lượng của 2 contract DotNexus hiện có. |
+| **3** | **Thanh Dock Can Thiệp 1-Click trên UI** | `front-end/src/views/DualEngineView.tsx` | Thiết kế thanh `Active Remediation Dock` gồm 4 nút bấm hành động khẩn cấp với visual phản hồi trạng thái tức thì. | Giao diện chuẩn dark cyberpunk, không giật lag, kết nối mượt với REST API. |
+| **4** | **Bảng Thẩm Định Hợp Đồng Mainnet V3 UI** | `front-end/src/views/DualEngineView.tsx` | Thêm tab phụ `Mainnet V3 Readiness` hiển thị chi phí Storage Deposit và cảnh báo decimals 14 vs 18. | Hiển thị rõ ràng, trực quan, hỗ trợ kiểm tra nhanh hợp đồng. |
+| **5** | **Cập nhật Báo cáo & Tài liệu Nộp bài** | `README.md`<br/>`FOR_JUDGES.md` | Bổ sung mô tả về khả năng sẵn sàng cho Mainnet V3 của Smart Contract và bảng điều khiển tổng quát DualEngine 2.0. | Đồng bộ 100% nội dung với tài liệu cuộc thi. |

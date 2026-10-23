@@ -197,8 +197,12 @@ def dispatch_nominate():
         )
         return jsonify({"success": True, "data": receipt})
     except Exception as e:
-        logger.error(f"On-chain nominate dispatch failed: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        err_msg = str(e)
+        if hasattr(e, 'args') and len(e.args) > 0 and isinstance(e.args[0], dict):
+            d = e.args[0]
+            err_msg = f"{d.get('message', 'Node Rejected')}: {d.get('data', str(d))}"
+        logger.error(f"On-chain nominate dispatch failed: {err_msg}")
+        return jsonify({"success": False, "error": err_msg}), 500
 
 
 @app.route("/api/npos/bond-extra", methods=["POST"])
@@ -217,8 +221,12 @@ def bond_extra():
         )
         return jsonify({"success": True, "data": receipt})
     except Exception as e:
-        logger.error(f"On-chain bond_extra failed: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        err_msg = str(e)
+        if hasattr(e, 'args') and len(e.args) > 0 and isinstance(e.args[0], dict):
+            d = e.args[0]
+            err_msg = f"{d.get('message', 'Node Rejected')}: {d.get('data', str(d))}"
+        logger.error(f"On-chain bond_extra failed: {err_msg}")
+        return jsonify({"success": False, "error": err_msg}), 500
 
 
 @app.route("/api/rpc-shield", methods=["GET"])

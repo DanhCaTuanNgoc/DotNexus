@@ -205,7 +205,7 @@ class NPoSOptimizer:
                 "era_points": 19200
             },
             {
-                "stash_address": "5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFy",
+                "stash_address": "5Fgatk4LD2TL6W2J1LUZc5szpQvitHmr1jZpe2nx9LGE3s1q",
                 "identity": "PolkaGuard-Secure-Node",
                 "commission_pct": 3.0,
                 "uptime_pct": 99.80,
@@ -231,7 +231,7 @@ class NPoSOptimizer:
                 "era_points": 12100
             },
             {
-                "stash_address": "5CiPPseXPECbnhcrgah36eeW2g5GLRGN55ibh3PjgQGLMVqffd",
+                "stash_address": "5HdrQScWhmnGqr2PgdTG91ka237j3fZoKmEXGZkVGcJf7uYA",
                 "identity": "ZeroFee-Community-Pool",
                 "commission_pct": 0.5,
                 "uptime_pct": 99.90,
@@ -257,7 +257,7 @@ class NPoSOptimizer:
                 "era_points": 18100
             },
             {
-                "stash_address": "5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFz",
+                "stash_address": "5FERF1MxJpZeLPuDfBTYEnXELQWedDhWNnZSebt8Jxip2yB2",
                 "identity": "Substrate-Core-Infra",
                 "commission_pct": 2.0,
                 "uptime_pct": 99.92,
@@ -270,7 +270,7 @@ class NPoSOptimizer:
                 "era_points": 18600
             },
             {
-                "stash_address": "5E2Anrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFa",
+                "stash_address": "5GHCjfuccvgVBbkDniW9gidhmFrVaU5Nca7jqVEQcsaSGoab",
                 "identity": "Apex-Staking-Pool",
                 "commission_pct": 1.5,
                 "uptime_pct": 99.96,
@@ -283,7 +283,7 @@ class NPoSOptimizer:
                 "era_points": 18900
             },
             {
-                "stash_address": "5F3Anrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFb",
+                "stash_address": "5HT2tLTWFNJiU5q8CGxx8GyWUgaKsGvbLsmghfKNXJY2fbJC",
                 "identity": "Sentinel-NPoS-Node",
                 "commission_pct": 2.8,
                 "uptime_pct": 99.85,
@@ -296,7 +296,7 @@ class NPoSOptimizer:
                 "era_points": 17800
             },
             {
-                "stash_address": "5G4Anrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFc",
+                "stash_address": "5CPamMirjkmDeHwRrHhcpDCDUjPvmQAEQHdD9qTgJBzxTF2P",
                 "identity": "Quantum-Validator-Prime",
                 "commission_pct": 1.2,
                 "uptime_pct": 99.91,
@@ -309,7 +309,7 @@ class NPoSOptimizer:
                 "era_points": 19100
             },
             {
-                "stash_address": "5H5Anrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFd",
+                "stash_address": "5FRmjT719YRLW33nCoVUXa9o5MhCSdm7sWEKGHvNLnuSX1F7",
                 "identity": "EcoStake-Portaldot-01",
                 "commission_pct": 1.8,
                 "uptime_pct": 99.89,
@@ -322,7 +322,7 @@ class NPoSOptimizer:
                 "era_points": 18300
             },
             {
-                "stash_address": "5J6Anrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFe",
+                "stash_address": "5CfsphH3r9raEhpV64YELmeG1rQNz5p9ypyWtcNQRkfTpBxm",
                 "identity": "Lighthouse-Security-Node",
                 "commission_pct": 2.2,
                 "uptime_pct": 99.93,
@@ -335,7 +335,7 @@ class NPoSOptimizer:
                 "era_points": 18500
             },
             {
-                "stash_address": "5K7Anrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFf",
+                "stash_address": "5DcvREYunKL9RehRfDy8Tru4ajArGuM9ZMGGLf8tgQMe7mog",
                 "identity": "Orion-Staking-Hub",
                 "commission_pct": 1.0,
                 "uptime_pct": 99.94,
@@ -348,7 +348,7 @@ class NPoSOptimizer:
                 "era_points": 19300
             },
             {
-                "stash_address": "5L8Anrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFg",
+                "stash_address": "5EfJKVDB9d4u7Q7vDh8gmW8cPTwFx21MJT958noEWwCHf7ZX",
                 "identity": "Solidity-Wasm-Bridge-Node",
                 "commission_pct": 3.2,
                 "uptime_pct": 99.79,
@@ -361,7 +361,7 @@ class NPoSOptimizer:
                 "era_points": 17600
             },
             {
-                "stash_address": "5M9Anrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFh",
+                "stash_address": "5DPefZtNWw8ipnpDVDnekbA5MYJ376t66itVnGuByJtCTPMG",
                 "identity": "CyberDefense-Node-09",
                 "commission_pct": 1.9,
                 "uptime_pct": 99.90,
@@ -374,7 +374,7 @@ class NPoSOptimizer:
                 "era_points": 18250
             },
             {
-                "stash_address": "5NAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFi",
+                "stash_address": "5F1hqZsXPdXXDGTRzo7gk7g9kfgGzan5mJS1ihmbdGtQwPEc",
                 "identity": "Titan-Validator-Core",
                 "commission_pct": 2.4,
                 "uptime_pct": 99.87,
@@ -387,7 +387,7 @@ class NPoSOptimizer:
                 "era_points": 18050
             },
             {
-                "stash_address": "5QCAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFk",
+                "stash_address": "5FpSRbbqnoBLzMhpKAcxW48y1pMZWLWE2R8tYCfTQ3KFxzPP",
                 "identity": "Valkyrie-HighYield-Node",
                 "commission_pct": 1.4,
                 "uptime_pct": 99.94,
@@ -400,7 +400,7 @@ class NPoSOptimizer:
                 "era_points": 19150
             },
             {
-                "stash_address": "5RDAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFl",
+                "stash_address": "5Eph8ZbXhDDUZtVBCoXbxJLLKSpVM5m98ChiFTbjQv75KpzD",
                 "identity": "Nexus-Sentinel-02",
                 "commission_pct": 2.1,
                 "uptime_pct": 99.91,
@@ -413,7 +413,7 @@ class NPoSOptimizer:
                 "era_points": 18450
             },
             {
-                "stash_address": "5PBAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFj",
+                "stash_address": "5Cf7oukyU587m6SgpQnEC6RZJpSKGqe92zA3H2BSeiAyUzrT",
                 "identity": "Scammy-100Pct-Commission",
                 "commission_pct": 100.0,  # 100% Commission! Steals all nominator yield!
                 "uptime_pct": 99.99,
@@ -845,10 +845,15 @@ class NPoSOptimizer:
             )
             calls.append(bond_extra_call)
 
+        from scalecodec.utils.ss58 import is_valid_ss58_address
+        valid_targets = [t for t in targets if is_valid_ss58_address(t)]
+        if not valid_targets:
+            raise ValueError(f"No valid SS58 target addresses provided for nomination (received {len(targets)} invalid targets).")
+
         nominate_call = client.compose_call(
             call_module="Staking",
             call_function="nominate",
-            call_params={"targets": targets}
+            call_params={"targets": valid_targets}
         )
         calls.append(nominate_call)
 

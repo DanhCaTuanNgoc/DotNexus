@@ -6,6 +6,7 @@ import {
   Trash2, 
   Copy, 
   Check, 
+  Download,
   Filter, 
   Maximize2, 
   Minimize2,
@@ -156,6 +157,28 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Download raw logs bundle
+  const handleDownloadLogs = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const text = filteredLogs
+      .map(
+        (l) =>
+          `[${new Date(l.time * 1000).toISOString()}] [${l.source}] [${l.level}]${
+            l.nodeId ? ` (Node: ${l.nodeId})` : ''
+          } ${l.text}`
+      )
+      .join('\n');
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `dotnexus-telemetry-${new Date().toISOString().replace(/[:.]/g, '-')}.log`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const isTall = height >= EXPANDED_HEIGHT - 30;
 
   return (
@@ -257,6 +280,16 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
                 title="Copy Terminal Logs"
               >
                 {copied ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+              </button>
+
+              {/* Download raw log bundle */}
+              <button
+                type="button"
+                onClick={handleDownloadLogs}
+                className="text-zinc-400 hover:text-[#00FF9D] p-1 hover:bg-[#261B42]/50 transition-colors cursor-pointer"
+                title="Download Telemetry Audit Log (.log)"
+              >
+                <Download className="w-3 h-3" />
               </button>
 
               {/* Vertical Expand / Minimize Toggle */}
@@ -372,7 +405,23 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
                     {log.nodeId && (
                       <span className="text-[#8B5CF6] font-semibold shrink-0">({log.nodeId})</span>
                     )}
-                    <span className="text-zinc-300 break-all">{log.text}</span>
+                    <span className="text-zinc-300 break-all">
+                      {(() => {
+                        const latencyMatch = log.text.match(/\(\+[\d\.]+ms\)/);
+                        if (!latencyMatch) return log.text;
+                        const matchStr = latencyMatch[0];
+                        const parts = log.text.split(matchStr);
+                        return (
+                          <>
+                            {parts[0]}
+                            <span className="inline-block px-1 py-0.2 mx-1 text-[9px] font-mono font-bold bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 tabular-nums">
+                              {matchStr}
+                            </span>
+                            {parts[1]}
+                          </>
+                        );
+                      })()}
+                    </span>
                   </div>
                 );
               })}

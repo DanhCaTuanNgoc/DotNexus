@@ -878,6 +878,8 @@ if __name__ == "__main__":
             }
           }
 
+          const tNodeStart = performance.now();
+
           setNodes((prev) =>
             prev.map((n) => (n.id === currentNode.id ? { ...n, data: { ...n.data, status: 'running' } } : n))
           );
@@ -896,12 +898,17 @@ if __name__ == "__main__":
             prev.map((n) => (n.id === currentNode.id ? { ...n, data: { ...n.data, status: 'success' } } : n))
           );
 
+          const stepDur = Math.round(performance.now() - tNodeStart);
+          const detailWithDur = matchedStep.detail.includes('(+')
+            ? matchedStep.detail
+            : `${matchedStep.detail} (+${stepDur}ms)`;
+
           onLog?.({
             source: 'DAG_ENGINE',
             level: 'SUCCESS',
             time: Date.now() / 1000,
             nodeId: currentNode.id,
-            text: `[${currentNode.data.label}] ${matchedStep.detail}`,
+            text: `[${currentNode.data.label}] ${detailWithDur}`,
           });
         }
 

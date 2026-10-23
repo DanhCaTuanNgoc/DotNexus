@@ -1,6 +1,6 @@
 <div align="center">
 <p align="center">
-  <img src="./dotnexus-logo.svg" width="130" height="130" alt="DotNexus Animated Cyber Logo" />
+  <img src="./front-end/src/assets/Logo-v1.png" width="120" height="120" alt="DotNexus Logo" />
 </p>
 
 # DotNexus
@@ -33,20 +33,47 @@
 
 ## 📑 Table of Contents
 
-- [⚡ 1. Fast-Track Briefing for Judges](#-1-fast-track-briefing-for-judges)
-- [🔄 2. The Core Problem & The 5-Pillar Operational Matrix](#-2-the-core-problem--the-5-pillar-operational-matrix)
-- [📐 3. Mathematical & Algorithmic Foundation](#-3-mathematical--algorithmic-foundation)
-- [🤖 4. Autonomous DAG Runbook Engine & Self-Fencing Daemon](#-4-autonomous-dag-runbook-engine--self-fencing-daemon)
-- [📜 5. Verified On-Chain Proof Matrix (Portaldot V3.0 Testnet `420420777`)](#-5-verified-on-chain-proof-matrix-portaldot-v30-testnet-420420777)
-- [🎯 6. Hackathon Judging Criteria Alignment](#-6-hackathon-judging-criteria-alignment)
-- [🌐 7. Systemic Value & Ecosystem Acceleration (Grounded Impact)](#-7-systemic-value--ecosystem-acceleration-grounded-impact)
-- [🖥️ 8. Cybernetic Control Center & Visual Cockpit Studio](#-8-cybernetic-control-center--visual-cockpit-studio)
-- [🏗️ 9. Full System Architecture & Multi-Tier Data Flow](#️-9-full-system-architecture--multi-tier-data-flow)
-- [🧪 10. Developer Diagnostics & Test Verification (147/147 Tests)](#-10-developer-diagnostics--test-verification-147147-tests)
-- [📁 11. Repository Structure](#-11-repository-structure)
-- [🛠️ 12. Portaldot V3.0 Dual-VM & Substrate/EVM Developer Feedback Report](#️-12-portaldot-v30-dual-vm--substrateevm-developer-feedback-report)
-- [⚡ 13. Local Installation & Development Guide](#-13-local-installation--development-guide)
-- [🗺️ 14. Future Roadmap & Acknowledgements](#️-14-future-roadmap--acknowledgements)
+- [DotNexus](#dotnexus)
+    - [*The Visual Control Plane \& Automated Security Operations Engine for Portaldot Network V3.0*](#the-visual-control-plane--automated-security-operations-engine-for-portaldot-network-v30)
+    - [*Track: Node Operations \& Tooling — Portaldot Hacker House 2026*](#track-node-operations--tooling--portaldot-hacker-house-2026)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [⚡ 1. Fast-Track Briefing for Judges](#-1-fast-track-briefing-for-judges)
+  - [🔄 2. The Core Problem \& The 5-Pillar Operational Matrix](#-2-the-core-problem--the-5-pillar-operational-matrix)
+    - [The 3 Critical Operational Bottlenecks \& How DotNexus Solves Them](#the-3-critical-operational-bottlenecks--how-dotnexus-solves-them)
+    - [🥊 Blind CLI / Bash Operations vs. DotNexus Control Plane](#-blind-cli--bash-operations-vs-dotnexus-control-plane)
+    - [The 5-Pillar Operational Architecture Breakdown](#the-5-pillar-operational-architecture-breakdown)
+  - [📐 3. Mathematical \& Algorithmic Foundation](#-3-mathematical--algorithmic-foundation)
+    - [1. The Anti-Equivocation Timing Invariant \& Monotonic Epoch Fencing](#1-the-anti-equivocation-timing-invariant--monotonic-epoch-fencing)
+      - [A. Primary Self-Fencing Daemon (`T_fence = 10.0s`)](#a-primary-self-fencing-daemon-t_fence--100s)
+      - [B. On-Chain Lease Expiration (`T_lease = 12.0s`)](#b-on-chain-lease-expiration-t_lease--120s)
+      - [C. Standby Takeover Authorization (`T_standby = 15.0s`)](#c-standby-takeover-authorization-t_standby--150s)
+    - [2. Client-Side Sequential Phragmén Simulation \& Pre-Flight Economics](#2-client-side-sequential-phragmén-simulation--pre-flight-economics)
+    - [3. Dynamic Decimals \& Planck-to-Wei Conversion](#3-dynamic-decimals--planck-to-wei-conversion)
+    - [4. Deep Query Range \& Token-Bucket Rate Limiter](#4-deep-query-range--token-bucket-rate-limiter)
+  - [🤖 4. Autonomous DAG Runbook Engine \& Self-Fencing Daemon](#-4-autonomous-dag-runbook-engine--self-fencing-daemon)
+  - [📜 5. Verified On-Chain Proof Matrix (Portaldot V3.0 Testnet `420420777`)](#-5-verified-on-chain-proof-matrix-portaldot-v30-testnet-420420777)
+  - [🎯 6. Hackathon Judging Criteria Alignment](#-6-hackathon-judging-criteria-alignment)
+  - [🌐 7. Systemic Value \& Ecosystem Acceleration (Grounded Impact)](#-7-systemic-value--ecosystem-acceleration-grounded-impact)
+    - [🏛️ The 4 Pillars of DotNexus's Ecosystem Value:](#️-the-4-pillars-of-dotnexuss-ecosystem-value)
+  - [🖥️ 8. Cybernetic Control Center \& Visual Cockpit Studio](#️-8-cybernetic-control-center--visual-cockpit-studio)
+    - [The 5 Core Interactive Control Workspaces](#the-5-core-interactive-control-workspaces)
+  - [🏗️ 9. Full System Architecture \& Multi-Tier Data Flow](#️-9-full-system-architecture--multi-tier-data-flow)
+    - [End-to-End Architectural Data Flow](#end-to-end-architectural-data-flow)
+  - [🧪 10. Developer Diagnostics \& Test Verification (147/147 Tests)](#-10-developer-diagnostics--test-verification-147147-tests)
+    - [Test Suite Coverage Breakdown](#test-suite-coverage-breakdown)
+  - [📁 11. Repository Structure](#-11-repository-structure)
+  - [🛠️ 12. Portaldot V3.0 Dual-VM \& Substrate/EVM Developer Feedback Report](#️-12-portaldot-v30-dual-vm--substrateevm-developer-feedback-report)
+    - [🟢 Strengths Identified](#-strengths-identified)
+    - [💡 High-Value Protocol Opportunities](#-high-value-protocol-opportunities)
+  - [⚡ 13. Local Installation \& Development Guide](#-13-local-installation--development-guide)
+    - [Prerequisites](#prerequisites)
+    - [1. Clone \& Install](#1-clone--install)
+    - [2. Configure Environment](#2-configure-environment)
+    - [3. Run Automated Tests](#3-run-automated-tests)
+    - [4. Administrative CLI Utilities](#4-administrative-cli-utilities)
+    - [5. Launch Full Control Center](#5-launch-full-control-center)
+  - [🗺️ 14. Future Roadmap \& Acknowledgements](#️-14-future-roadmap--acknowledgements)
+    - [Acknowledgements](#acknowledgements)
 
 ---
 

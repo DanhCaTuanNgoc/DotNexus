@@ -1,0 +1,213 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "⚡ DOTNEXUS DUAL-VM CONSENSUS & HARDWARE TELEMETRY",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 2 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
+      "id": 1,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "auto",
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "dotnexus_dual_vm_lag_blocks",
+          "legendFormat": "Dual-VM Block Delta",
+          "refId": "A"
+        }
+      ],
+      "title": "Dual-VM Lag (|WASM - EVM|)",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "green", "value": 11 }
+            ]
+          },
+          "unit": "s",
+          "max": 12,
+          "min": 0
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
+      "id": 2,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "targets": [
+        {
+          "expr": "dotnexus_lease_ttl_remaining_seconds",
+          "legendFormat": "Lease TTL",
+          "refId": "A"
+        }
+      ],
+      "title": "Slashing Guard Lease TTL (Dead Man's Switch: 10s)",
+      "type": "gauge"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 75 },
+              { "color": "red", "value": 90 }
+            ]
+          },
+          "unit": "percent",
+          "max": 100,
+          "min": 0
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
+      "id": 3,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        { "expr": "dotnexus_host_cpu_percent", "legendFormat": "Host CPU %", "refId": "A" },
+        { "expr": "dotnexus_host_memory_used_percent", "legendFormat": "Host RAM %", "refId": "B" }
+      ],
+      "title": "Host Machine Utilization (CPU & RAM)",
+      "type": "gauge"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
+      "id": 4,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "expr": "dotnexus_npos_optimal_apy_percent",
+          "legendFormat": "Optimized APY",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 16 Compounded Staking APY",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "id": 101,
+      "title": "🛡️ RPC REVERSE PROXY SHIELD & TRAFFIC RATE LIMITING",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 20
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 7 },
+      "id": 5,
+      "targets": [
+        { "expr": "rate(dotnexus_rpc_requests_total{status=\"allowed\"}[1m])", "legendFormat": "Allowed QPS", "refId": "A" },
+        { "expr": "rate(dotnexus_rpc_requests_total{status=\"blocked\"}[1m])", "legendFormat": "Blocked Abusive QPS", "refId": "B" },
+        { "expr": "rate(dotnexus_rpc_requests_total{status=\"throttled\"}[1m])", "legendFormat": "Throttled Rate-Limit QPS", "refId": "C" }
+      ],
+      "title": "Reverse Proxy Traffic Throughput (Inspection Overhead < 1ms)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 7 },
+      "id": 6,
+      "targets": [
+        { "expr": "dotnexus_rpc_active_banned_ips", "legendFormat": "Quarantined IPs", "refId": "A" }
+      ],
+      "title": "Active Quarantined Spammer IPs (eth_getLogs > 2000 blocks)",
+      "type": "stat"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["dotnexus", "portaldot", "validator", "node-ops", "security"],
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": { "refresh_intervals": ["1s", "5s", "10s", "30s", "1m"] },
+  "timezone": "browser",
+  "title": "DotNexus Enterprise Node Control Center (Portaldot V3.0)",
+  "uid": "dotnexus-control-center",
+  "version": 1
+}

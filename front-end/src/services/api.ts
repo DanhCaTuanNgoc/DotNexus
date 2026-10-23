@@ -100,6 +100,19 @@ export interface DualTelemetryState {
     protected_traffic_routes: string[];
     last_remediation?: any;
   };
+  hardware?: {
+    cpu_percent: number;
+    ram_percent: number;
+    ram_used_mb: number;
+    ram_total_mb: number;
+    disk_percent: number;
+    disk_free_gb: number;
+    disk_total_gb: number;
+    db_size_mb: number;
+    status: 'HEALTHY' | 'WARNING' | 'CRITICAL';
+    disk_read_count: number;
+    disk_write_count: number;
+  };
   ecosystem_pulse?: {
     track_1_middleware: {
       label: string;
@@ -268,6 +281,15 @@ export interface ShieldStatus {
   max_block_range_setting: number;
   max_batch_size_setting?: number;
   rate_limit_per_minute_setting: number;
+  sybil_analysis?: {
+    total_peers_evaluated: number;
+    unique_subnets_count: number;
+    max_subnet_concentration_pct: number;
+    dominant_subnet: string | null;
+    is_sybil_cluster_detected: boolean;
+    eclipse_threat_level: 'CRITICAL_ECLIPSE_RISK' | 'LOW_NOMINAL';
+    mitigation_rule: string;
+  };
   recent_events: Array<{
     id: string;
     timestamp: number;
@@ -397,6 +419,23 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount_pot: amountPot, signer_key: signerKey })
+    });
+    return res.json();
+  },
+  getUnbondingQueue: async (account?: string): Promise<{ success: boolean; data: any }> => {
+    const url = account ? `${BASE_URL}/npos/unbonding-queue?account=${encodeURIComponent(account)}` : `${BASE_URL}/npos/unbonding-queue`;
+    const res = await fetch(url);
+    return res.json();
+  },
+  getKeeperStatus: async (): Promise<{ success: boolean; data: any }> => {
+    const res = await fetch(`${BASE_URL}/npos/keeper-status`);
+    return res.json();
+  },
+  triggerKeeperRun: async (force: boolean = false): Promise<{ success: boolean; data: any }> => {
+    const res = await fetch(`${BASE_URL}/npos/keeper-run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ force })
     });
     return res.json();
   },

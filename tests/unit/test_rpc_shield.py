@@ -193,6 +193,34 @@ class TestRPCShieldUnit(unittest.TestCase):
         self.assertIn("TYPE", metrics_text)
         self.assertIn("HELP", metrics_text)
 
+    def test_sybil_detection_nominal(self):
+        """Verifies sybil detector reports nominal when peers are dispersed across subnets"""
+        peers = [
+            {"ip": "1.1.1.1", "peer_id": "p1"},
+            {"ip": "2.2.2.2", "peer_id": "p2"},
+            {"ip": "3.3.3.3", "peer_id": "p3"},
+            {"ip": "4.4.4.4", "peer_id": "p4"},
+        ]
+        res = self.rpc_shield.detect_sybil_clusters(peers)
+        self.assertFalse(res["is_sybil_cluster_detected"])
+        self.assertEqual(res["eclipse_threat_level"], "LOW_NOMINAL")
+        self.assertEqual(res["total_peers_evaluated"], 4)
+
+    def test_sybil_detection_eclipse_cluster_alert(self):
+        """Verifies sybil detector triggers critical eclipse risk when > 35% peers share /24 subnet"""
+        peers = [
+            {"ip": "198.51.100.1", "peer_id": "p1"},
+            {"ip": "198.51.100.2", "peer_id": "p2"},
+            {"ip": "198.51.100.3", "peer_id": "p3"},
+            {"ip": "198.51.100.4", "peer_id": "p4"},
+            {"ip": "8.8.8.8", "peer_id": "p5"}
+        ]
+        res = self.rpc_shield.detect_sybil_clusters(peers)
+        self.assertTrue(res["is_sybil_cluster_detected"])
+        self.assertEqual(res["eclipse_threat_level"], "CRITICAL_ECLIPSE_RISK")
+        self.assertEqual(res["dominant_subnet"], "198.51.100.0/24")
+        self.assertGreater(res["max_subnet_concentration_pct"], 35.0)
+
 
 if __name__ == "__main__":
     unittest.main()

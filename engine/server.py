@@ -17,6 +17,7 @@ from engine.npos_optimizer import NPOS_OPTIMIZER
 from engine.rpc_shield import RPC_SHIELD
 from engine.dag_engine import DAG_ENGINE
 from engine.worker_daemon import WORKER_DAEMON
+from engine.staking_keeper import STAKING_KEEPER
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("DotNexus.Server")
@@ -44,9 +45,57 @@ def check_auth(req) -> bool:
 
 @app.route("/metrics", methods=["GET"])
 def get_prometheus_metrics():
-    """Prometheus metrics exporter for reverse proxy inspection overhead and status"""
-    metrics_text = RPC_SHIELD.export_prometheus_metrics()
-    return Response(metrics_text, mimetype="text/plain")
+    """Prometheus OpenMetrics exporter for enterprise NOC observability"""
+    dual = DUAL_TRACKER.get_dual_state()
+    sec = SLASH_GUARD.get_security_dashboard()
+    npos = NPOS_OPTIMIZER.get_top_16_recommendation()
+    hw = dual.get("hardware", {})
+    cli_val = dual.get("causal_lag_index", {}).get("cli_score", 0.0)
+
+    lines = [
+        "# HELP dotnexus_substrate_block_height Current block height on Substrate WASM layer",
+        "# TYPE dotnexus_substrate_block_height gauge",
+        f'dotnexus_substrate_block_height{{chain="portaldot_v3"}} {dual.get("substrate", {}).get("best_block", 0)}',
+        "",
+        "# HELP dotnexus_evm_block_height Current block height on EVM pallet-revive",
+        "# TYPE dotnexus_evm_block_height gauge",
+        f'dotnexus_evm_block_height{{chain="portaldot_v3"}} {dual.get("evm", {}).get("block_number", 0)}',
+        "",
+        "# HELP dotnexus_dual_vm_lag_blocks Block discrepancy between Substrate and EVM",
+        "# TYPE dotnexus_dual_vm_lag_blocks gauge",
+        f'dotnexus_dual_vm_lag_blocks{{chain="portaldot_v3"}} {dual.get("sync", {}).get("delta_blocks", 0)}',
+        "",
+        "# HELP dotnexus_causal_lag_index Cross-VM Causal Lag Index (0.0 - 100.0)",
+        "# TYPE dotnexus_causal_lag_index gauge",
+        f'dotnexus_causal_lag_index {round(cli_val, 2)}',
+        "",
+        "# HELP dotnexus_host_cpu_percent Host machine CPU utilization percent",
+        "# TYPE dotnexus_host_cpu_percent gauge",
+        f'dotnexus_host_cpu_percent {hw.get("cpu_percent", 0.0)}',
+        "",
+        "# HELP dotnexus_host_memory_used_percent Host machine RAM utilization percent",
+        "# TYPE dotnexus_host_memory_used_percent gauge",
+        f'dotnexus_host_memory_used_percent {hw.get("ram_percent", 0.0)}',
+        "",
+        "# HELP dotnexus_host_disk_free_gb Host disk available storage in GB",
+        "# TYPE dotnexus_host_disk_free_gb gauge",
+        f'dotnexus_host_disk_free_gb {hw.get("disk_free_gb", 0.0)}',
+        "",
+        "# HELP dotnexus_active_fencing_epoch Monotonic fencing epoch number",
+        "# TYPE dotnexus_active_fencing_epoch counter",
+        f'dotnexus_active_fencing_epoch {sec.get("active_fencing_epoch", 1)}',
+        "",
+        "# HELP dotnexus_lease_ttl_remaining_seconds Remaining time for validator signing lease",
+        "# TYPE dotnexus_lease_ttl_remaining_seconds gauge",
+        f'dotnexus_lease_ttl_remaining_seconds {sec.get("remaining_lease_seconds", 12.0)}',
+        "",
+        "# HELP dotnexus_npos_optimal_apy_percent Optimized top 16 validator compounded APY",
+        "# TYPE dotnexus_npos_optimal_apy_percent gauge",
+        f'dotnexus_npos_optimal_apy_percent {npos.get("auto_compounded_boosted_apy_pct", 16.76)}',
+        "",
+        RPC_SHIELD.export_prometheus_metrics()
+    ]
+    return Response("\n".join(lines), mimetype="text/plain; version=0.0.4")
 
 
 @app.route("/api/status", methods=["GET"])
@@ -260,6 +309,32 @@ def bond_extra():
             err_msg = f"{d.get('message', 'Node Rejected')}: {d.get('data', str(d))}"
         logger.error(f"On-chain bond_extra failed: {err_msg}")
         return jsonify({"success": False, "error": err_msg}), 500
+
+
+@app.route("/api/npos/unbonding-queue", methods=["GET"])
+def get_unbonding_queue():
+    """Queries active unlocking/unbonding chunks for the default or specified account"""
+    account = request.args.get("account", CONFIG.default_validator_address)
+    data = STAKING_KEEPER.get_unbonding_queue(account)
+    return jsonify({"success": True, "data": data})
+
+
+@app.route("/api/npos/keeper-status", methods=["GET"])
+def get_keeper_status():
+    """Returns operational health, era monitoring state, and recent automated rebalance actions"""
+    data = STAKING_KEEPER.get_keeper_status()
+    return jsonify({"success": True, "data": data})
+
+
+@app.route("/api/npos/keeper-run", methods=["POST"])
+def trigger_keeper_run():
+    """Triggers an automated era evaluation and nomination rebalance via the Keeper Daemon"""
+    if not check_auth(request):
+        return jsonify({"success": False, "error": "Unauthorized: Invalid X-DotNexus-Auth token"}), 401
+    body = request.get_json(silent=True) or {}
+    force = bool(body.get("force", False))
+    res = STAKING_KEEPER.evaluate_and_execute_era_rebalance(force=force)
+    return jsonify({"success": True, "data": res})
 
 
 @app.route("/api/rpc-shield", methods=["GET"])

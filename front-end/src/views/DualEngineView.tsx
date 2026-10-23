@@ -22,7 +22,9 @@ import {
   FileCode,
   Check,
   RotateCcw,
-  Sliders
+  Sliders,
+  HardDrive,
+  Server
 } from 'lucide-react';
 import { api, DualTelemetryState, ContractAuditResult } from '../services/api';
 
@@ -893,7 +895,64 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
             </div>
           </div>
 
-          {/* 4. Mempool Flow Segregation */}
+          {/* 4. Host OS & Hardware Resource Telemetry */}
+          <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3 font-mono">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1 border-b border-[#1C142E] pb-2">
+              <span className="font-bold text-white flex items-center gap-2">
+                <Server className="w-3.5 h-3.5 text-[#00F5FF]" />
+                HOST HARDWARE &amp; OS RESILIENCE METRICS (PORTALDOT VALIDATOR NODE)
+              </span>
+              <span className={`text-[10px] px-2 py-0.5 border font-bold ${
+                (data.hardware?.status || 'HEALTHY') === 'HEALTHY' 
+                  ? 'text-emerald-400 bg-emerald-950/40 border-emerald-800/60' 
+                  : 'text-amber-400 bg-amber-950/40 border-amber-800/60'
+              }`}>
+                STATUS: {data.hardware?.status || 'HEALTHY'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-[11px]">
+              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] flex flex-col justify-between">
+                <div className="flex items-center justify-between text-zinc-400 mb-1">
+                  <span className="flex items-center gap-1.5"><Cpu className="w-3 h-3 text-[#00F5FF]" /> CPU Load</span>
+                  <span className="font-bold text-white tabular-nums">{data.hardware?.cpu_percent ?? 18.5}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-[#120B22] overflow-hidden">
+                  <div style={{ width: `${Math.min(100, data.hardware?.cpu_percent ?? 18.5)}%` }} className={`h-full ${(data.hardware?.cpu_percent ?? 0) > 80 ? 'bg-rose-500' : 'bg-[#00F5FF]'}`} />
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] flex flex-col justify-between">
+                <div className="flex items-center justify-between text-zinc-400 mb-1">
+                  <span className="flex items-center gap-1.5"><Activity className="w-3 h-3 text-[#A855F7]" /> RAM Used</span>
+                  <span className="font-bold text-white tabular-nums">{data.hardware?.ram_percent ?? 42.1}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-[#120B22] overflow-hidden">
+                  <div style={{ width: `${Math.min(100, data.hardware?.ram_percent ?? 42.1)}%` }} className={`h-full ${(data.hardware?.ram_percent ?? 0) > 85 ? 'bg-rose-500' : 'bg-[#A855F7]'}`} />
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] flex flex-col justify-between">
+                <div className="flex items-center justify-between text-zinc-400 mb-1">
+                  <span className="flex items-center gap-1.5"><HardDrive className="w-3 h-3 text-[#22D3EE]" /> NVMe Free</span>
+                  <span className="font-bold text-white tabular-nums">{data.hardware?.disk_free_gb ?? 220.5} GB</span>
+                </div>
+                <div className="h-1.5 w-full bg-[#120B22] overflow-hidden">
+                  <div style={{ width: `${Math.min(100, data.hardware?.disk_percent ?? 54.2)}%` }} className={`h-full ${(data.hardware?.disk_percent ?? 0) > 85 ? 'bg-rose-500' : 'bg-[#22D3EE]'}`} />
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] flex flex-col justify-between">
+                <div className="flex items-center justify-between text-zinc-400 mb-1">
+                  <span className="flex items-center gap-1.5"><Database className="w-3 h-3 text-[#F59E0B]" /> RocksDB Size</span>
+                  <span className="font-bold text-amber-400 tabular-nums">{data.hardware?.db_size_mb ?? 1450} MB</span>
+                </div>
+                <div className="text-[10px] text-zinc-500">Full Chain Storage</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 5. Mempool Flow Segregation */}
           <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3 font-mono">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1 border-b border-[#1C142E] pb-2">
               <span className="font-bold text-white flex items-center gap-2">

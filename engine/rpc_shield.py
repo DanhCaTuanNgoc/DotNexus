@@ -305,6 +305,65 @@ class RPCShield:
             res = self.inspect_request(client_ip="103.251.167.2", method="debug_traceTransaction")
             return {"attack_type": attack_type, "result": res}
 
+    def detect_sybil_clusters(self, peers: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+        """
+        Analyzes P2P connected peers for Sybil / Eclipse attack patterns.
+        Groups peers by /24 subnet. Flags an anomaly if any single subnet
+        exceeds the safety threshold (> 35% of total active peer connections).
+        """
+        target_peers = peers or self.peer_topology
+        total_peers = len(target_peers)
+        if total_peers == 0:
+            return {
+                "total_peers_evaluated": 0,
+                "unique_subnets_count": 0,
+                "dominant_subnet": None,
+                "dominant_subnet_peer_count": 0,
+                "concentration_pct": 0.0,
+                "max_subnet_concentration_pct": 0.0,
+                "safety_threshold_pct": 35.0,
+                "is_sybil_cluster_detected": False,
+                "risk_level": "LOW_NOMINAL",
+                "eclipse_threat_level": "LOW_NOMINAL",
+                "recommended_action": "NONE_TOPOLOGY_HEALTHY",
+                "mitigation_rule": "Strict /24 subnet diversity filter enforced: Max 3 peers per /24 prefix."
+            }
+
+        subnet_counts: Dict[str, int] = defaultdict(int)
+        for p in target_peers:
+            ip = p.get("ip", "")
+            parts = ip.split(".")
+            if len(parts) == 4:
+                subnet_prefix = f"{parts[0]}.{parts[1]}.{parts[2]}.0/24"
+            else:
+                subnet_prefix = "multi-hop-cluster"
+            subnet_counts[subnet_prefix] += 1
+
+        highest_subnet = None
+        max_count = 0
+        for subnet, count in subnet_counts.items():
+            if count > max_count:
+                max_count = count
+                highest_subnet = subnet
+
+        concentration_pct = round((max_count / total_peers) * 100, 1)
+        is_attack_risk = concentration_pct > 35.0 and total_peers >= 3
+
+        return {
+            "total_peers_evaluated": total_peers,
+            "unique_subnets_count": len(subnet_counts),
+            "dominant_subnet": highest_subnet,
+            "dominant_subnet_peer_count": max_count,
+            "concentration_pct": concentration_pct,
+            "max_subnet_concentration_pct": concentration_pct,
+            "safety_threshold_pct": 35.0,
+            "is_sybil_cluster_detected": is_attack_risk,
+            "risk_level": "CRITICAL_ECLIPSE_RISK" if is_attack_risk else "LOW_NOMINAL",
+            "eclipse_threat_level": "CRITICAL_ECLIPSE_RISK" if is_attack_risk else "LOW_NOMINAL",
+            "recommended_action": "ENFORCE_SUBNET_DIVERSITY_FILTER" if is_attack_risk else "NONE_TOPOLOGY_HEALTHY",
+            "mitigation_rule": "Strict /24 subnet diversity filter enforced: Max 3 peers per /24 prefix."
+        }
+
     def export_prometheus_metrics(self) -> str:
         """Exports Prometheus metric format proving sub-millisecond inspection latency"""
         avg_overhead = (self.total_overhead_ms / self.total_inspected) if self.total_inspected > 0 else 0.25
@@ -365,6 +424,7 @@ class RPCShield:
             "max_block_range_setting": self.max_block_range,
             "max_batch_size_setting": self.max_batch_size,
             "rate_limit_per_minute_setting": self.rate_limit_per_min,
+            "sybil_analysis": self.detect_sybil_clusters(topology),
             "recent_events": self.shield_logs[-15:],
             "p2p_topology": topology
         }

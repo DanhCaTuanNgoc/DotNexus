@@ -113,6 +113,59 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
         </div>
       </div>
 
+      {/* Sybil Cluster & Eclipse Defense Telemetry */}
+      {data.sybil_analysis && (
+        <div className={`p-3 font-mono border flex flex-wrap items-center justify-between gap-3 text-xs ${
+          data.sybil_analysis.is_sybil_cluster_detected
+            ? 'bg-[#14080D] border-rose-800 text-rose-300'
+            : 'bg-[#060B12] border-[#00E5FF]/30 text-zinc-300'
+        }`}>
+          <div className="flex items-center gap-2.5">
+            <Shield className={`w-4 h-4 ${data.sybil_analysis.is_sybil_cluster_detected ? 'text-[#EF4444] animate-pulse' : 'text-[#00E5FF]'}`} />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-white uppercase tracking-wider text-[11px]">
+                  ECLIPSE ATTACK &amp; SYBIL SUBNET ANALYSIS
+                </span>
+                <span className={`px-2 py-0.5 text-[9px] font-bold border uppercase ${
+                  data.sybil_analysis.is_sybil_cluster_detected
+                    ? 'bg-rose-950 text-rose-400 border-rose-700'
+                    : 'bg-[#00E5FF]/10 text-[#00E5FF] border-[#00E5FF]/40'
+                }`}>
+                  [{data.sybil_analysis.eclipse_threat_level}]
+                </span>
+              </div>
+              <p className="text-[10px] text-zinc-400 mt-0.5">
+                {data.sybil_analysis.mitigation_rule}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 text-[11px]">
+            <div>
+              <span className="text-zinc-500 text-[10px] block">SUBNETS / PEERS</span>
+              <span className="font-bold text-white tabular-nums">
+                {data.sybil_analysis.unique_subnets_count} / {data.sybil_analysis.total_peers_evaluated}
+              </span>
+            </div>
+            <div>
+              <span className="text-zinc-500 text-[10px] block">MAX SUBNET DENSITY</span>
+              <span className={`font-bold tabular-nums ${
+                data.sybil_analysis.max_subnet_concentration_pct > 35 ? 'text-[#EF4444]' : 'text-[#00FF9D]'
+              }`}>
+                {data.sybil_analysis.max_subnet_concentration_pct}%
+              </span>
+            </div>
+            <div>
+              <span className="text-zinc-500 text-[10px] block">DOMINANT PREFIX</span>
+              <span className="font-mono text-[#C084FC] text-[10px]">
+                {data.sybil_analysis.dominant_subnet || 'NONE'}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 2. Visual Cyber P2P Global Topology Map */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Visual Map Screen (2 Cols) */}

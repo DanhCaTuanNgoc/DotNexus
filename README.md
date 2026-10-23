@@ -121,48 +121,86 @@ Dual-VM Telemetry       Desync Diagnostic       Token-Bucket & Range    Top 16 S
 DotNexus anchors its security architecture on deterministic mathematics, immutable time invariants, and formal verification:
 
 ### 1. The Anti-Equivocation Timing Invariant & Monotonic Epoch Fencing
+
 To guarantee that Primary and Standby validators can **never sign concurrently**, the system enforces a strict time-domain inequality:
 
-$$T_{\text{fence}} < T_{\text{lease}} < T_{\text{standby}} \quad \Longleftrightarrow \quad 10.0\text{s} < 12.0\text{s} < 15.0\text{s}$$
+$$
+T_{\text{fence}} < T_{\text{lease}} < T_{\text{standby}} \quad \Longleftrightarrow \quad 10.0\text{s} < 12.0\text{s} < 15.0\text{s}
+$$
 
-* **Primary Self-Fencing Daemon ($T_{\text{fence}} = 10.0\text{s}$):** The local watcher on the primary node monitors continuous lease renewal. If the heartbeat to the lease store or on-chain contract drops for $\ge 10.0\text{s}$, the daemon immediately self-fences:
-  $$\Delta t_{\text{loss}} \ge 10.0\text{s} \implies \text{Trigger}(\text{SelfFenceKeystore} \lor \text{StopProcess})$$
-  *(Executes emergency keystore chmod isolation or graceful node halt)*.
-* **On-Chain Lease Expiration ($T_{\text{lease}} = 12.0\text{s}$):** The on-chain lease recorded in [`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol) expires.
-* **Standby Takeover Authorization ($T_{\text{standby}} = 15.0\text{s}$):** The standby node may only claim the lease if:
-  $$t_{\text{current}} - t_{\text{lease-granted}} \ge 15.0\text{s} \quad \land \quad \text{Port}_{30333}(\text{Primary}) = \text{CLOSED}$$
-  Upon takeover, Standby atomically increments the monotonic fencing epoch:
-  $$\text{Epoch}_{k+1} = \text{Epoch}_k + 1$$
-  Any delayed block broadcast by Primary signed with an older epoch is permanently rejected by the consensus layer.
+#### A. Primary Self-Fencing Daemon (`T_fence = 10.0s`)
+The local watcher on the primary node monitors continuous lease renewal. If the heartbeat to the lease store or on-chain contract drops for $\ge 10.0\text{s}$, the daemon immediately self-fences:
+
+$$
+\Delta t_{\text{loss}} \ge 10.0\text{s} \implies \text{Trigger}(\text{SelfFenceKeystore} \lor \text{StopProcess})
+$$
+
+*(Executes emergency keystore chmod isolation or graceful node halt)*.
+
+#### B. On-Chain Lease Expiration (`T_lease = 12.0s`)
+The on-chain lease recorded in [`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol) expires automatically on `pallet-revive`.
+
+#### C. Standby Takeover Authorization (`T_standby = 15.0s`)
+The standby node may only claim the lease if the primary has been silent for at least 15 seconds and its P2P port 30333 is unreachable:
+
+$$
+t_{\text{current}} - t_{\text{lease-granted}} \ge 15.0\text{s} \quad \land \quad \text{Port}_{30333}(\text{Primary}) = \text{CLOSED}
+$$
+
+Upon takeover, Standby atomically increments the monotonic fencing epoch:
+
+$$
+\text{Epoch}_{k+1} = \text{Epoch}_k + 1
+$$
+
+Any delayed block broadcast by Primary signed with an older epoch is permanently rejected by the consensus layer.
 
 ### 2. Client-Side Sequential Phragmén Simulation & Pre-Flight Economics
+
 Substrate's `staking.nominate(targets: Vec<AccountId>)` takes at most 16 targets without allocation weights. The Python NPoS Optimizer computes validator utility $U_v$:
 
-$$U_v = w_1 \cdot \text{Score}_v + w_2 \cdot (100\% - \text{Commission}_v) + w_3 \cdot \text{Capacity}_v - w_4 \cdot \text{SlashHistory}_v$$
+$$
+U_v = w_1 \cdot \text{Score}_v + w_2 \cdot (100\% - \text{Commission}_v) + w_3 \cdot \text{Capacity}_v - w_4 \cdot \text{SlashHistory}_v
+$$
 
 Subject to hard pre-flight constraints:
+
 1. **Oversubscription Gate:** $\text{Nominators}(v) < 512$ (prevents zero-reward payout clipping).
 2. **Phase Lockout Check:** Query `ElectionProviderMultiPhase.CurrentPhase()`. Extrinsics are rejected unless $\text{Phase} == \text{"Off"}$.
 3. **Economic Profit Invariant:** Re-nomination is triggered only when:
-   $$\Delta \text{APY} \times \text{BondedStake} > 3 \times \text{ExtrinsicFee}$$
+
+$$
+\Delta \text{APY} \times \text{BondedStake} > 3 \times \text{ExtrinsicFee}
+$$
 
 ### 3. Dynamic Decimals & Planck-to-Wei Conversion
+
 Portaldot V3.0 native Substrate token decimals are $D_{\text{sub}} = 14$, whereas EVM standards expect $D_{\text{evm}} = 18$:
 
-$$1\text{ POT} = 10^{14}\text{ Planck}$$
-$$\text{Wei}_{\text{EVM}} = \text{Planck} \times 10^{(D_{\text{evm}} - D_{\text{sub}})} = \text{Planck} \times 10^4$$
+$$
+1\text{ POT} = 10^{14}\text{ Planck}
+$$
+
+$$
+\text{Wei}_{\text{EVM}} = \text{Planck} \times 10^{(D_{\text{evm}} - D_{\text{sub}})} = \text{Planck} \times 10^4
+$$
 
 All calculations in the Python engine strictly use arbitrary-precision `int`, and frontend representations use native `BigInt` to eliminate the `Number.MAX_SAFE_INTEGER` ($9.007 \times 10^{15} \approx 90\text{ POT}$) overflow barrier.
 
 ### 4. Deep Query Range & Token-Bucket Rate Limiter
+
 The Asynchronous RPC Shield calculates block spans for incoming `eth_getLogs` requests:
 
-$$\Delta \text{Span} = \text{toBlock} - \text{fromBlock}$$
+$$
+\Delta \text{Span} = \text{toBlock} - \text{fromBlock}
+$$
 
-$$\text{Action} = \begin{cases} 
+$$
+\text{Action} = \begin{cases} 
 \text{ALLOW}, & \text{if } \Delta \text{Span} \le 2000 \land \text{Payload} \le 256\text{KB} \land \text{Batch} \le 20 \\
 \text{BLOCK (-32600)}, & \text{if } \Delta \text{Span} > 2000 \lor \text{Payload} > 256\text{KB}
-\end{cases}$$
+\end{cases}
+$$
 
 ---
 

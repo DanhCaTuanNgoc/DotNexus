@@ -4,7 +4,6 @@ import {
   ShieldAlert,
   Zap,
   Globe,
-  Crosshair,
   Server,
   Filter,
   CheckCircle2,
@@ -19,7 +18,6 @@ interface TopologyRadarViewProps {
 }
 
 export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRefresh }) => {
-  const [viewMode, setViewMode] = useState<'GLOBAL' | 'RADAR'>('GLOBAL');
   const [simulating, setSimulating] = useState(false);
   const [simulationResult, setSimulationResult] = useState<any | null>(null);
   const [selectedPeer, setSelectedPeer] = useState<any | null>(null);
@@ -47,14 +45,14 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-[#8B5CF6]" />
             <h2 className="text-xs sm:text-sm font-bold font-mono text-white tracking-widest uppercase">
-              RPC REVERSE PROXY &amp; ACTIVE P2P SWARM SONAR
+              RPC REVERSE PROXY &amp; ACTIVE P2P GLOBAL TOPOLOGY
             </h2>
             <span className="text-[9px] font-mono px-1.5 py-0.2 bg-[#0E091B] text-[#C084FC] border border-[#2E1F4A]">
               SECURITY SHIELD
             </span>
           </div>
           <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-            Hardened reverse proxy with sub-millisecond AST sanitization and libp2p Kademlia swarm sonar.
+            Hardened reverse proxy with sub-millisecond AST sanitization and real-time libp2p global topology mesh.
           </p>
         </div>
 
@@ -115,109 +113,28 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
         </div>
       </div>
 
-      {/* 2. Visual Cyber P2P Global Topology Map / Swarm Sonar */}
+      {/* 2. Visual Cyber P2P Global Topology Map */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Visual Map / Radar Screen (2 Cols) */}
+        {/* Visual Map Screen (2 Cols) */}
         <div className="lg:col-span-2 p-4 bg-[#08050F] border border-[#1C142E] space-y-3 font-mono">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1C142E] pb-2">
             <div className="flex items-center gap-2">
-              {viewMode === 'GLOBAL' ? (
-                <Globe className="w-3.5 h-3.5 text-[#00FF9D]" />
-              ) : (
-                <Crosshair className="w-3.5 h-3.5 text-[#8B5CF6]" />
-              )}
+              <Globe className="w-3.5 h-3.5 text-[#00FF9D]" />
               <span className="text-xs font-bold text-white tracking-wider">
-                {viewMode === 'GLOBAL'
-                  ? 'GLOBAL P2P TOPOLOGY MESH (PORT :30333)'
-                  : 'ACTIVE P2P LIBP2P SWARM SONAR (PORT :30333)'}
+                ACTIVE P2P LIBP2P GLOBAL TOPOLOGY (PORT :30333)
               </span>
             </div>
-
-            {/* View Mode Toggle Controls */}
-            <div className="flex items-center gap-1 bg-[#06040A] p-0.5 border border-[#1C142E]">
-              <button
-                type="button"
-                onClick={() => setViewMode('GLOBAL')}
-                className={`px-2 py-0.5 text-[10px] font-bold cursor-pointer transition-colors ${
-                  viewMode === 'GLOBAL'
-                    ? 'bg-[#8B5CF6] text-white shadow-[0_0_8px_rgba(139,92,246,0.5)]'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                [🌐 GLOBAL TOPOLOGY]
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('RADAR')}
-                className={`px-2 py-0.5 text-[10px] font-bold cursor-pointer transition-colors ${
-                  viewMode === 'RADAR'
-                    ? 'bg-[#8B5CF6] text-white shadow-[0_0_8px_rgba(139,92,246,0.5)]'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                [🎯 SONAR RADAR]
-              </button>
-            </div>
+            <span className="text-[10px] text-zinc-500 font-mono">
+              EQUIRECTANGULAR WGS84 &bull; LIVE P2P GOSSIP
+            </span>
           </div>
 
-          {/* Render Active View: Global Cyber Map or 360 Sonar Radar */}
-          {viewMode === 'GLOBAL' ? (
-            <CyberWorldMap
-              peers={data.p2p_topology}
-              selectedPeer={selectedPeer}
-              onSelectPeer={setSelectedPeer}
-            />
-          ) : (
-            <div className="relative h-72 w-full bg-[#06040A] border border-[#1C142E] flex items-center justify-center overflow-hidden">
-              {/* Concentric rings */}
-              <div className="absolute w-24 h-24 rounded-full border border-[#1C142E]" />
-              <div className="absolute w-48 h-48 rounded-full border border-[#1C142E]/80" />
-              <div className="absolute w-64 h-64 rounded-full border border-[#1C142E]/50 border-dashed" />
-
-              {/* Crosshairs */}
-              <div className="absolute w-full h-[1px] bg-[#140D24]" />
-              <div className="absolute h-full w-[1px] bg-[#140D24]" />
-
-              {/* Rotating Radar Sweep Line */}
-              <div className="absolute w-64 h-64 rounded-full overflow-hidden animate-spin [animation-duration:8s]">
-                <div className="w-1/2 h-1/2 bg-gradient-to-br from-[#8B5CF6]/20 to-transparent origin-bottom-right" />
-              </div>
-
-              {/* Center Local Node */}
-              <div className="absolute z-10 flex flex-col items-center">
-                <span className="w-3.5 h-3.5 rounded-full bg-[#38BDF8] border-2 border-white shadow-[0_0_10px_#38BDF8]" />
-                <span className="text-[9px] font-bold text-white mt-1">LOCAL VALIDATOR</span>
-              </div>
-
-              {/* Peer Blips positioned by latency */}
-              {data.p2p_topology.map((p, idx) => {
-                const angle = (idx * 90 + 35) * (Math.PI / 180);
-                const distance = Math.min(115, Math.max(30, (p.latency_ms / 150) * 115));
-                const x = Math.cos(angle) * distance;
-                const y = Math.sin(angle) * distance;
-
-                return (
-                  <div
-                    key={p.peer_id}
-                    onClick={() => setSelectedPeer(p)}
-                    style={{ transform: `translate(${x}px, ${y}px)` }}
-                    className="absolute z-20 cursor-pointer group"
-                  >
-                    <div className={`w-3 h-3 rounded-full transition-transform group-hover:scale-150 ${
-                      p.is_malicious
-                        ? 'bg-[#EF4444] animate-ping'
-                        : p.role.includes('Authority')
-                        ? 'bg-[#00FF9D]'
-                        : 'bg-[#8B5CF6]'
-                    }`} />
-                    <span className="absolute left-4 top-[-6px] hidden group-hover:block whitespace-nowrap text-[10px] font-mono bg-[#0E091B] px-2 py-0.5 border border-[#2E1F4A] text-white z-30">
-                      {p.location} ({p.latency_ms}ms)
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {/* Render Active View: Global Cyber Map */}
+          <CyberWorldMap
+            peers={data.p2p_topology}
+            selectedPeer={selectedPeer}
+            onSelectPeer={setSelectedPeer}
+          />
 
           {/* Legend strip */}
           <div className="flex flex-wrap items-center justify-between text-[11px] text-zinc-500 pt-1">

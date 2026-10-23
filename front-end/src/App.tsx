@@ -246,7 +246,7 @@ export const App: React.FC = () => {
           <div className="space-y-1 px-3">
             <div className="flex items-center justify-between px-2 py-2 mb-2 border-b border-[#1C142E]">
               <span className="text-[10px] uppercase font-mono text-zinc-500 font-bold tracking-widest">
-                OPERATIONS MATRIX
+                Module
               </span>
               <button
                 onClick={() => setIsMobileNavOpen(false)}

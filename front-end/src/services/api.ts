@@ -3,7 +3,9 @@
  * Bridges UI components with the backend Python engine.
  */
 
-const BASE_URL = '/api';
+// Dynamic API endpoint: Uses VITE_API_BASE_URL if configured, otherwise falls back to relative '/api' proxy
+const RAW_API_URL = (import.meta as any).env?.VITE_API_BASE_URL || '';
+const BASE_URL = RAW_API_URL ? `${RAW_API_URL.replace(/\/$/, '')}/api` : '/api';
 
 export interface LogItem {
   source: string;

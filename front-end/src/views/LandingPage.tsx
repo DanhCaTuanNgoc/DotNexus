@@ -38,6 +38,12 @@ import { TabType } from '../services/storage';
 import { InteractiveCanvas } from '../components/canvas/InteractiveCanvas';
 import { DEFAULT_RUNBOOKS, convertRunbookToWorkflow } from '../components/canvas/constants';
 import { CanvasNode, CanvasEdge, CanvasViewport } from '../components/canvas/types';
+import { 
+  BlueprintSection, 
+  SectionDivider, 
+  CornerCrosshair, 
+  ZeroGapCard 
+} from '../components/blueprint';
 
 interface LazySectionProps {
   id?: string;
@@ -89,9 +95,8 @@ const LazySection: React.FC<LazySectionProps> = ({
   }, []);
 
   return (
-    <section
-      id={id}
-      ref={containerRef}
+    <div
+      ref={containerRef as any}
       className={`${className} ${!isVisible ? minHeight : ''}`}
     >
       {isVisible ? (
@@ -104,7 +109,7 @@ const LazySection: React.FC<LazySectionProps> = ({
           </span>
         </div>
       )}
-    </section>
+    </div>
   );
 };
 
@@ -116,70 +121,7 @@ interface LandingPageProps {
   shieldData?: ShieldStatus | null;
 }
 
-interface SpotlightCardProps {
-  children: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
-  spotlightColor?: string;
-  showCrosshairs?: boolean;
-}
 
-/**
- * Zeabur-inspired tactile Spotlight Card with cursor-following radial gradient glow.
- * Renders on a dark obsidian-amethyst surface with high-contrast text, micro-borders,
- * precision hairline top reflection, and subtle engineering crosshair corner accents (+).
- */
-const SpotlightCard: React.FC<SpotlightCardProps> = ({
-  children,
-  className = '',
-  onClick,
-  spotlightColor = 'rgba(168, 85, 247, 0.16)',
-  showCrosshairs = true,
-}) => {
-  const divRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [opacity, setOpacity] = useState(0);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!divRef.current) return;
-    const rect = divRef.current.getBoundingClientRect();
-    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-  };
-
-  return (
-    <div
-      ref={divRef}
-      onClick={onClick}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setOpacity(1)}
-      onMouseLeave={() => setOpacity(0)}
-      className={`relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#110A24]/90 hover:border-white/[0.2] transition-all duration-300 group/spotlight ${className}`}
-    >
-      {/* Precision Top Hairline Reflection Accent (Zeabur Style) */}
-      <div className="pointer-events-none absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent z-20" />
-
-      {/* Engineering Blueprint Corner Crosshairs (+) */}
-      {showCrosshairs && (
-        <>
-          <span className="pointer-events-none absolute top-1.5 left-2 font-mono text-[9px] text-zinc-600/70 group-hover/spotlight:text-[#8B5CF6]/80 transition-colors z-20 select-none">+</span>
-          <span className="pointer-events-none absolute top-1.5 right-2 font-mono text-[9px] text-zinc-600/70 group-hover/spotlight:text-[#8B5CF6]/80 transition-colors z-20 select-none">+</span>
-          <span className="pointer-events-none absolute bottom-1.5 left-2 font-mono text-[9px] text-zinc-600/70 group-hover/spotlight:text-[#8B5CF6]/80 transition-colors z-20 select-none">+</span>
-          <span className="pointer-events-none absolute bottom-1.5 right-2 font-mono text-[9px] text-zinc-600/70 group-hover/spotlight:text-[#8B5CF6]/80 transition-colors z-20 select-none">+</span>
-        </>
-      )}
-
-      {/* Cursor Spotlight Glow */}
-      <div
-        className="pointer-events-none absolute -inset-px transition-opacity duration-300 z-10"
-        style={{
-          opacity,
-          background: `radial-gradient(350px circle at ${position.x}px ${position.y}px, ${spotlightColor}, transparent 70%)`,
-        }}
-      />
-      <div className="relative z-10 h-full flex flex-col justify-between">{children}</div>
-    </div>
-  );
-};
 
 interface TechStackItem {
   name: string;
@@ -349,12 +291,11 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
   ];
 
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-[#080514]/95 backdrop-blur-md shadow-2xl overflow-hidden relative">
-      {/* Corner Blueprint Crosshairs (+) */}
-      <span className="pointer-events-none absolute top-2 left-2 font-mono text-[9px] text-zinc-600 select-none z-30">+</span>
-      <span className="pointer-events-none absolute top-2 right-2 font-mono text-[9px] text-zinc-600 select-none z-30">+</span>
-      <span className="pointer-events-none absolute bottom-2 left-2 font-mono text-[9px] text-zinc-600 select-none z-30">+</span>
-      <span className="pointer-events-none absolute bottom-2 right-2 font-mono text-[9px] text-zinc-600 select-none z-30">+</span>
+    <div className="rounded-none border border-white/[0.08] bg-[#080514]/95 backdrop-blur-md shadow-2xl overflow-hidden relative">
+      <CornerCrosshair position="top-left" color="text-[#8B5CF6]" />
+      <CornerCrosshair position="top-right" color="text-[#8B5CF6]" />
+      <CornerCrosshair position="bottom-left" color="text-[#8B5CF6]" />
+      <CornerCrosshair position="bottom-right" color="text-[#8B5CF6]" />
 
       {/* Top Window Control Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-white/[0.08] bg-[#05030C]">
@@ -624,8 +565,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       )}
 
-      {/* Hero Section */}
-      <section className="relative min-h-[100vh] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6 overflow-hidden z-10">
+      {/* Hero Section Framed with Blueprint Central Rails */}
+      <BlueprintSection
+        borderBottom={true}
+        borderTop={false}
+        background="bg-[#06040A]"
+        containerClassName="min-h-[100vh] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6 overflow-hidden z-10"
+      >
         {/* 3D Background: Three.js Dual-VM Cyber Mesh */}
         <ThreeCanvas />
 
@@ -661,10 +607,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </a>
           </div>
 
-          {/* Live Floating Cluster Ticker Strip (Zeabur Spotlight Mini-Cards) */}
+          {/* Live Floating Cluster Ticker Strip (Blueprint Zero-Gap Shared-Border) */}
           <div className="pt-6 pointer-events-auto">
-            <div className="max-w-4xl mx-auto p-3 sm:p-4 rounded-2xl border border-white/[0.08] bg-[#110A24]/95 backdrop-blur-md grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-left font-mono shadow-2xl">
-              <div className="p-3.5 rounded-xl bg-[#080512] border border-white/[0.06] relative overflow-hidden group">
+            <div className="max-w-5xl mx-auto border border-white/[0.08] bg-[#07040E] grid grid-cols-1 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-white/[0.08] rounded-none shadow-2xl relative text-left font-mono">
+              <CornerCrosshair position="top-left" color="text-[#8B5CF6]" />
+              <CornerCrosshair position="top-right" color="text-[#8B5CF6]" />
+              <CornerCrosshair position="bottom-left" color="text-[#8B5CF6]" />
+              <CornerCrosshair position="bottom-right" color="text-[#8B5CF6]" />
+
+              <div className="p-4 bg-[#080512]/90 hover:bg-white/[0.02] transition-colors relative">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">WASM BEST BLOCK</span>
                   <span className="text-[10px] text-emerald-400 font-mono font-bold">[LIVE]</span>
@@ -677,7 +628,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#080512] border border-white/[0.06] relative overflow-hidden group">
+              <div className="p-4 bg-[#080512]/90 hover:bg-white/[0.02] transition-colors relative">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">EVM JSON-RPC</span>
                   <span className="text-[10px] text-[#818CF8] font-mono font-bold">[RPC]</span>
@@ -690,7 +641,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#080512] border border-white/[0.06] relative overflow-hidden group">
+              <div className="p-4 bg-[#080512]/90 hover:bg-white/[0.02] transition-colors relative">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">SLASHING DEFENSE</span>
                   <span className="text-[10px] text-emerald-400 font-mono font-bold">[GUARD]</span>
@@ -703,7 +654,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#080512] border border-white/[0.06] relative overflow-hidden group">
+              <div className="p-4 bg-[#080512]/90 hover:bg-white/[0.02] transition-colors relative">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">POT STAKING YIELD</span>
                   <span className="text-[10px] text-[#C084FC] font-mono font-bold">[NPoS]</span>
@@ -718,10 +669,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
         </div>
-      </section>
+      </BlueprintSection>
 
-      {/* Infinite Techstack Protocol Marquee Carousel (Zeabur Style) */}
-      <section className="relative py-7 overflow-hidden border-y border-white/[0.08] bg-[#07040E]/80 backdrop-blur-sm z-10">
+      {/* SECTION DIVIDER 1: Hatched Technical Spacer Strip */}
+      <SectionDivider
+        variant="hatched"
+        height="h-14"
+        label="PROTOCOL_STACK"
+        sublabel="RUNTIME_TOPOLOGY"
+      />
+
+      {/* Section 2: Infinite Techstack Protocol Marquee Carousel */}
+      <BlueprintSection
+        borderBottom={true}
+        borderTop={false}
+        background="bg-[#07040E]/80"
+        containerClassName="py-7 overflow-hidden z-10"
+      >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 mb-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
             <span className="text-[#8B5CF6] font-bold">//</span>
@@ -759,10 +723,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             ))}
           </div>
         </div>
-      </section>
+      </BlueprintSection>
+
+      {/* SECTION DIVIDER 2: Glow Beam Spacer Strip */}
+      <SectionDivider
+        variant="glow"
+        height="h-12"
+        label="MISSION_CRITICAL"
+        sublabel="4_ENGINE_PILLARS"
+      />
       
-      {/* Section: The 4 Pillars — Asymmetric Zeabur-Style Bento Grid */}
-      <section id="pillars" className="py-20 sm:py-24 px-4 sm:px-6 border-t border-white/[0.08] bg-[#07040E] relative z-10">
+      {/* Section 3: The 4 Pillars — Zero-Gap Blueprint Bento Grid */}
+      <BlueprintSection
+        id="pillars"
+        borderBottom={true}
+        borderTop={false}
+        background="bg-[#07040E]"
+        containerClassName="py-20 sm:py-24 px-4 sm:px-6 relative z-10"
+      >
         <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
@@ -779,20 +757,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </p>
           </div>
 
-          {/* Bento Grid: 3 Columns Asymmetric Layout with Blueprint Crosshairs & Dividers */}
-          <div className="relative p-3 sm:p-5 rounded-2xl border border-white/[0.08] bg-[#090516]/60 backdrop-blur-md shadow-2xl">
-            {/* Outer Grid Blueprint Crosshair Anchors (+) */}
-            <span className="pointer-events-none absolute -top-1.5 -left-1.5 font-mono text-xs text-[#8B5CF6]/80 font-bold select-none">+</span>
-            <span className="pointer-events-none absolute -top-1.5 -right-1.5 font-mono text-xs text-[#8B5CF6]/80 font-bold select-none">+</span>
-            <span className="pointer-events-none absolute -bottom-1.5 -left-1.5 font-mono text-xs text-[#8B5CF6]/80 font-bold select-none">+</span>
-            <span className="pointer-events-none absolute -bottom-1.5 -right-1.5 font-mono text-xs text-[#8B5CF6]/80 font-bold select-none">+</span>
+          {/* Zero-Gap Bento Grid: 2 Rows, Shared 1px Hairline Borders */}
+          <div className="relative border border-white/[0.08] bg-[#06040A] rounded-none shadow-2xl">
+            <CornerCrosshair position="top-left" color="text-[#8B5CF6]" />
+            <CornerCrosshair position="top-right" color="text-[#8B5CF6]" />
+            <CornerCrosshair position="bottom-left" color="text-[#8B5CF6]" />
+            <CornerCrosshair position="bottom-right" color="text-[#8B5CF6]" />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
+            {/* Row 1: Pillar 01 (Span 2) + Pillar 02 (Span 1) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/[0.08] border-b border-white/[0.08]">
               {/* 1. HERO BENTO CARD (Span 2 Columns): Dual-Engine State Tracker & SRE Dock */}
-              <SpotlightCard
+              <ZeroGapCard
                 onClick={() => onLaunchApp('dual-vm')}
                 spotlightColor="rgba(230, 0, 122, 0.16)"
-                className="md:col-span-2 p-6 cursor-pointer group shadow-2xl"
+                className="md:col-span-2 p-6 md:p-8"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -868,13 +846,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
-              </SpotlightCard>
+              </ZeroGapCard>
 
               {/* 2. PILLAR 02 (Span 1 Column): Slashing Guard & Mutex */}
-              <SpotlightCard
+              <ZeroGapCard
                 onClick={() => onLaunchApp('slashing')}
                 spotlightColor="rgba(168, 85, 247, 0.16)"
-                className="p-6 cursor-pointer group shadow-2xl"
+                className="p-6 md:p-8"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -918,27 +896,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span>Atomic Mutex Active</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
-              </SpotlightCard>
+              </ZeroGapCard>
+            </div>
 
-              {/* Zeabur-Grade Architectural Row Divider Strip */}
-              <div className="col-span-1 md:col-span-3 flex items-center gap-3 py-2 text-[10px] font-mono select-none">
-                <span className="text-[#8B5CF6]/80 font-bold text-xs">+</span>
-                <div className="h-px flex-1 bg-gradient-to-r from-[#8B5CF6]/50 via-white/[0.1] to-transparent" />
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#110A24] border border-white/[0.08] text-zinc-300 text-[10px] uppercase tracking-wider shadow-inner">
-                  <span className="text-[#8B5CF6] font-bold">//</span>
-                  <span className="text-zinc-300 font-semibold">GRID JUNCTION</span>
-                  <span className="text-zinc-500">|</span>
-                  <span className="text-[#C084FC]">SYNCHRONICITY &amp; DEFENSE LAYERS</span>
-                </div>
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/[0.1] to-[#8B5CF6]/50" />
-                <span className="text-[#8B5CF6]/80 font-bold text-xs">+</span>
-              </div>
-
+            {/* Row 2: Pillar 03 (Span 1) + Pillar 04 (Span 2) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/[0.08]">
               {/* 3. PILLAR 03 (Span 1 Column): NPoS Yield Optimizer */}
-              <SpotlightCard
+              <ZeroGapCard
                 onClick={() => onLaunchApp('staking')}
                 spotlightColor="rgba(192, 132, 252, 0.16)"
-                className="p-6 cursor-pointer group shadow-2xl"
+                className="p-6 md:p-8"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -984,13 +951,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span>Top 16 Non-Clipped</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
-              </SpotlightCard>
+              </ZeroGapCard>
 
               {/* 4. PILLAR 04 (Span 2 Columns): RPC Anti-Spam Shield & P2P Defense */}
-              <SpotlightCard
+              <ZeroGapCard
                 onClick={() => onLaunchApp('shield')}
                 spotlightColor="rgba(56, 189, 248, 0.16)"
-                className="md:col-span-2 p-6 cursor-pointer group shadow-2xl"
+                className="md:col-span-2 p-6 md:p-8"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -1038,139 +1005,184 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
-              </SpotlightCard>
+              </ZeroGapCard>
             </div>
           </div>
         </div>
-      </section>
+      </BlueprintSection>
 
-      {/* Section: Visual DAG Runbook Canvas */}
-      <LazySection 
-        id="dag-canvas" 
-        className="py-20 sm:py-24 px-4 sm:px-6 border-t border-white/[0.08] bg-[#0A0615] relative z-10"
-        minHeight="min-h-[580px]"
-        fallbackText="INITIALIZING DAG AUTOMATION PIPELINE..."
+      {/* SECTION DIVIDER 3: Dots Matrix Technical Spacer Strip */}
+      <SectionDivider
+        variant="dots"
+        height="h-14"
+        label="AUTOMATION_ENGINE"
+        sublabel="VISUAL_DAG_PIPELINE"
+      />
+
+      {/* Section 4: Visual DAG Runbook Canvas */}
+      <BlueprintSection
+        id="dag-canvas"
+        borderBottom={true}
+        borderTop={false}
+        background="bg-[#0A0615]"
+        containerClassName="py-20 sm:py-24 px-4 sm:px-6 relative z-10"
       >
-        <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
-            <div className="space-y-2">
+        <LazySection 
+          minHeight="min-h-[580px]"
+          fallbackText="INITIALIZING DAG AUTOMATION PIPELINE..."
+        >
+          <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
+              <div className="space-y-2">
+                <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
+                  <span>AUTOMATION PIPELINE</span>
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+                  Visual DAG Automation Canvas
+                </h2>
+              </div>
+              <p className="text-zinc-400 text-xs sm:text-sm max-w-md font-mono">
+                From passive metric observation to deterministic execution runbooks. Drag, connect, and automate validator operations.
+              </p>
+            </div>
+
+            {/* Interactive Visual Board with Animated Running Nodes Mockup */}
+            <RealCanvasMockupBoard onLaunchApp={onLaunchApp} />
+          </div>
+        </LazySection>
+      </BlueprintSection>
+
+      {/* SECTION DIVIDER 4: Hatched Technical Spacer Strip */}
+      <SectionDivider
+        variant="hatched"
+        height="h-14"
+        label="ARCHITECTURAL_AUDIT"
+        sublabel="BENCHMARK_MATRIX"
+      />
+
+      {/* Section 5: Comparison Matrix */}
+      <BlueprintSection
+        id="comparison"
+        borderBottom={true}
+        borderTop={false}
+        background="bg-[#07040E]"
+        containerClassName="py-20 sm:py-24 px-4 sm:px-6 relative z-10"
+      >
+        <LazySection 
+          minHeight="min-h-[500px]"
+          fallbackText="LOADING COMPARATIVE BENCHMARKS..."
+        >
+          <div className="max-w-5xl mx-auto space-y-10 sm:space-y-12">
+            <div className="text-center space-y-2.5">
               <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-                <span>AUTOMATION PIPELINE</span>
+                <span>COMPETITIVE ANALYSIS</span>
               </div>
               <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
-                Visual DAG Automation Canvas
+                Why DotNexus Stands Apart
               </h2>
+              <p className="text-zinc-400 text-xs sm:text-sm max-w-xl mx-auto font-mono">
+                Evaluating DotNexus against traditional Linux CLI bash scripts and generic passive Grafana metrics.
+              </p>
             </div>
-            <p className="text-zinc-400 text-xs sm:text-sm max-w-md font-mono">
-              From passive metric observation to deterministic execution runbooks. Drag, connect, and automate validator operations.
-            </p>
-          </div>
 
-          {/* Interactive Visual Board with Animated Running Nodes Mockup */}
-          <RealCanvasMockupBoard onLaunchApp={onLaunchApp} />
-        </div>
-      </LazySection>
-
-      {/* Section: Comparison Matrix */}
-      <LazySection 
-        id="comparison" 
-        className="py-20 sm:py-24 px-4 sm:px-6 border-t border-white/[0.08] bg-[#07040E] relative z-10"
-        minHeight="min-h-[500px]"
-        fallbackText="LOADING COMPARATIVE BENCHMARKS..."
-      >
-        <div className="max-w-5xl mx-auto space-y-10 sm:space-y-12">
-          <div className="text-center space-y-2.5">
-            <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-              <span>COMPETITIVE ANALYSIS</span>
+            <div className="overflow-x-auto rounded-none border border-white/[0.08] bg-[#0B0813] shadow-2xl relative">
+              <CornerCrosshair position="top-left" color="text-[#8B5CF6]" />
+              <CornerCrosshair position="top-right" color="text-[#8B5CF6]" />
+              <CornerCrosshair position="bottom-left" color="text-[#8B5CF6]" />
+              <CornerCrosshair position="bottom-right" color="text-[#8B5CF6]" />
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-white/[0.08] bg-[#110A1E]/80 text-zinc-400">
+                    <th className="p-3.5 sm:p-4 text-zinc-200">OPERATIONAL CAPABILITY</th>
+                    <th className="p-3.5 sm:p-4 text-zinc-500">MANUAL LINUX CLI</th>
+                    <th className="p-3.5 sm:p-4 text-zinc-500">GRAFANA / PROMETHEUS</th>
+                    <th className="p-3.5 sm:p-4 text-[#C084FC] font-bold bg-[#170B2C]/50 border-l border-white/[0.08]">
+                      DOTNEXUS CONTROL PLANE
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.06] text-zinc-300">
+                  <tr>
+                    <td className="p-3.5 sm:p-4 font-bold text-white">Dual-VM Sync (WASM vs EVM)</td>
+                    <td className="p-3.5 sm:p-4 text-zinc-500">Requires manual curl to 2 ports</td>
+                    <td className="p-3.5 sm:p-4 text-zinc-400">Separate graphs, no correlation</td>
+                    <td className="p-3.5 sm:p-4 text-emerald-400 font-bold bg-[#170B2C]/30 border-l border-white/[0.08]">
+                      Realtime parity delta &amp; mempool split
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3.5 sm:p-4 font-bold text-white">Slashing &amp; Equivocation Guard</td>
+                    <td className="p-3.5 sm:p-4 text-[#EF4444]">High risk of double-signing</td>
+                    <td className="p-3.5 sm:p-4 text-zinc-500">Passive alert only (too late)</td>
+                    <td className="p-3.5 sm:p-4 text-emerald-400 font-bold bg-[#170B2C]/30 border-l border-white/[0.08]">
+                      Atomic mutex lease &amp; 2-block failover
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3.5 sm:p-4 font-bold text-white">RPC Spam &amp; OOM Defense</td>
+                    <td className="p-3.5 sm:p-4 text-zinc-500">Nginx manual configuration</td>
+                    <td className="p-3.5 sm:p-4 text-zinc-500">Not supported</td>
+                    <td className="p-3.5 sm:p-4 text-emerald-400 font-bold bg-[#170B2C]/30 border-l border-white/[0.08]">
+                      Deep eth_getLogs packet inspection
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3.5 sm:p-4 font-bold text-white">NPoS Dynamic Yield Compounding</td>
+                    <td className="p-3.5 sm:p-4 text-zinc-500">Manual staking via polkadot-js</td>
+                    <td className="p-3.5 sm:p-4 text-zinc-500">Not supported</td>
+                    <td className="p-3.5 sm:p-4 text-emerald-400 font-bold bg-[#170B2C]/30 border-l border-white/[0.08]">
+                      Algorithm Top 16 + Auto-compounding
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3.5 sm:p-4 font-bold text-white">Operational Execution Mode</td>
+                    <td className="p-3.5 sm:p-4 text-zinc-500">Manual terminal bash typing</td>
+                    <td className="p-3.5 sm:p-4 text-zinc-500">Read-only passive display</td>
+                    <td className="p-3.5 sm:p-4 text-emerald-400 font-bold bg-[#170B2C]/30 border-l border-white/[0.08]">
+                      Visual DAG Drag-and-Drop Canvas
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
-              Why DotNexus Stands Apart
-            </h2>
-            <p className="text-zinc-400 text-xs sm:text-sm max-w-xl mx-auto font-mono">
-              Evaluating DotNexus against traditional Linux CLI bash scripts and generic passive Grafana metrics.
-            </p>
           </div>
+        </LazySection>
+      </BlueprintSection>
 
-          <div className="overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#0B0813] shadow-2xl">
-            <table className="w-full text-left text-xs font-mono">
-              <thead>
-                <tr className="border-b border-white/[0.08] bg-[#110A1E]/80 text-zinc-400">
-                  <th className="p-3.5 sm:p-4 text-zinc-200">OPERATIONAL CAPABILITY</th>
-                  <th className="p-3.5 sm:p-4 text-zinc-500">MANUAL LINUX CLI</th>
-                  <th className="p-3.5 sm:p-4 text-zinc-500">GRAFANA / PROMETHEUS</th>
-                  <th className="p-3.5 sm:p-4 text-[#C084FC] font-bold bg-[#170B2C]/50 border-l border-white/[0.08]">
-                    DOTNEXUS CONTROL PLANE
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.06] text-zinc-300">
-                <tr>
-                  <td className="p-3.5 sm:p-4 font-bold text-white">Dual-VM Sync (WASM vs EVM)</td>
-                  <td className="p-3.5 sm:p-4 text-zinc-500">Requires manual curl to 2 ports</td>
-                  <td className="p-3.5 sm:p-4 text-zinc-400">Separate graphs, no correlation</td>
-                  <td className="p-3.5 sm:p-4 text-emerald-400 font-bold bg-[#170B2C]/30 border-l border-white/[0.08]">
-                    Realtime parity delta &amp; mempool split
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-3.5 sm:p-4 font-bold text-white">Slashing &amp; Equivocation Guard</td>
-                  <td className="p-3.5 sm:p-4 text-[#EF4444]">High risk of double-signing</td>
-                  <td className="p-3.5 sm:p-4 text-zinc-500">Passive alert only (too late)</td>
-                  <td className="p-3.5 sm:p-4 text-emerald-400 font-bold bg-[#170B2C]/30 border-l border-white/[0.08]">
-                    Atomic mutex lease &amp; 2-block failover
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-3.5 sm:p-4 font-bold text-white">RPC Spam &amp; OOM Defense</td>
-                  <td className="p-3.5 sm:p-4 text-zinc-500">Nginx manual configuration</td>
-                  <td className="p-3.5 sm:p-4 text-zinc-500">Not supported</td>
-                  <td className="p-3.5 sm:p-4 text-emerald-400 font-bold bg-[#170B2C]/30 border-l border-white/[0.08]">
-                    Deep eth_getLogs packet inspection
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-3.5 sm:p-4 font-bold text-white">NPoS Dynamic Yield Compounding</td>
-                  <td className="p-3.5 sm:p-4 text-zinc-500">Manual staking via polkadot-js</td>
-                  <td className="p-3.5 sm:p-4 text-zinc-500">Not supported</td>
-                  <td className="p-3.5 sm:p-4 text-emerald-400 font-bold bg-[#170B2C]/30 border-l border-white/[0.08]">
-                    Algorithm Top 16 + Auto-compounding
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-3.5 sm:p-4 font-bold text-white">Operational Execution Mode</td>
-                  <td className="p-3.5 sm:p-4 text-zinc-500">Manual terminal bash typing</td>
-                  <td className="p-3.5 sm:p-4 text-zinc-500">Read-only passive display</td>
-                  <td className="p-3.5 sm:p-4 text-emerald-400 font-bold bg-[#170B2C]/30 border-l border-white/[0.08]">
-                    Visual DAG Drag-and-Drop Canvas
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </LazySection>
+      {/* SECTION DIVIDER 5: Glow Beam Spacer Strip */}
+      <SectionDivider
+        variant="glow"
+        height="h-12"
+        label="DELIVERY_ROADMAP"
+        sublabel="HACKER_HOUSE_2026"
+      />
 
-      {/* Section: Delivery Line Journey (Roadmap) */}
-      <LazySection 
-        id="roadmap" 
-        className="py-20 sm:py-24 px-4 sm:px-6 border-t border-white/[0.08] bg-[#07040E] relative z-10"
-        minHeight="min-h-[520px]"
-        fallbackText="CONNECTING LINE JOURNEY TELEMETRY..."
+      {/* Section 6: Delivery Line Journey (Roadmap) */}
+      <BlueprintSection
+        id="roadmap"
+        borderBottom={true}
+        borderTop={false}
+        background="bg-[#07040E]"
+        containerClassName="py-20 sm:py-24 px-4 sm:px-6 relative z-10"
       >
-        <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-                <span>DELIVERY LINE JOURNEY</span>
+        <LazySection 
+          minHeight="min-h-[520px]"
+          fallbackText="CONNECTING LINE JOURNEY TELEMETRY..."
+        >
+          <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
+              <div className="space-y-2">
+                <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
+                  <span>DELIVERY LINE JOURNEY</span>
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+                  Portaldot Hacker House 2026 Timeline
+                </h2>
               </div>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
-                Portaldot Hacker House 2026 Timeline
-              </h2>
+              <p className="text-zinc-400 text-xs sm:text-sm max-w-md font-mono">
+                Deterministic engineering milestones from architecture baseline to foundation demo day.
+              </p>
             </div>
-            <p className="text-zinc-400 text-xs sm:text-sm max-w-md font-mono">
-              Deterministic engineering milestones from architecture baseline to foundation demo day.
-            </p>
-          </div>
 
           {/* Desktop Horizontal Line Journey (md and up) */}
           <div className="hidden md:block relative pt-2 pb-2">
@@ -1390,10 +1402,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
       </LazySection>
+      </BlueprintSection>
 
-      {/* Footer — Zeabur Minimalist Developer Footer */}
-      <footer className="py-8 px-4 sm:px-6 border-t border-white/[0.08] bg-[#05030A] text-xs font-mono text-zinc-500 relative z-10">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* Footer — Minimalist Developer Footer with Continuous Central Rail */}
+      <footer className="w-full border-t border-white/[0.08] bg-[#05030A] text-xs font-mono text-zinc-500 relative z-10 select-none">
+        <div className="max-w-7xl mx-auto border-x border-white/[0.08] py-8 px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-bold text-white">DOTNEXUS</span>
             <span className="text-zinc-600">•</span>

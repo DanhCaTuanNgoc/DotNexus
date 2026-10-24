@@ -393,3 +393,25 @@ body {
   animation: shimmerConduit 3s linear infinite;
 }
 
+
+
+/* Infinite Techstack Marquee Animation (Zeabur Style) */
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-infinite {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 38s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-infinite:hover {
+  animation-play-state: paused;
+}

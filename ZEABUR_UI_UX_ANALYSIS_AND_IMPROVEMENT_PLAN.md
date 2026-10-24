@@ -23,11 +23,13 @@
 * Một Landing Page xuất sắc mang phong cách **Zeabur** sẽ lập tức truyền tải thông điệp: Đây là một **sản phẩm thương mại hạ tầng cấp Enterprise (Production-grade DevOps Platform)**, không phải một bài tập dự thi làm vội.
 * Các màn hình console bên trong (`DualEngineView`, `SecurityGuardView`, `StakingYieldView`, `CanvasBoard`) đã có mật độ kỹ thuật dày dặn và hoạt động ổn định. Nâng cấp `LandingPage.tsx` sẽ hoàn thiện "cú chạm đầu tiên" (First Impression) đạt điểm số tuyệt đối về UX/UI.
 
-### 🌟 4 Yếu Tố Zeabur Cần Hấp Thụ Cho `LandingPage.tsx`
+### 🌟 6 Yếu Tố Zeabur Cần Hấp Thụ Cho `LandingPage.tsx`
 1. **Lưới Bento Grid Bất Đối Xứng (Asymmetric Bento Grid):** Thay thế 4 thẻ ngang bằng nhau ở Section Pillars bằng một cụm Bento đa tầng, có phân cấp chính-phụ, tích hợp widget mô phỏng tương tác sống động.
 2. **Thẻ Tương Tác Ánh Sáng Chuột (Spotlight Border Cards):** Viền thẻ 1px mờ tinh tế, khi con trỏ di chuyển qua sẽ có quầng sáng tím neon bán kính nhỏ chạy theo mép viền, tạo chiều sâu vật lý mà không cần dùng drop-shadow rẻ tiền.
 3. **Đèn LED Trạng Thái Nhịp Thở (Micro-Pulsing Status Indicators):** Các chấm trạng thái mạng và chip đo nhịp tim có hiệu ứng xung vi mô mượt mà (`ring-2 ring-emerald-500/30 animate-pulse`), tạo cảm giác hệ thống đang thở theo thời gian thực cùng Portaldot V3.0 Testnet.
 4. **Nền Kính Mờ Tinh Gọn (Refined Frosted Glass & Reduced Blur):** Giảm bớt độ nhòe của các khối cầu ambient neon (từ kích thước 700px mờ đặc xuống quầng sáng nền dịu nhẹ), giúp các dòng chữ và số liệu kỹ thuật nổi bật với độ tương phản cao sắc nét.
+5. **Dải Carousel Techstack Trượt Ngang Vô Tận (Infinite Marquee Carousel):** Dải icon công nghệ trượt ngang mượt mà (`@keyframes marqueeScroll 38s linear infinite`), viền mờ chuyển sắc 2 bên mép (lateral fading masks), tạm dừng khi hover, giới thiệu 12 công nghệ lõi của Dual-VM Portaldot.
+6. **Đường Viền Phân Tách Lưới & Giao Điểm Dấu Chữ Thập Kỹ Thuật (Architectural Dividers & Crosshairs `+`):** Khung viền bản vẽ blueprint bao quanh cụm 4 trụ cột, dải hairline divider ngăn cách giữa Hàng 1 và Hàng 2 với nhãn tọa độ `GRID JUNCTION`, cùng các ký hiệu `+` tại 4 góc và các góc thẻ `SpotlightCard`.
 
 ---
 
@@ -191,6 +193,39 @@ grid-layout
     * **Độ trễ kiểm tra:** `< 0.25ms Overhead` (Không làm nghẽn RPC).
     * **Giới hạn an toàn:** `Query Span <= 2000 Blocks` • `Payload <= 256KB`.
     * **Phát hiện Sybil Subnet:** `0 Eclipse Threat (Subnet Diversity Guard Enforced)`.
+
+---
+
+### 🔬 Phân Tích Kỹ Thuật Chuyên Sâu: 2 Chi Tiết Tinh Hoa Từ Zeabur
+
+#### 1. Dải Carousel Techstack Trượt Ngang Vô Tận (Infinite Marquee Tech Stack)
+* **Bản chất kỹ thuật trên Zeabur:**
+  * Đóng vai trò là bằng chứng xã hội & hạ tầng (Technical & Ecosystem Proof), khẳng định dự án hỗ trợ toàn diện các runtime và công nghệ tiêu chuẩn của mạng lưới.
+  * **Tránh giật khung hình (Zero Jitter Loop):** Nhân đôi danh sách 12 công nghệ lõi thành 24 phần tử. Khi thuộc tính CSS `transform: translateX(-50%)` đạt 100%, vòng lặp lập tức reset về 0% mà không xuất hiện khoảng trống mắt thường nhận ra được.
+  * **Mặt nạ mờ 2 bên mép (Lateral Fading Masks):** Sử dụng 2 dải gradient phủ hai bên mép `w-20 sm:w-36` chuyển từ màu nền obsidian `#07040E` sang `transparent`. Điều này giúp các chip công nghệ như "trôi ra từ hư không" và lặn êm dịu vào bóng tối, xóa bỏ hiện tượng chip bị cắt cụt đột ngột ở rìa màn hình.
+  * **Tương tác tạm dừng vi mô:** Bổ sung thuộc tính `hover:pause` (`animation-play-state: paused`) cho phép người dùng dừng chuyển động để đọc kỹ thông số công nghệ khi di chuột vào bất kỳ chip nào.
+* **12 Công nghệ cốt lõi tích hợp cho DotNexus:**
+  1. `Substrate WASM` (L1 Runtime, SS58: 42)
+  2. `Frontier EVM` (Dual-VM Core, RPC :8545)
+  3. `GRANDPA Consensus` (Deterministic Finality)
+  4. `BABE Engine` (Block Production)
+  5. `Sequential Phragmén` (NPoS Validator Election)
+  6. `Web3.py & Substrate-Interface` (Dual RPC Engine)
+  7. `Solidity & Vyper V3` (Smart Contracts)
+  8. `Libp2p & Kademlia` (P2P Mesh Network)
+  9. `Prometheus & OpenTelemetry` (SRE Node Observability)
+  10. `Three.js Cyber Mesh` (3D Dynamic Topology)
+  11. `React 19 & Vite 8` (High-Frequency UI)
+  12. `POT Token` (14 Decimals Native Base Unit)
+
+#### 2. Đường Viền Phân Tách Lưới & Giao Điểm Dấu Chữ Thập Kỹ Thuật (Architectural Grid Dividers & Crosshairs `+`)
+* **Bản chất kỹ thuật trên Zeabur:**
+  * Các trang web web3 thông thường hay để các thẻ trôi nổi riêng rẽ (`gap-4` rời rạc), tạo cảm giác rời rạc và vụn vặt.
+  * Ngược lại, Zeabur và Linear sử dụng **ngôn ngữ khung kiến trúc bản vẽ kỹ thuật (Architectural Blueprint Frame)**:
+    1. **Khung bao hợp nhất (Outer Precision Frame):** Toàn bộ lưới Bento được gói trong một container `border border-white/[0.08] rounded-2xl bg-[#090516]/60 backdrop-blur-md`.
+    2. **Dấu chữ thập kỹ thuật (`+` Crosshair Anchors):** Đặt tại 4 góc ngoài của khung và 4 góc của mỗi thẻ con `SpotlightCard`. Chữ thập này có màu xám mờ `text-zinc-600/70`, khi hover chuyển sang tím neon `#8B5CF6`, mô phỏng các dấu căn chỉnh laser trong bản vẽ CAD kỹ thuật.
+    3. **Dải Hairline ngăn cách giữa các hàng (Grid Junction Divider Strip):** Giữa Hàng 1 (Consensus Synchronicity) và Hàng 2 (Staking & Defense), chèn một đường phân cách hairline hai chiều chuyển sắc `from-[#8B5CF6]/50 via-white/[0.1] to-transparent` kẹp ở giữa là chip nhãn tọa độ `GRID JUNCTION // SYNCHRONICITY & DEFENSE LAYERS` kèm đèn LED xung nhịp.
+    4. **Đường phản chiếu đỉnh thẻ (Top Hairline Reflection):** Mỗi thẻ `SpotlightCard` được trang bị một dải sáng mỏng `h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent` ở mép trên cùng, tạo cảm giác bề mặt kính vát bevel sang trọng.
 
 ---
 

@@ -116,17 +116,20 @@ interface SpotlightCardProps {
   className?: string;
   onClick?: () => void;
   spotlightColor?: string;
+  showCrosshairs?: boolean;
 }
 
 /**
  * Zeabur-inspired tactile Spotlight Card with cursor-following radial gradient glow.
- * Renders on a dark obsidian-amethyst surface with high-contrast text and micro-borders.
+ * Renders on a dark obsidian-amethyst surface with high-contrast text, micro-borders,
+ * precision hairline top reflection, and subtle engineering crosshair corner accents (+).
  */
 const SpotlightCard: React.FC<SpotlightCardProps> = ({
   children,
   className = '',
   onClick,
   spotlightColor = 'rgba(168, 85, 247, 0.16)',
+  showCrosshairs = true,
 }) => {
   const divRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -145,10 +148,24 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setOpacity(1)}
       onMouseLeave={() => setOpacity(0)}
-      className={`relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#110A24]/90 hover:border-white/[0.18] transition-all duration-300 ${className}`}
+      className={`relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#110A24]/90 hover:border-white/[0.2] transition-all duration-300 group/spotlight ${className}`}
     >
+      {/* Precision Top Hairline Reflection Accent (Zeabur Style) */}
+      <div className="pointer-events-none absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent z-20" />
+
+      {/* Engineering Blueprint Corner Crosshairs (+) */}
+      {showCrosshairs && (
+        <>
+          <span className="pointer-events-none absolute top-1.5 left-2 font-mono text-[9px] text-zinc-600/70 group-hover/spotlight:text-[#8B5CF6]/80 transition-colors z-20 select-none">+</span>
+          <span className="pointer-events-none absolute top-1.5 right-2 font-mono text-[9px] text-zinc-600/70 group-hover/spotlight:text-[#8B5CF6]/80 transition-colors z-20 select-none">+</span>
+          <span className="pointer-events-none absolute bottom-1.5 left-2 font-mono text-[9px] text-zinc-600/70 group-hover/spotlight:text-[#8B5CF6]/80 transition-colors z-20 select-none">+</span>
+          <span className="pointer-events-none absolute bottom-1.5 right-2 font-mono text-[9px] text-zinc-600/70 group-hover/spotlight:text-[#8B5CF6]/80 transition-colors z-20 select-none">+</span>
+        </>
+      )}
+
+      {/* Cursor Spotlight Glow */}
       <div
-        className="pointer-events-none absolute -inset-px transition-opacity duration-300"
+        className="pointer-events-none absolute -inset-px transition-opacity duration-300 z-10"
         style={{
           opacity,
           background: `radial-gradient(350px circle at ${position.x}px ${position.y}px, ${spotlightColor}, transparent 70%)`,
@@ -158,6 +175,28 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
     </div>
   );
 };
+
+interface TechStackItem {
+  name: string;
+  category: string;
+  accent: string;
+  dotColor: string;
+}
+
+const TECH_STACK_ITEMS: TechStackItem[] = [
+  { name: 'Substrate WASM', category: 'L1 Runtime', accent: '#E6007A', dotColor: 'bg-[#E6007A]' },
+  { name: 'Frontier EVM', category: 'Dual-VM Core', accent: '#6366F1', dotColor: 'bg-[#6366F1]' },
+  { name: 'GRANDPA Consensus', category: 'Deterministic Finality', accent: '#A855F7', dotColor: 'bg-[#A855F7]' },
+  { name: 'BABE Engine', category: 'Block Production', accent: '#38BDF8', dotColor: 'bg-[#38BDF8]' },
+  { name: 'Sequential Phragmén', category: 'NPoS Staking', accent: '#C084FC', dotColor: 'bg-[#C084FC]' },
+  { name: 'Web3.py & Substrate-Interface', category: 'Dual RPC', accent: '#8B5CF6', dotColor: 'bg-[#8B5CF6]' },
+  { name: 'Solidity & Vyper V3', category: 'Smart Contracts', accent: '#EC4899', dotColor: 'bg-[#EC4899]' },
+  { name: 'Libp2p & Kademlia', category: 'P2P Mesh', accent: '#00FF9D', dotColor: 'bg-[#00FF9D]' },
+  { name: 'Prometheus & OpenTelemetry', category: 'Observability', accent: '#F59E0B', dotColor: 'bg-[#F59E0B]' },
+  { name: 'Three.js Cyber Mesh', category: '3D WebGL Engine', accent: '#818CF8', dotColor: 'bg-[#818CF8]' },
+  { name: 'React 19 & Vite 8', category: 'Control Plane UI', accent: '#38BDF8', dotColor: 'bg-[#38BDF8]' },
+  { name: 'POT Token (14 Decimals)', category: 'Native Utility', accent: '#E6007A', dotColor: 'bg-[#E6007A]' },
+];
 
 export const LandingPage: React.FC<LandingPageProps> = ({ 
   onLaunchApp,
@@ -377,6 +416,47 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
       </section>
+
+      {/* Infinite Techstack Protocol Marquee Carousel (Zeabur Style) */}
+      <section className="relative py-7 overflow-hidden border-y border-white/[0.08] bg-[#07040E]/80 backdrop-blur-sm z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 mb-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] animate-pulse" />
+            <span className="text-zinc-600">//</span>
+            <span className="text-zinc-300 font-semibold">Dual-VM Protocol Stack &amp; Runtime Ecosystem</span>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D]" />
+            <span>PORTALDOT NETWORK V3.0 • SS58: 42 • POT DECIMALS: 14</span>
+          </div>
+        </div>
+
+        {/* Marquee Track with Lateral Fading Gradient Masks */}
+        <div className="relative w-full overflow-hidden">
+          {/* Left lateral fade mask */}
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 sm:w-36 z-20 bg-gradient-to-r from-[#07040E] to-transparent" />
+          {/* Right lateral fade mask */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 sm:w-36 z-20 bg-gradient-to-l from-[#07040E] to-transparent" />
+
+          {/* Infinite Moving Row */}
+          <div className="animate-marquee-infinite flex items-center gap-3 select-none">
+            {[...TECH_STACK_ITEMS, ...TECH_STACK_ITEMS].map((item, idx) => (
+              <div
+                key={`${item.name}-${idx}`}
+                className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg border border-white/[0.08] bg-[#110A24]/90 hover:bg-[#180F33] hover:border-[#8B5CF6]/50 transition-all duration-200 group/chip cursor-default shadow-sm"
+              >
+                <span className={`w-2 h-2 rounded-full ${item.dotColor} shadow-sm group-hover/chip:scale-125 transition-transform`} />
+                <span className="text-xs font-mono font-bold text-zinc-200 group-hover/chip:text-white whitespace-nowrap">
+                  {item.name}
+                </span>
+                <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
+                  {item.category}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
       
       {/* Section: The 4 Pillars — Asymmetric Zeabur-Style Bento Grid */}
       <section id="pillars" className="py-20 sm:py-24 px-4 sm:px-6 border-t border-white/[0.08] bg-[#07040E] relative z-10">
@@ -397,248 +477,271 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </p>
           </div>
 
-          {/* Bento Grid: 3 Columns Asymmetric Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* 1. HERO BENTO CARD (Span 2 Columns): Dual-Engine State Tracker & SRE Dock */}
-            <SpotlightCard
-              onClick={() => onLaunchApp('dual-vm')}
-              spotlightColor="rgba(230, 0, 122, 0.16)"
-              className="md:col-span-2 p-6 cursor-pointer group shadow-2xl"
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#E6007A]/15 border border-[#E6007A]/40 flex items-center justify-center text-[#E6007A]">
-                      <Layers className="w-5 h-5" />
+          {/* Bento Grid: 3 Columns Asymmetric Layout with Blueprint Crosshairs & Dividers */}
+          <div className="relative p-3 sm:p-5 rounded-2xl border border-white/[0.08] bg-[#090516]/60 backdrop-blur-md shadow-2xl">
+            {/* Outer Grid Blueprint Crosshair Anchors (+) */}
+            <span className="pointer-events-none absolute -top-1.5 -left-1.5 font-mono text-xs text-[#8B5CF6]/80 font-bold select-none">+</span>
+            <span className="pointer-events-none absolute -top-1.5 -right-1.5 font-mono text-xs text-[#8B5CF6]/80 font-bold select-none">+</span>
+            <span className="pointer-events-none absolute -bottom-1.5 -left-1.5 font-mono text-xs text-[#8B5CF6]/80 font-bold select-none">+</span>
+            <span className="pointer-events-none absolute -bottom-1.5 -right-1.5 font-mono text-xs text-[#8B5CF6]/80 font-bold select-none">+</span>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
+              {/* 1. HERO BENTO CARD (Span 2 Columns): Dual-Engine State Tracker & SRE Dock */}
+              <SpotlightCard
+                onClick={() => onLaunchApp('dual-vm')}
+                spotlightColor="rgba(230, 0, 122, 0.16)"
+                className="md:col-span-2 p-6 cursor-pointer group shadow-2xl"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-[#E6007A]/15 border border-[#E6007A]/40 flex items-center justify-center text-[#E6007A]">
+                        <Layers className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-white font-mono group-hover:text-[#E6007A] transition-colors">
+                          Dual-Engine Tracker &amp; Parity Deck
+                        </h3>
+                        <span className="text-[10px] text-zinc-400 font-mono">Real-time Cross-VM Synchronicity &amp; Active SRE</span>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#E6007A]/15 text-[#E6007A] border border-[#E6007A]/30 font-bold uppercase tracking-wider">
+                      PILLAR // 01
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-zinc-300 leading-relaxed max-w-xl">
+                    Correlates Substrate WASM consensus (:9944) and Frontier EVM execution (:8545) in real time. 
+                    Isolates desync root causes across 3 architectural tiers and arms the 1-Click SRE Remediation Dock.
+                  </p>
+
+                  {/* Interactive Live Parity Preview Box */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-lg bg-[#080512] border border-white/[0.06] text-xs font-mono">
+                    <div className="space-y-1">
+                      <div className="text-[10px] text-zinc-500 uppercase">SUBSTRATE WASM</div>
+                      <div className="text-sm font-bold text-white tabular-nums flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#E6007A]" />
+                        <span>#{dualData?.substrate?.best_block ? dualData.substrate.best_block.toLocaleString() : '161,594'}</span>
+                      </div>
+                      <div className="text-[10px] text-emerald-400">14.2ms Latency</div>
+                    </div>
+
+                    <div className="space-y-1 sm:border-l sm:border-white/[0.08] sm:pl-3">
+                      <div className="text-[10px] text-zinc-500 uppercase">FRONTIER EVM</div>
+                      <div className="text-sm font-bold text-[#818CF8] tabular-nums flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#6366F1]" />
+                        <span>#{dualData?.evm?.block_number ? dualData.evm.block_number.toLocaleString() : '161,594'}</span>
+                      </div>
+                      <div className="text-[10px] text-emerald-400">18.7ms Latency</div>
+                    </div>
+
+                    <div className="space-y-1 sm:border-l sm:border-white/[0.08] sm:pl-3">
+                      <div className="text-[10px] text-zinc-500 uppercase">PARITY STATUS</div>
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[11px]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                        <span>0 BLK (100% LOCKSTEP)</span>
+                      </div>
+                      <div className="text-[10px] text-zinc-400">CLI Score: 12.5 / 100</div>
+                    </div>
+                  </div>
+
+                  {/* SRE Action Pills Mini Dock */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] font-mono text-zinc-400">
+                    <span className="px-2 py-0.5 rounded border border-white/[0.08] bg-[#0A0615] text-[#C084FC]">
+                      ⚡ SRE Action: Circuit Breaker ARMED
+                    </span>
+                    <span className="px-2 py-0.5 rounded border border-white/[0.08] bg-[#0A0615] text-[#818CF8]">
+                      🔄 FC-Sync Probe Ready
+                    </span>
+                    <span className="px-2 py-0.5 rounded border border-white/[0.08] bg-[#0A0615] text-emerald-400">
+                      🧹 Mempool Zero Conflict
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-mono text-[#E6007A] font-bold pt-3 border-t border-white/[0.06] mt-4">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Dual-Engine Telemetry Online</span>
+                  </span>
+                  <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    <span>Open Parity Console</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+              </SpotlightCard>
+
+              {/* 2. PILLAR 02 (Span 1 Column): Slashing Guard & Mutex */}
+              <SpotlightCard
+                onClick={() => onLaunchApp('slashing')}
+                spotlightColor="rgba(168, 85, 247, 0.16)"
+                className="p-6 cursor-pointer group shadow-2xl"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-lg bg-[#8B5CF6]/15 border border-[#8B5CF6]/40 flex items-center justify-center text-[#8B5CF6]">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#8B5CF6]/15 text-[#C084FC] border border-[#8B5CF6]/30 font-bold uppercase tracking-wider">
+                      PILLAR // 02
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-bold text-white font-mono group-hover:text-[#C084FC] transition-colors">
+                      Slashing &amp; Mutex Guard
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                      Strict atomic anti-equivocation mutex lease eliminates double-signing slashing.
+                    </p>
+                  </div>
+
+                  {/* Invariant Box */}
+                  <div className="p-3 rounded-lg bg-[#080512] border border-white/[0.06] font-mono text-[11px] space-y-1.5">
+                    <div className="text-[10px] text-zinc-500 uppercase font-bold">TIMING INVARIANT</div>
+                    <div className="text-emerald-400 font-bold">10.0s &lt; 12.0s &lt; 15.0s</div>
+                    <div className="text-[10px] text-zinc-400">Self-Fence &lt; Lease &lt; Standby</div>
+                  </div>
+
+                  <div className="text-[10px] font-mono text-zinc-400 space-y-1">
+                    <div className="flex justify-between">
+                      <span>Lease Arbiter:</span>
+                      <span className="text-[#C084FC]">0xba11...7355</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Double-Signing Loss:</span>
+                      <span className="text-emerald-400 font-bold">0% (Guaranteed)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-mono text-[#8B5CF6] font-bold pt-3 border-t border-white/[0.06] mt-4">
+                  <span>Atomic Mutex Active</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </SpotlightCard>
+
+              {/* Zeabur-Grade Architectural Row Divider Strip */}
+              <div className="col-span-1 md:col-span-3 flex items-center gap-3 py-2 text-[10px] font-mono select-none">
+                <span className="text-[#8B5CF6]/80 font-bold text-xs">+</span>
+                <div className="h-px flex-1 bg-gradient-to-r from-[#8B5CF6]/50 via-white/[0.1] to-transparent" />
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#110A24] border border-white/[0.08] text-zinc-300 text-[10px] uppercase tracking-wider shadow-inner">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D] animate-ping" />
+                  <span className="text-zinc-500">//</span>
+                  <span className="text-zinc-300 font-semibold">GRID JUNCTION</span>
+                  <span className="text-zinc-500">|</span>
+                  <span className="text-[#C084FC]">SYNCHRONICITY &amp; DEFENSE LAYERS</span>
+                </div>
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/[0.1] to-[#8B5CF6]/50" />
+                <span className="text-[#8B5CF6]/80 font-bold text-xs">+</span>
+              </div>
+
+              {/* 3. PILLAR 03 (Span 1 Column): NPoS Yield Optimizer */}
+              <SpotlightCard
+                onClick={() => onLaunchApp('staking')}
+                spotlightColor="rgba(192, 132, 252, 0.16)"
+                className="p-6 cursor-pointer group shadow-2xl"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-lg bg-[#C084FC]/15 border border-[#C084FC]/40 flex items-center justify-center text-[#C084FC]">
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
+                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#C084FC]/15 text-[#C084FC] border border-[#C084FC]/30 font-bold uppercase tracking-wider">
+                      PILLAR // 03
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-bold text-white font-mono group-hover:text-[#C084FC] transition-colors">
+                      NPoS Yield Optimizer
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                      Client-side Sequential Phragmén filters greedy pools and compounds returns each era.
+                    </p>
+                  </div>
+
+                  {/* Staking Yield Box */}
+                  <div className="p-3 rounded-lg bg-[#080512] border border-white/[0.06] font-mono text-[11px] space-y-1.5">
+                    <div className="text-[10px] text-zinc-500 uppercase font-bold">POT STAKING YIELD</div>
+                    <div className="text-white font-bold text-base tabular-nums">
+                      {nposData?.auto_compounded_apy ? `${nposData.auto_compounded_apy.toFixed(2)}% APY` : '17.13% APY'}
+                    </div>
+                    <div className="text-emerald-400 font-bold text-[10px]">+{nposData?.apy_boost_pct ? nposData.apy_boost_pct.toFixed(2) : '1.16'}% Auto-Compounded Boost</div>
+                  </div>
+
+                  <div className="text-[10px] font-mono text-zinc-400 space-y-1">
+                    <div className="flex justify-between">
+                      <span>Oversubscribed:</span>
+                      <span className="text-emerald-400 font-bold">0% Risk (Filtered)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Staking Vault:</span>
+                      <span className="text-[#C084FC]">0x97e5...610A</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-mono text-[#C084FC] font-bold pt-3 border-t border-white/[0.06] mt-4">
+                  <span>Top 16 Non-Clipped</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </SpotlightCard>
+
+              {/* 4. PILLAR 04 (Span 2 Columns): RPC Anti-Spam Shield & P2P Defense */}
+              <SpotlightCard
+                onClick={() => onLaunchApp('shield')}
+                spotlightColor="rgba(56, 189, 248, 0.16)"
+                className="md:col-span-2 p-6 cursor-pointer group shadow-2xl"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-[#38BDF8]/15 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8]">
+                        <Shield className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-white font-mono group-hover:text-[#38BDF8] transition-colors">
+                          RPC Anti-Spam Shield &amp; P2P Defense
+                        </h3>
+                        <span className="text-[10px] text-zinc-400 font-mono">&lt; 1ms Asynchronous Packet Filtering &amp; Eclipse Guard</span>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#38BDF8]/15 text-[#38BDF8] border border-[#38BDF8]/30 font-bold uppercase tracking-wider">
+                      PILLAR // 04
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-zinc-300 leading-relaxed">
+                    Protects Portaldot validator nodes from OOM crashes caused by malicious 500,000-block eth_getLogs floods, 
+                    enforces 256KB socket ceilings, and continuously detects /24 Sybil subnet concentration attacks.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-lg bg-[#080512] border border-white/[0.06] text-xs font-mono">
+                    <div>
+                      <span className="text-[10px] text-zinc-500 uppercase block">INSPECTION OVERHEAD</span>
+                      <span className="font-bold text-emerald-400">&lt; 0.25ms (Zero-Copy)</span>
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-white font-mono group-hover:text-[#E6007A] transition-colors">
-                        Dual-Engine Tracker &amp; Parity Deck
-                      </h3>
-                      <span className="text-[10px] text-zinc-400 font-mono">Real-time Cross-VM Synchronicity &amp; Active SRE</span>
-                    </div>
-                  </div>
-                  <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#E6007A]/15 text-[#E6007A] border border-[#E6007A]/30 font-bold uppercase tracking-wider">
-                    PILLAR // 01
-                  </span>
-                </div>
-
-                <p className="text-xs text-zinc-300 leading-relaxed max-w-xl">
-                  Correlates Substrate WASM consensus (:9944) and Frontier EVM execution (:8545) in real time. 
-                  Isolates desync root causes across 3 architectural tiers and arms the 1-Click SRE Remediation Dock.
-                </p>
-
-                {/* Interactive Live Parity Preview Box */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-lg bg-[#080512] border border-white/[0.06] text-xs font-mono">
-                  <div className="space-y-1">
-                    <div className="text-[10px] text-zinc-500 uppercase">SUBSTRATE WASM</div>
-                    <div className="text-sm font-bold text-white tabular-nums flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#E6007A]" />
-                      <span>#{dualData?.substrate?.best_block ? dualData.substrate.best_block.toLocaleString() : '161,594'}</span>
-                    </div>
-                    <div className="text-[10px] text-emerald-400">14.2ms Latency</div>
-                  </div>
-
-                  <div className="space-y-1 sm:border-l sm:border-white/[0.08] sm:pl-3">
-                    <div className="text-[10px] text-zinc-500 uppercase">FRONTIER EVM</div>
-                    <div className="text-sm font-bold text-[#818CF8] tabular-nums flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#6366F1]" />
-                      <span>#{dualData?.evm?.block_number ? dualData.evm.block_number.toLocaleString() : '161,594'}</span>
-                    </div>
-                    <div className="text-[10px] text-emerald-400">18.7ms Latency</div>
-                  </div>
-
-                  <div className="space-y-1 sm:border-l sm:border-white/[0.08] sm:pl-3">
-                    <div className="text-[10px] text-zinc-500 uppercase">PARITY STATUS</div>
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[11px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                      <span>0 BLK (100% LOCKSTEP)</span>
-                    </div>
-                    <div className="text-[10px] text-zinc-400">CLI Score: 12.5 / 100</div>
-                  </div>
-                </div>
-
-                {/* SRE Action Pills Mini Dock */}
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] font-mono text-zinc-400">
-                  <span className="px-2 py-0.5 rounded border border-white/[0.08] bg-[#0A0615] text-[#C084FC]">
-                    ⚡ SRE Action: Circuit Breaker ARMED
-                  </span>
-                  <span className="px-2 py-0.5 rounded border border-white/[0.08] bg-[#0A0615] text-[#818CF8]">
-                    🔄 FC-Sync Probe Ready
-                  </span>
-                  <span className="px-2 py-0.5 rounded border border-white/[0.08] bg-[#0A0615] text-emerald-400">
-                    🧹 Mempool Zero Conflict
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs font-mono text-[#E6007A] font-bold pt-3 border-t border-white/[0.06] mt-4">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Dual-Engine Telemetry Online</span>
-                </span>
-                <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  <span>Open Parity Console</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </span>
-              </div>
-            </SpotlightCard>
-
-            {/* 2. PILLAR 02 (Span 1 Column): Slashing Guard & Mutex */}
-            <SpotlightCard
-              onClick={() => onLaunchApp('slashing')}
-              spotlightColor="rgba(168, 85, 247, 0.16)"
-              className="p-6 cursor-pointer group shadow-2xl"
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-lg bg-[#8B5CF6]/15 border border-[#8B5CF6]/40 flex items-center justify-center text-[#8B5CF6]">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#8B5CF6]/15 text-[#C084FC] border border-[#8B5CF6]/30 font-bold uppercase tracking-wider">
-                    PILLAR // 02
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-base font-bold text-white font-mono group-hover:text-[#C084FC] transition-colors">
-                    Slashing &amp; Mutex Guard
-                  </h3>
-                  <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                    Strict atomic anti-equivocation mutex lease eliminates double-signing slashing.
-                  </p>
-                </div>
-
-                {/* Invariant Box */}
-                <div className="p-3 rounded-lg bg-[#080512] border border-white/[0.06] font-mono text-[11px] space-y-1.5">
-                  <div className="text-[10px] text-zinc-500 uppercase font-bold">TIMING INVARIANT</div>
-                  <div className="text-emerald-400 font-bold">10.0s &lt; 12.0s &lt; 15.0s</div>
-                  <div className="text-[10px] text-zinc-400">Self-Fence &lt; Lease &lt; Standby</div>
-                </div>
-
-                <div className="text-[10px] font-mono text-zinc-400 space-y-1">
-                  <div className="flex justify-between">
-                    <span>Lease Arbiter:</span>
-                    <span className="text-[#C084FC]">0xba11...7355</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Double-Signing Loss:</span>
-                    <span className="text-emerald-400 font-bold">0% (Guaranteed)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs font-mono text-[#8B5CF6] font-bold pt-3 border-t border-white/[0.06] mt-4">
-                <span>Atomic Mutex Active</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </SpotlightCard>
-
-            {/* 3. PILLAR 03 (Span 1 Column): NPoS Yield Optimizer */}
-            <SpotlightCard
-              onClick={() => onLaunchApp('staking')}
-              spotlightColor="rgba(192, 132, 252, 0.16)"
-              className="p-6 cursor-pointer group shadow-2xl"
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-lg bg-[#C084FC]/15 border border-[#C084FC]/40 flex items-center justify-center text-[#C084FC]">
-                    <TrendingUp className="w-5 h-5" />
-                  </div>
-                  <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#C084FC]/15 text-[#C084FC] border border-[#C084FC]/30 font-bold uppercase tracking-wider">
-                    PILLAR // 03
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-base font-bold text-white font-mono group-hover:text-[#C084FC] transition-colors">
-                    NPoS Yield Optimizer
-                  </h3>
-                  <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                    Client-side Sequential Phragmén filters greedy pools and compounds returns each era.
-                  </p>
-                </div>
-
-                {/* Staking Yield Box */}
-                <div className="p-3 rounded-lg bg-[#080512] border border-white/[0.06] font-mono text-[11px] space-y-1.5">
-                  <div className="text-[10px] text-zinc-500 uppercase font-bold">POT STAKING YIELD</div>
-                  <div className="text-white font-bold text-base tabular-nums">
-                    {nposData?.auto_compounded_apy ? `${nposData.auto_compounded_apy.toFixed(2)}% APY` : '17.13% APY'}
-                  </div>
-                  <div className="text-emerald-400 font-bold text-[10px]">+{nposData?.apy_boost_pct ? nposData.apy_boost_pct.toFixed(2) : '1.16'}% Auto-Compounded Boost</div>
-                </div>
-
-                <div className="text-[10px] font-mono text-zinc-400 space-y-1">
-                  <div className="flex justify-between">
-                    <span>Oversubscribed:</span>
-                    <span className="text-emerald-400 font-bold">0% Risk (Filtered)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Staking Vault:</span>
-                    <span className="text-[#C084FC]">0x97e5...610A</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs font-mono text-[#C084FC] font-bold pt-3 border-t border-white/[0.06] mt-4">
-                <span>Top 16 Non-Clipped</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </SpotlightCard>
-
-            {/* 4. PILLAR 04 (Span 2 Columns): RPC Anti-Spam Shield & P2P Defense */}
-            <SpotlightCard
-              onClick={() => onLaunchApp('shield')}
-              spotlightColor="rgba(56, 189, 248, 0.16)"
-              className="md:col-span-2 p-6 cursor-pointer group shadow-2xl"
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#38BDF8]/15 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8]">
-                      <Shield className="w-5 h-5" />
+                      <span className="text-[10px] text-zinc-500 uppercase block">BLOCK SPAN LIMIT</span>
+                      <span className="font-bold text-white">&le; 2,000 Blocks</span>
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-white font-mono group-hover:text-[#38BDF8] transition-colors">
-                        RPC Anti-Spam Shield &amp; P2P Defense
-                      </h3>
-                      <span className="text-[10px] text-zinc-400 font-mono">&lt; 1ms Asynchronous Packet Filtering &amp; Eclipse Guard</span>
+                      <span className="text-[10px] text-zinc-500 uppercase block">SYBIL ECLIPSE GUARD</span>
+                      <span className="font-bold text-[#38BDF8]">Subnet Diversity Active</span>
                     </div>
                   </div>
-                  <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#38BDF8]/15 text-[#38BDF8] border border-[#38BDF8]/30 font-bold uppercase tracking-wider">
-                    PILLAR // 04
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-mono text-[#38BDF8] font-bold pt-3 border-t border-white/[0.06] mt-4">
+                  <span>60 Req / Min / IP Rate Limited</span>
+                  <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    <span>Open RPC Shield</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
-
-                <p className="text-xs text-zinc-300 leading-relaxed">
-                  Protects Portaldot validator nodes from OOM crashes caused by malicious 500,000-block eth_getLogs floods, 
-                  enforces 256KB socket ceilings, and continuously detects /24 Sybil subnet concentration attacks.
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-lg bg-[#080512] border border-white/[0.06] text-xs font-mono">
-                  <div>
-                    <span className="text-[10px] text-zinc-500 uppercase block">INSPECTION OVERHEAD</span>
-                    <span className="font-bold text-emerald-400">&lt; 0.25ms (Zero-Copy)</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-zinc-500 uppercase block">BLOCK SPAN LIMIT</span>
-                    <span className="font-bold text-white">&le; 2,000 Blocks</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-zinc-500 uppercase block">SYBIL ECLIPSE GUARD</span>
-                    <span className="font-bold text-[#38BDF8]">Subnet Diversity Active</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs font-mono text-[#38BDF8] font-bold pt-3 border-t border-white/[0.06] mt-4">
-                <span>60 Req / Min / IP Rate Limited</span>
-                <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  <span>Open RPC Shield</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </span>
-              </div>
-            </SpotlightCard>
+              </SpotlightCard>
+            </div>
           </div>
         </div>
       </section>

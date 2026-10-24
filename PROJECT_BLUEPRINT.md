@@ -757,5 +757,129 @@ Nhằm đáp ứng các tiêu chuẩn khắt khe nhất của một hệ thống
      *(Với $\alpha = 1.5$)*.
 * **Hiển thị trực quan trên UI:** Mỗi Validator Card trên `StakingYieldView.tsx` đều hiển thị chi tiết điểm PAO Score, chỉ số $M_v(u)$, và phân loại mức độ an toàn chống cá mập.
 
+---
+
+## 15. Kế Hoạch Nâng Cấp: Dual-VM Realtime Block Lockstep Stream (Dòng Chảy Khối Đối Chiếu Song Song WASM vs EVM)
+
+### 15.1. Bối Cảnh & Hạn Chế Cốt Tử Của Polkadot-js Explorer
+Trên công cụ khám phá chính thức của mạng lưới [node-console.portaldot.dev/#/explorer](https://node-console.portaldot.dev/#/explorer), tính năng "Recent Blocks" chỉ hiển thị danh sách đơn luồng của riêng Substrate WASM:
+* Số block WASM (`#161,594`)
+* Hash khối Substrate
+* Validator tạo khối (`Alice`, `Bob`)
+* Số lượng Extrinsics & Events
+
+🚨 **Điểm yếu chí mạng đối với Mạng Dual-VM**:
+1. **Hoàn toàn "mù" đối với máy ảo EVM (Frontier / Pallet-Revive)**: Người vận hành node (Node Operator) nhìn vào Polkadot-js chỉ biết khối WASM đã ra, nhưng hoàn toàn không biết khối EVM tương ứng (`:8545`) đã được đóng chưa, có bị kẹt RocksDB/SQLite hay không.
+2. **Không đo được độ trễ ánh xạ (fc-mapping-sync latency)**: Không biết mất bao nhiêu miligiây để block chuyển giao từ Substrate consensus sang EVM state commit.
+3. **Nguy cơ lặp lại bánh xe có sẵn**: Nếu DotNexus chỉ làm lại bảng Recent Blocks đơn luồng như Polkadot-js, dự án sẽ thiếu tính đột phá và không khai thác được bản sắc Dual-VM.
+
+---
+
+### 15.2. Định Vị Đột Phá: "Dual-VM Realtime Block Lockstep Stream" (Recent Blocks Conduit)
+
+Thay vì bảng khối đơn điệu, DotNexus định vị tính năng này thành **Dòng chảy đối chiếu khối song song thời gian thực (Dual-Block Conduit)** giữa Substrate WASM (:9944) và Frontier EVM (:8545):
+
+```
+[Thời gian thực: wss://test-node-v3.portaldot.dev + https://test-evm-rpc-v3.portaldot.dev]
+┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  LIVE DUAL-VM RECENT BLOCKS CONDUIT (5 KHỐI GẦN NHẤT)                                          │
+├────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                │
+│  [WASM #171,858] ───( Mapping Latency: 14.2ms )─── [EVM #171,858]  [● 100% LOCKSTEP PARITY]    │
+│   Author: Alice | 3 Extrinsics | Hash: 0x81fa...   Gas: 42,000 | 2 Txs | BaseFee: 18.0 Gwei   │
+│                                                                                                │
+│  [WASM #171,857] ───( Mapping Latency: 12.8ms )─── [EVM #171,857]  [● 100% LOCKSTEP PARITY]    │
+│   Author: Bob   | 1 Extrinsic  | Hash: 0x39dc...   Gas: 21,000 | 1 Tx  | BaseFee: 18.0 Gwei   │
+│                                                                                                │
+│  [WASM #171,856] ───( Mapping Latency: 185ms  )─── [EVM #171,856]  [▲ SLOW INDEXING WARNING]   │
+│   Author: Charlie | 8 Extrinsics | Hash: 0x76ae... Gas: 150,000 | 5 Txs | Heavy Storage Write │
+│                                                                                                │
+│  [WASM #171,855] ───( PROPAGATING...          )─── [EVM #171,854]  [▲ 1-BLOCK MAPPING DELTA]   │
+│   Author: Alice | Finalized | Hash: 0x12bb...       fc-mapping-sync: Ingestion Queue Active    │
+│                                                                                                │
+│  [WASM #171,854] ───( Mapping Latency: 15.1ms )─── [EVM #171,854]  [● 100% LOCKSTEP PARITY]    │
+│   Author: Dave  | 2 Extrinsics | Hash: 0x55aa...   Gas: 21,000 | 0 Tx  | BaseFee: 18.0 Gwei   │
+└────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 15.3. Kiến Trúc Dữ Liệu & API Contract
+
+#### 1. Schema Dữ Liệu `DualBlockConduitItem`
+```typescript
+export interface DualBlockConduitItem {
+  block_number_wasm: number;
+  block_number_evm: number;
+  hash_wasm: string;
+  hash_evm: string;
+  babe_author: string;
+  extrinsics_count: number;
+  evm_tx_count: number;
+  evm_gas_used: number;
+  evm_base_fee_gwei: number;
+  mapping_latency_ms: number;
+  delta_blocks: number;
+  status: 'LOCKSTEP' | 'PROPAGATION_LAG' | 'SLOW_INDEXING' | 'DESYNC_CRITICAL';
+  timestamp: number;
+}
+```
+
+#### 2. Backend Engine Implementation (`engine/dual_tracker.py`)
+Mở rộng class `DualEngineTracker` bổ sung phương thức `get_recent_dual_blocks(limit: int = 5) -> List[Dict[str, Any]]`:
+- Sử dụng `SubstrateInterface.rpc_request("chain_getBlockHash", [number])` và `chain_getBlock` để lấy thông tin 5 khối Substrate gần nhất.
+- Sử dụng `Web3.eth.get_block(number, full_transactions=False)` để lấy thông tin 5 khối EVM tương ứng.
+- Ghép cặp bản ghi theo số khối, tính toán độ lệch `delta_blocks = wasm_num - evm_num` và độ trễ phản hồi RPC giữa hai máy ảo.
+- Cache kết quả trong vòng 3 giây để tránh làm quá tải RPC node khi nhiều client cùng truy vấn.
+
+#### 3. REST API Route (`engine/server.py`)
+```python
+@app.route('/api/telemetry/dual/recent-blocks', methods=['GET'])
+def get_recent_dual_blocks():
+    """Trả về danh sách 5 khối gần nhất kèm đối chiếu song song WASM vs EVM"""
+    limit = min(int(request.args.get('limit', 5)), 10)
+    blocks = dual_tracker.get_recent_dual_blocks(limit=limit)
+    return jsonify({"success": True, "data": blocks, "timestamp": time.time()})
+```
+
+---
+
+### 15.4. Thiết Kế UI/UX Chuẩn Craft-Floor (`front-end/src/views/DualEngineView.tsx`)
+
+1. **Hiện thực hóa mã nguồn còn dang dở**:
+   - Tận dụng 2 mảng `wasmBlocks` và `evmBlocks` đã khai báo sẵn tại `DualEngineView.tsx:118-129` thành component trực quan `<DualBlockConduit />`.
+2. **Vị trí bố trí**:
+   - Nằm ngay dưới 2 Hero Card số block (`BEST HEAD BLOCK` và `EVM BLOCK NUMBER`) và trên thanh `PARITY CONDUIT & DELTA TRUTH BAR`.
+3. **Quy chuẩn thị giác (Craft-Floor Compliance)**:
+   - Viền hairline kỹ thuật `border-white/[0.08]`, nền Deep Obsidian `#07040E`.
+   - Typography monospaced với thuộc tính `tabular-nums` cho số block và ms.
+   - Badge trạng thái trực quan:
+     - `● 100% LOCKSTEP` (Xanh ngọc `#00FF9D`).
+     - `▲ PROPAGATION LAG` (Vàng hổ phách `#F59E0B`).
+     - `✕ CRITICAL DESYNC` (Đỏ cảnh báo `#EF4444`).
+   - Mỏ neo chữ thập kỹ thuật `<CornerCrosshair />` (+) tại 4 góc container.
+
+---
+
+### 15.5. Giá Trị Trình Diễn Trước Ban Giám Khảo (Demo Day Impact)
+
+1. **Vượt trội hoàn toàn so với Polkadot-js**: Chứng minh năng lực "thấu thị" cả 2 máy ảo cùng lúc trong khi các công cụ hiện hữu chỉ thấy một nửa.
+2. **Bằng chứng thời gian thực (Real-time Proof)**: Khi ban giám khảo gửi 1 extrinsic hoặc EVM transfer, block mới sẽ trượt vào conduit feed ngay lập tức với animation mượt mà, hiển thị rõ thời gian mapping từ Substrate sang EVM.
+3. **Phát hiện điểm đứt gãy tức thì (Instant Fault Detection)**: Khi kích hoạt Chaos Injection làm trễ EVM, giám khảo sẽ thấy ngay block nào bị trễ và nhãn cảnh báo chuyển từ xanh sang vàng/đỏ.
+
+---
+
+### 15.6. Lộ Trình Triển Khai Chi Tiết (Implementation Roadmap)
+
+| Giai Đoạn | Nhiệm Vụ Kỹ Thuật | File Tác Động | Tiêu Chí Nghiệm Thu |
+| :---: |---|---|---|
+| **P1: Backend** | Xây dựng hàm `get_recent_dual_blocks` trong `DualEngineTracker` | `engine/dual_tracker.py` | Query chính xác 5 block gần nhất từ live RPC, fallback mượt khi offline |
+| **P2: API** | Expose endpoint `/api/telemetry/dual/recent-blocks` | `engine/server.py` | Trả về JSON đúng schema, HTTP 200, latency < 50ms |
+| **P3: Client API** | Thêm hàm `getRecentDualBlocks` và interface TypeScript | `front-end/src/services/api.ts` | Type-safe, bắt lỗi timeout và fallback |
+| **P4: Component UI** | Xây dựng component `DualBlockConduit.tsx` | `front-end/src/components/` | Hiển thị 5 hàng song song, tabular-nums, mỏ neo crosshair, responsive |
+| **P5: Tích hợp View** | Thay thế code dở dang `wasmBlocks` trong `DualEngineView.tsx` | `front-end/src/views/DualEngineView.tsx` | Auto-refresh mượt mà theo chu kỳ poll |
+| **P6: Kiểm thử** | Bổ sung unit test backend & integration test | `tests/unit/test_dual_tracker.py` | 100% test pass (chạy `python -m unittest tests/test_engine.py`) |
+
+
 
 

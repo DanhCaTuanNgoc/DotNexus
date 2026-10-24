@@ -1,0 +1,80 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "DotNexus Automation Canvas — End-to-End Execution Flow",
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "output": ".archify/workflow-automation-canvas-20261024-233915/automation-canvas.html"
+  },
+  "lanes": [
+    { "id": "ui", "label": "Canvas Studio (React 19 Frontend)" },
+    { "id": "resolver", "label": "DAG Resolver & Safety Linter" },
+    { "id": "engine", "label": "DotNexus Core Engine (Flask API :5050)" },
+    { "id": "onchain", "label": "Portaldot V3 Dual-VM Node Operations" }
+  ],
+  "phases": [
+    { "id": "phase1", "label": "Phase 1: Composition & Linting", "fromCol": 0, "toCol": 1 },
+    { "id": "phase2", "label": "Phase 2: Pre-Flight & Fencing", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "phase3", "label": "Phase 3: Dual-VM Execution & Telemetry", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "groups": [
+    { "id": "composition_group", "label": "Visual Workflow Designer", "lane": "ui", "fromCol": 0, "toCol": 1 },
+    { "id": "safety_gate", "label": "Anti-Equivocation Guard", "lane": "resolver", "fromCol": 1, "toCol": 2, "variant": "security" },
+    { "id": "engine_dispatch", "label": "Core Orchestration", "lane": "engine", "fromCol": 2, "toCol": 4, "variant": "emphasis" },
+    { "id": "dual_vm_group", "label": "Substrate + EVM Dual Actions", "lane": "onchain", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": ["palette", "canvas", "topo_sort", "slash_mutex", "circuit_breaker", "api_dispatcher", "substrate_ops", "evm_ops", "terminal_drawer"],
+  "nodes": [
+    { "id": "palette", "lane": "ui", "col": 0, "type": "frontend", "label": "Node Palette", "sublabel": "Triggers, Guards, Actions", "width": 126 },
+    { "id": "canvas", "lane": "ui", "col": 1, "type": "frontend", "label": "Interactive Canvas", "sublabel": "DAG graph & handle wires", "width": 126 },
+    { "id": "linter", "lane": "resolver", "col": 1, "type": "security", "label": "Safety Linter", "sublabel": "Equivocation mutex check", "tag": "zero-slashing", "width": 126 },
+    
+    { "id": "topo_sort", "lane": "resolver", "col": 2, "type": "backend", "label": "Topological Sorter", "sublabel": "Kahn algorithm DAG order", "width": 126 },
+    { "id": "slash_mutex", "lane": "engine", "col": 2, "type": "security", "label": "SlashGuard Mutex", "sublabel": "Atomic lease lock (10s)", "tag": "anti-double-sign", "width": 126 },
+    
+    { "id": "circuit_breaker", "lane": "engine", "col": 3, "type": "security", "label": "RPC Circuit Breaker", "sublabel": "Rate limit & safe payload", "width": 126 },
+    { "id": "fencing_check", "lane": "onchain", "col": 3, "type": "security", "label": "Keystore Fencing", "sublabel": "Dead-man switch monitor", "width": 126 },
+    
+    { "id": "api_dispatcher", "lane": "engine", "col": 4, "type": "backend", "label": "Pipeline Dispatcher", "sublabel": "POST /api/runbook/execute", "width": 126 },
+    { "id": "substrate_ops", "lane": "onchain", "col": 4, "type": "cloud", "label": "Substrate WASM RPC", "sublabel": "NPoS, session & staking", "width": 126 },
+    
+    { "id": "evm_ops", "lane": "onchain", "col": 5, "type": "cloud", "label": "EVM JSON-RPC", "sublabel": "Gas & smart contracts", "width": 126 },
+    { "id": "terminal_drawer", "lane": "ui", "col": 5, "type": "frontend", "label": "Terminal Drawer", "sublabel": "Step logs & status", "width": 126 },
+    { "id": "audit_store", "lane": "engine", "col": 5, "type": "database", "label": "Audit Storage", "sublabel": "Execution ID & receipts", "width": 126 }
+  ],
+  "edges": [
+    { "id": "e_drag_drop", "from": "palette", "to": "canvas", "label": "drag node", "variant": "default" },
+    { "id": "e_lint_check", "from": "canvas", "to": "linter", "label": "pre-lint DAG", "variant": "security" },
+    { "id": "e_sort_dag", "from": "canvas", "to": "topo_sort", "label": "Run Pipeline", "variant": "emphasis" },
+    { "id": "e_acquire_lease", "from": "topo_sort", "to": "slash_mutex", "label": "acquire lease", "variant": "security" },
+    { "id": "e_shield_eval", "from": "slash_mutex", "to": "circuit_breaker", "variant": "default" },
+    { "id": "e_fence_guard", "from": "circuit_breaker", "to": "fencing_check", "label": "heartbeat ok", "variant": "security" },
+    { "id": "e_dispatch_run", "from": "circuit_breaker", "to": "api_dispatcher", "label": "dispatch tasks", "variant": "emphasis" },
+    { "id": "e_substrate_call", "from": "api_dispatcher", "to": "substrate_ops", "label": "call Substrate WS", "variant": "default" },
+    { "id": "e_evm_call", "from": "substrate_ops", "to": "evm_ops", "label": "sync EVM state", "variant": "default" },
+    { "id": "e_stream_logs", "from": "evm_ops", "to": "terminal_drawer", "label": "stream output", "variant": "emphasis" },
+    { "id": "e_save_receipt", "from": "api_dispatcher", "to": "audit_store", "label": "receipt", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "DAG Execution Rules",
+      "items": [
+        "InDegree == 0 root nodes execute first in topological sequence",
+        "Deterministic left-to-right tie-breaking for parallel branches",
+        "Zero equivocation: Atomic lease acquired before any signing task"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Live Node Actions",
+      "items": [
+        "Substrate: Payout stakers, session validation, auto-chill rebalance",
+        "EVM: Dual-VM block height sync, smart contract guard triggers",
+        "Audit: Full JSON receipt stream with elapsed timing per step"
+      ]
+    }
+  ]
+}

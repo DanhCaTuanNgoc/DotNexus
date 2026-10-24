@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "e34854e2-1e54-4337-af6c-8908832b8b69",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "D:\\Coding\\Portaldot Hacker house 2026\\DotNexus\\.archify\\workflow-automation-canvas-20261024-233915\\candidate.json",
+  "output": "D:\\Coding\\Portaldot Hacker house 2026\\DotNexus\\.archify\\workflow-automation-canvas-20261024-233915\\automation-canvas.html",
+  "specification": {
+    "sha256": "166060f69d2fcca5c69e44dc2bfbdbeddacaaadd4a4757744ec5977173f47ecf",
+    "bytes": 5633
+  },
+  "artifact": {
+    "sha256": "e4836701c25501217c970f297d4e40277a7b385f613a6e81a85e67832b4517a9",
+    "bytes": 836026
+  }
+}

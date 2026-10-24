@@ -610,7 +610,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Main Title */}
           <div className="space-y-4">
-            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1] font-mono">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1] font-sans">
               The Visual Control Plane &amp; <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] via-[#C084FC] to-[#38BDF8] drop-shadow-md">
                 Automated Security Operations Engine
@@ -764,7 +764,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
             <div className="space-y-1">
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-mono">
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
                 The Four Mission-Critical Pillars
               </h2>
             </div>
@@ -795,7 +795,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         <Layers className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-base font-bold text-white font-mono group-hover:text-[#E6007A] transition-colors">
+                        <h3 className="text-base sm:text-lg font-bold text-white font-sans group-hover:text-[#E6007A] transition-colors">
                           Dual-Engine Tracker &amp; Parity Deck
                         </h3>
                         <span className="text-[10px] text-zinc-400 font-mono">Real-time Cross-VM Synchronicity &amp; Active SRE</span>
@@ -884,7 +884,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-white font-mono group-hover:text-[#C084FC] transition-colors">
+                    <h3 className="text-base sm:text-lg font-bold text-white font-sans group-hover:text-[#C084FC] transition-colors">
                       Slashing &amp; Mutex Guard
                     </h3>
                     <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-mono">
@@ -937,7 +937,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-white font-mono group-hover:text-[#C084FC] transition-colors">
+                    <h3 className="text-base sm:text-lg font-bold text-white font-sans group-hover:text-[#C084FC] transition-colors">
                       NPoS Yield Optimizer
                     </h3>
                     <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-mono">
@@ -985,7 +985,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         <Shield className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-base font-bold text-white font-mono group-hover:text-[#38BDF8] transition-colors">
+                        <h3 className="text-base sm:text-lg font-bold text-white font-sans group-hover:text-[#38BDF8] transition-colors">
                           RPC Anti-Spam Shield &amp; P2P Defense
                         </h3>
                         <span className="text-[10px] text-zinc-400 font-mono">&lt; 1ms Asynchronous Packet Filtering &amp; Eclipse Guard</span>
@@ -1053,7 +1053,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
               <div className="space-y-2">
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-mono">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
                   Visual DAG Automation Canvas
                 </h2>
               </div>
@@ -1091,7 +1091,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
               <div className="space-y-2">
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-mono">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
                   Why DotNexus Stands Apart
                 </h2>
               </div>
@@ -1187,7 +1187,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
               <div className="space-y-2">
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-mono">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
                   Portaldot Hacker House 2026 Timeline
                 </h2>
               </div>

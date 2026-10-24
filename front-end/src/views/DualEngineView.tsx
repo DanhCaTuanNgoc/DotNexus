@@ -138,12 +138,6 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               DUAL-ENGINE CONTROL PLANE
             </h2>
           </div>
-          <span className="text-zinc-600">|</span>
-          <div className="flex items-center gap-2 text-[10px] text-zinc-400">
-            <span className="text-white font-semibold">PORTALDOT V3.0</span>
-            <span className="text-zinc-600">•</span>
-            <span className="text-zinc-400">CHAIN ID: 420420777</span>
-          </div>
         </div>
 
         <div className="flex items-center gap-2">

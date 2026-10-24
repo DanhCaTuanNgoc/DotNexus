@@ -48,10 +48,12 @@ Open browser at `http://localhost:5173`.
 
 ## 🔗 Live Portaldot V3 Testnet Smart Contracts (Verified & Deployed)
 
-| Smart Contract | Deployed Contract Address | Transaction Hash | Block | Status |
-|---|---|---|:---:|:---:|
-| **`SlashGuardLeaseRegistry`** | `0xba114d21CC41a30880CcfA53673B743316387355` | `0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f` | `#147264` | **PASS (1)** |
-| **`DotNexusStakingVault`** | `0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A` | `0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb` | `#147358` | **PASS (1)** |
+| Smart Contract | Deployed Contract Address | EVM Transaction Hash | Substrate Block | Substrate Explorer Link | Status |
+|---|---|---|:---:|:---:|:---:|
+| **`SlashGuardLeaseRegistry`** | `0xba114d21CC41a30880CcfA53673B743316387355` | `0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f` | `#147264` | [View Block 147264](https://node-console.portaldot.dev/#/explorer/query/147264) | **PASS (Status: 1)** |
+| **`DotNexusStakingVault`** | `0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A` | `0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb` | `#147358` | [View Block 147358](https://node-console.portaldot.dev/#/explorer/query/147358) | **PASS (Status: 1)** |
+
+> *Tip: On `node-console.portaldot.dev` (Substrate Polkadot-JS Portal), search by **Block Number** (`147358` or `147264`) to view the `Revive.eth_transact` extrinsic, as Polkadot-JS queries Substrate block hashes rather than EVM Keccak hashes.*
 
 ---
 

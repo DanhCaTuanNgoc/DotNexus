@@ -11,10 +11,16 @@
 
 ## 1. Verified Testnet Deployments (Status: 1 / Success)
 
-| Smart Contract Name | Deployed Contract Address | Transaction Hash | Block | Status | Verified Code |
+| Smart Contract Name | Deployed Contract Address | EVM Transaction Hash | Substrate Block | Substrate Explorer Link | Status |
 |---|---|---|:---:|:---:|:---:|
-| **`SlashGuardLeaseRegistry`** | [`0xba114d21CC41a30880CcfA53673B743316387355`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/contracts/SlashGuardLeaseRegistry.sol) | `0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f` | `#147264` | **PASS (1)** | 2,003 bytes |
-| **`DotNexusStakingVault`** | [`0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/contracts/DotNexusStakingVault.sol) | `0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb` | `#147358` | **PASS (1)** | 3,131 bytes |
+| **`SlashGuardLeaseRegistry`** | [`0xba114d21CC41a30880CcfA53673B743316387355`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/contracts/SlashGuardLeaseRegistry.sol) | `0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f` | `#147264` | [View Block 147264](https://node-console.portaldot.dev/#/explorer/query/147264) | **PASS (Status: 1)** |
+| **`DotNexusStakingVault`** | [`0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/contracts/DotNexusStakingVault.sol) | `0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb` | `#147358` | [View Block 147358](https://node-console.portaldot.dev/#/explorer/query/147358) | **PASS (Status: 1)** |
+
+> [!NOTE] Dual-VM Explorer Query Guide
+> - `https://node-console.portaldot.dev` is the **Substrate Native Polkadot-JS Apps** portal. Its explorer search bar (`#/explorer/query/...`) parses input as a **Substrate Block Number**, **Substrate Block Hash (Blake2b)**, or native extrinsic hash.
+> - The hash `0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb` is an **EVM Keccak-256 Transaction Hash** emitted by `pallet-revive`. Querying an EVM tx hash directly in the Substrate block search bar causes Substrate RPC to return `Unable to retrieve header and parent from supplied hash` because it expects a Substrate block hash.
+> - To view the transaction on the Portaldot Node Console, query by **Block Number** (`147358`) or **Substrate Block Hash** (`0x1c7d3066e78a208ae74c341f750aa6dd1446388a2f15b1554ae6f183e958c213`), where you will find extrinsic `147358-1` (`revive.ethTransact`).
+> - To query by EVM Tx Hash, query directly against the EVM JSON-RPC endpoint `https://test-evm-rpc-v3.portaldot.dev` via Web3 / JSON-RPC.
 
 ---
 

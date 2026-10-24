@@ -145,7 +145,7 @@ export const DualBlockConduit: React.FC<DualBlockConduitProps> = ({
                   {/* Center: The Conduit Optical Bridge */}
                   <div className="flex items-center justify-center gap-2 px-2 py-1 bg-[#090516] border border-white/[0.04] text-[10px] text-zinc-400 select-none">
                     <span className="text-zinc-600">──</span>
-                    <span className="text-[#8B5CF6] font-bold">⚡</span>
+                    <Zap className="w-3 h-3 text-[#C084FC]" />
                     <span className="text-zinc-300">
                       Mapping Latency: <strong className="text-[#00FF9D] tabular-nums font-bold">{block.mapping_latency_ms}ms</strong>
                     </span>

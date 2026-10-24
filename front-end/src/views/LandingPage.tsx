@@ -24,7 +24,8 @@ import {
   Clock,
   ChevronRight,
   Play,
-  RotateCcw
+  RotateCcw,
+  RefreshCw
 } from 'lucide-react';
 import { ThreeCanvas } from '../components/ThreeCanvas';
 import dotnexusIcon from '../assets/Icon.png';
@@ -406,7 +407,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
                 <span className="font-bold uppercase tracking-wider text-[10px]" style={{ color: log.accent }}>
                   {log.tag}
                 </span>
-                <span className="text-zinc-500">→</span>
+                <ChevronRight className="w-3 h-3 text-zinc-500 inline-block shrink-0 mt-0.5" />
                 <span className="flex-1">
                   {isDone ? log.doneText : isCurrent ? log.activeText : `[QUEUED] Waiting for upstream token...`}
                 </span>
@@ -455,7 +456,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen bg-[#080512] text-[#E2E8F0] selection:bg-[#8B5CF6] selection:text-white overflow-x-hidden font-sans">
+    <div className="relative min-h-screen bg-[#080512] text-[#E2E8F0] selection:bg-[#8B5CF6] selection:text-white overflow-x-hidden font-mono tracking-tight">
       {/* Background Cybernetic Grid & Ambient Lighting Orbs (Softer Zeabur Contrast) */}
       <div className="fixed inset-0 cyber-grid opacity-40 pointer-events-none z-0" />
       <div className="fixed inset-0 cyber-dots opacity-25 pointer-events-none z-0" />
@@ -537,30 +538,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <a
             href="#pillars"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors"
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors flex items-center gap-2 font-mono"
           >
-            → The 4 Pillars
+            <ChevronRight className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <span>The 4 Pillars</span>
           </a>
           <a
             href="#dag-canvas"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors"
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors flex items-center gap-2 font-mono"
           >
-            → Visual DAG Automation Canvas
+            <ChevronRight className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <span>Visual DAG Automation Canvas</span>
           </a>
           <a
             href="#comparison"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors"
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors flex items-center gap-2 font-mono"
           >
-            → Why DotNexus Stands Apart
+            <ChevronRight className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <span>Why DotNexus Stands Apart</span>
           </a>
           <a
             href="#roadmap"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors"
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors flex items-center gap-2 font-mono"
           >
-            → Hackathon Delivery Timeline
+            <ChevronRight className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <span>Hackathon Delivery Timeline</span>
           </a>
         </div>
       )}
@@ -605,7 +610,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Main Title */}
           <div className="space-y-4">
-            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1] font-mono">
               The Visual Control Plane &amp; <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] via-[#C084FC] to-[#38BDF8] drop-shadow-md">
                 Automated Security Operations Engine
@@ -703,7 +708,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         variant="hatched"
         height="h-14"
         label="PROTOCOL_STACK"
-        sublabel="RUNTIME_TOPOLOGY"
+        sublabel=""
       />
 
       {/* Section 2: Infinite Techstack Protocol Marquee Carousel — Full Bleed 100vw */}
@@ -744,7 +749,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         variant="glow"
         height="h-12"
         label="MISSION_CRITICAL"
-        sublabel="4_ENGINE_PILLARS"
+        sublabel=""
       />
       
       {/* Section 3: The 4 Pillars — Zero-Gap Blueprint Bento Grid */}
@@ -759,7 +764,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
             <div className="space-y-1">
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-mono">
                 The Four Mission-Critical Pillars
               </h2>
             </div>
@@ -801,7 +806,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </span>
                   </div>
 
-                  <p className="text-xs text-zinc-300 leading-relaxed max-w-xl">
+                  <p className="text-xs text-zinc-300 leading-relaxed max-w-xl font-mono">
                     Correlates Substrate WASM consensus (:9944) and Frontier EVM execution (:8545) in real time. 
                     Isolates desync root causes across 3 architectural tiers and arms the 1-Click SRE Remediation Dock.
                   </p>
@@ -835,14 +840,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                   {/* SRE Action Pills Mini Dock */}
                   <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] font-mono text-zinc-400">
-                    <span className="px-2 py-0.5 rounded-none border border-white/[0.08] bg-[#0A0615] text-[#C084FC]">
-                      ⚡ SRE Action: Circuit Breaker ARMED
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none border border-white/[0.08] bg-[#0A0615] text-[#C084FC]">
+                      <Zap className="w-3 h-3 text-[#C084FC]" />
+                      <span>SRE Action: Circuit Breaker ARMED</span>
                     </span>
-                    <span className="px-2 py-0.5 rounded-none border border-white/[0.08] bg-[#0A0615] text-[#818CF8]">
-                      🔄 FC-Sync Probe Ready
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none border border-white/[0.08] bg-[#0A0615] text-[#818CF8]">
+                      <RefreshCw className="w-3 h-3 text-[#818CF8]" />
+                      <span>FC-Sync Probe Ready</span>
                     </span>
-                    <span className="px-2 py-0.5 rounded-none border border-white/[0.08] bg-[#0A0615] text-emerald-400">
-                      🧹 Mempool Zero Conflict
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none border border-white/[0.08] bg-[#0A0615] text-emerald-400">
+                      <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                      <span>Mempool Zero Conflict</span>
                     </span>
                   </div>
                 </div>
@@ -879,7 +887,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <h3 className="text-base font-bold text-white font-mono group-hover:text-[#C084FC] transition-colors">
                       Slashing &amp; Mutex Guard
                     </h3>
-                    <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                    <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-mono">
                       Strict atomic anti-equivocation mutex lease eliminates double-signing slashing.
                     </p>
                   </div>
@@ -932,7 +940,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <h3 className="text-base font-bold text-white font-mono group-hover:text-[#C084FC] transition-colors">
                       NPoS Yield Optimizer
                     </h3>
-                    <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                    <p className="text-xs text-zinc-400 mt-1 leading-relaxed font-mono">
                       Client-side Sequential Phragmén filters greedy pools and compounds returns each era.
                     </p>
                   </div>
@@ -988,7 +996,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </span>
                   </div>
 
-                  <p className="text-xs text-zinc-300 leading-relaxed">
+                  <p className="text-xs text-zinc-300 leading-relaxed font-mono">
                     Protects Portaldot validator nodes from OOM crashes caused by malicious 500,000-block eth_getLogs floods, 
                     enforces 256KB socket ceilings, and continuously detects /24 Sybil subnet concentration attacks.
                   </p>
@@ -1027,7 +1035,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         variant="dots"
         height="h-14"
         label="AUTOMATION_ENGINE"
-        sublabel="VISUAL_DAG_PIPELINE"
+        sublabel=""
       />
 
       {/* Section 4: Visual DAG Runbook Canvas */}
@@ -1045,7 +1053,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
               <div className="space-y-2">
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-mono">
                   Visual DAG Automation Canvas
                 </h2>
               </div>
@@ -1065,7 +1073,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         variant="hatched"
         height="h-14"
         label="ARCHITECTURAL_AUDIT"
-        sublabel="BENCHMARK_MATRIX"
+        sublabel=""
       />
 
       {/* Section 5: Comparison Matrix */}
@@ -1083,10 +1091,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
               <div className="space-y-2">
-                <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-                  <span>COMPETITIVE ANALYSIS</span>
-                </div>
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-mono">
                   Why DotNexus Stands Apart
                 </h2>
               </div>
@@ -1164,7 +1169,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         variant="glow"
         height="h-12"
         label="DELIVERY_ROADMAP"
-        sublabel="HACKER_HOUSE_2026"
+        sublabel=""
       />
 
       {/* Section 6: Delivery Line Journey (Roadmap) */}
@@ -1182,7 +1187,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
               <div className="space-y-2">
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-mono">
                   Portaldot Hacker House 2026 Timeline
                 </h2>
               </div>
@@ -1223,7 +1228,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="w-full p-4 rounded-none border border-white/[0.08] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">Architecture Kick-off</h4>
-                    <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
+                    <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed font-mono">
                       Finalized Dual-VM telemetry pipeline and dual WebSocket/RPC collector baseline.
                     </p>
                   </div>
@@ -1258,7 +1263,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="w-full p-4 rounded-none border border-[#8B5CF6]/50 bg-[#120A24] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">DoraHacks Check-in</h4>
-                    <p className="text-[11px] text-zinc-300 mt-1.5 leading-relaxed">
+                    <p className="text-[11px] text-zinc-300 mt-1.5 leading-relaxed font-mono">
                       Working Dual-VM Tracker, Slashing Guard failover, and interactive DAG Canvas prototype.
                     </p>
                   </div>
@@ -1293,7 +1298,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="w-full p-4 rounded-none border border-white/[0.08] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">Code Freeze &amp; Hardening</h4>
-                    <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
+                    <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed font-mono">
                       RPC Shield payload filters, 100% test suite passage, and comprehensive judge audit report.
                     </p>
                   </div>
@@ -1328,7 +1333,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="w-full p-4 rounded-none border border-white/[0.08] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">Live Demo Day</h4>
-                    <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
+                    <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed font-mono">
                       Live verification with Portaldot Network foundation judges demonstrating real-time fault injection.
                     </p>
                   </div>
@@ -1358,7 +1363,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="px-2 py-0.5 bg-[#10B981]/15 text-[#10B981] text-[9px] font-bold rounded-none">PHASE 01 // COMPLETED</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">Architecture Kick-off &amp; Baseline</div>
-                <p className="text-[11px] text-zinc-400">Finalized Dual-VM WebSocket &amp; RPC baseline collectors.</p>
+                <p className="text-[11px] text-zinc-400 font-mono">Finalized Dual-VM WebSocket &amp; RPC baseline collectors.</p>
               </div>
             </div>
 
@@ -1373,7 +1378,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="px-2 py-0.5 bg-[#8B5CF6]/25 text-[#C084FC] text-[9px] font-bold rounded-none">PHASE 02 // TARGET</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">DoraHacks Check-in &amp; Working Prototype</div>
-                <p className="text-[11px] text-zinc-300">Dual-Engine Tracker, Slashing Guard failover &amp; DAG Canvas prototype.</p>
+                <p className="text-[11px] text-zinc-300 font-mono">Dual-Engine Tracker, Slashing Guard failover &amp; DAG Canvas prototype.</p>
               </div>
             </div>
 
@@ -1388,7 +1393,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-[9px] font-bold rounded-none">PHASE 03 // SCHEDULED</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">Code Freeze &amp; Security Hardening</div>
-                <p className="text-[11px] text-zinc-400">Complete code package, pitch deck &amp; test suite verification.</p>
+                <p className="text-[11px] text-zinc-400 font-mono">Complete code package, pitch deck &amp; test suite verification.</p>
               </div>
             </div>
 
@@ -1403,7 +1408,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="px-2 py-0.5 bg-zinc-800 text-zinc-500 text-[9px] font-bold rounded-none">PHASE 04 // DEMO DAY</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">Live Demo Day &amp; Foundation Review</div>
-                <p className="text-[11px] text-zinc-400">Live demonstration with Portaldot Network foundation judges.</p>
+                <p className="text-[11px] text-zinc-400 font-mono">Live demonstration with Portaldot Network foundation judges.</p>
               </div>
             </div>
           </div>

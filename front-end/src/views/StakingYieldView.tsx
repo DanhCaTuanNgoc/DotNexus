@@ -20,7 +20,8 @@ import {
   Lock,
   Clock,
   Play,
-  Layers
+  Layers,
+  Zap
 } from 'lucide-react';
 import { NPoSRecommendation, api, OnchainDispatchResult } from '../services/api';
 import { storage } from '../services/storage';
@@ -1152,7 +1153,14 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                   className="px-3.5 py-2 text-xs font-semibold bg-[#120B20] hover:bg-[#1C142E] text-zinc-200 border border-[#2E1F4A] hover:border-[#8B5CF6]/50 cursor-pointer transition-colors disabled:opacity-50"
                   title="Execute Staking.bond_extra directly on-chain"
                 >
-                  {isBondingExtra ? 'BONDING ON-CHAIN...' : '⚡ TEST AUTO-COMPOUND (BOND EXTRA)'}
+                  {isBondingExtra ? (
+                    'BONDING ON-CHAIN...'
+                  ) : (
+                    <span className="flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-[#C084FC]" />
+                      <span>TEST AUTO-COMPOUND (BOND EXTRA)</span>
+                    </span>
+                  )}
                 </button>
               </div>
 

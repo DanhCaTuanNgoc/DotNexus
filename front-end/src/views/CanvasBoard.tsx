@@ -761,7 +761,7 @@ if __name__ == "__main__":
                 source: 'DAG_ENGINE',
                 level: 'RUNNING',
                 time: Date.now() / 1000,
-                text: `⚡ Flow transmitting along wire -> [${currentNode.data.label}]...`,
+                text: `>> Flow transmitting along wire -> [${currentNode.data.label}]...`,
               });
               await sleep(480);
               setCompletedEdgeIds((prev) => [...prev, incomingEdge.id]);

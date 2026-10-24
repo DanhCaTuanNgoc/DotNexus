@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Layers,
   RefreshCw,
   Cpu,
   Activity,
@@ -13,18 +12,13 @@ import {
   ArrowRight,
   ShieldCheck,
   Binary,
-  Clock,
-  Sparkles,
-  Box,
-  Flame,
-  GitCommit,
-  Shield,
-  FileCode,
-  Check,
-  RotateCcw,
   Sliders,
   HardDrive,
-  Server
+  Server,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Check
 } from 'lucide-react';
 import { api, DualTelemetryState, ContractAuditResult, DualBlockConduitItem } from '../services/api';
 import { DualBlockConduit } from '../components/DualBlockConduit';
@@ -37,8 +31,9 @@ interface DualEngineViewProps {
 
 export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh, isLoading }) => {
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
-  const [slotElapsed, setSlotElapsed] = useState(0);
-  const [activeTab, setActiveTab] = useState<'stream' | 'diagnostics' | 'tools'>('stream');
+  const [activeTab, setActiveTab] = useState<'stream' | 'diagnostics' | 'metrics'>('stream');
+  const [showRpcCommands, setShowRpcCommands] = useState(false);
+  const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
 
   // Active Remediation & Audit State
   const [isRemediating, setIsRemediating] = useState(false);
@@ -69,14 +64,6 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
   useEffect(() => {
     fetchRecentBlocks();
   }, [fetchRecentBlocks, data.substrate.best_block, data.evm.block_number]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const sec = (Date.now() / 1000) % 6.0;
-      setSlotElapsed(sec);
-    }, 100);
-    return () => clearInterval(timer);
-  }, []);
 
   const handleRemediate = async (action: string) => {
     setIsRemediating(true);
@@ -114,30 +101,20 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
   };
 
   useEffect(() => {
-    handleAuditContract(selectedAuditContract);
-  }, [selectedAuditContract]);
+    if (activeTab === 'metrics') {
+      handleAuditContract(selectedAuditContract);
+    }
+  }, [selectedAuditContract, activeTab]);
 
-  const { substrate, evm, sync, mempool, root_cause_diagnosis, decimal_normalization } = data;
+  const handleCopy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedCmd(id);
+    setTimeout(() => setCopiedCmd(null), 2000);
+  };
+
+  const { substrate, evm, sync, mempool, root_cause_diagnosis, decimal_normalization, hardware } = data;
   const isHealthy = sync.is_synced;
   const delta = sync.delta_blocks;
-
-  const slotPercent = Math.min(100, Math.floor((slotElapsed / 6.0) * 100));
-
-  // Pure terminal phase calculation
-  let phaseTag = 'PACKING';
-  let phaseDetail = 'Gathering extrinsics';
-  if (slotElapsed >= 4.8) {
-    phaseTag = 'SEAL_BROADCAST';
-    phaseDetail = 'Importing to block tree';
-  } else if (slotElapsed >= 3.6) {
-    phaseTag = 'BABE_VRF';
-    phaseDetail = 'Alice VRF pre-seal claim';
-  } else if (slotElapsed >= 1.8) {
-    phaseTag = 'STATE_EXEC';
-    phaseDetail = 'Calculating WASM state root';
-  }
-
-
 
   const diag = root_cause_diagnosis || {
     tier: delta === 0 ? 0 : delta > 2 ? 1 : 2,
@@ -147,268 +124,216 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
     recommended_action: delta === 0 ? 'System running at optimal lockstep parity.' : 'Check fc-mapping-sync worker task.'
   };
 
+  const evmCurlCmd = `curl -s -X POST ${evm.endpoint} -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'`;
+  const wasmCurlCmd = `wscat -c ${substrate.endpoint} -x '{"jsonrpc":"2.0","method":"chain_getHeader","params":[],"id":1}'`;
+
   return (
-    <div data-tour="dual-engine-view" className="space-y-4 font-mono">
-      {/* View Header with Onboarding Mission Context */}
-      <div className="flex flex-wrap items-center justify-between border-b border-[#1C142E] pb-2.5 gap-3">
-        <div>
+    <div data-tour="dual-engine-view" className="space-y-4 font-mono text-[#E2E8F0]">
+      {/* 1. Sleek Command Header Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-[#080512] border border-white/[0.08]">
+        <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-[#8B5CF6]" />
-            <h2 className="text-xs sm:text-sm font-bold font-mono text-white tracking-widest uppercase">
-              DUAL-ENGINE REAL-TIME TELEMETRY
+            <span className="w-2 h-2 rounded-none bg-[#8B5CF6]" />
+            <h2 className="text-xs sm:text-sm font-bold text-white tracking-wider uppercase">
+              DUAL-ENGINE CONTROL PLANE
             </h2>
-            <span className="text-[9px] font-mono px-1.5 py-0.2 bg-[#0E091B] text-[#C084FC] border border-[#2E1F4A]">
-              WASM + EVM
-            </span>
           </div>
-          <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-            Phase-lock telemetry between Substrate WASM runtime and Frontier EVM execution engine.
-          </p>
+          <span className="text-zinc-600">|</span>
+          <div className="flex items-center gap-2 text-[10px] text-zinc-400">
+            <span className="text-white font-semibold">PORTALDOT V3.0</span>
+            <span className="text-zinc-600">•</span>
+            <span className="text-zinc-400">CHAIN ID: 420420777</span>
+          </div>
         </div>
-        <button
-          onClick={onRefresh}
-          disabled={isLoading}
-          className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono bg-[#110C1E] hover:bg-[#1A102E] border border-[#2E1F4A] hover:border-[#8B5CF6] text-zinc-200 transition-colors cursor-pointer"
-        >
-          <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>POLL NOW</span>
-        </button>
+
+        <div className="flex items-center gap-2">
+          {/* Active Status Badge */}
+          <span className={`px-2.5 py-1 text-[10px] font-bold border tracking-wider uppercase inline-flex items-center gap-1.5 ${
+            isHealthy
+              ? 'bg-emerald-950/40 text-[#00FF9D] border-emerald-800/60'
+              : 'bg-amber-950/40 text-amber-400 border-amber-800/60'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${isHealthy ? 'bg-[#00FF9D]' : 'bg-amber-400 animate-ping'}`} />
+            <span>{delta === 0 ? '100% LOCKSTEP PARITY' : `DELTA: ${delta} BLOCK${delta > 1 ? 'S' : ''}`}</span>
+          </span>
+
+          <button
+            onClick={onRefresh}
+            disabled={isLoading}
+            className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-[#120B24] hover:bg-[#1A1033] border border-white/[0.08] hover:border-[#8B5CF6] text-zinc-200 transition-colors cursor-pointer"
+            title="Poll Engine Telemetry"
+          >
+            <RefreshCw className={`w-3 h-3 text-[#C084FC] ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? 'SYNCING...' : 'POLL TELEMETRY'}</span>
+          </button>
+        </div>
       </div>
 
-      {/* Sub-Tabs Navigation for Progressive Disclosure */}
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-[#140D24] pb-2 text-[11px] font-mono">
+      {/* 2. Navigation Tabs (Progressive Disclosure) */}
+      <div className="flex items-center gap-1 border-b border-white/[0.08] pb-1.5 text-xs font-mono">
         <button
           onClick={() => setActiveTab('stream')}
-          className={`flex items-center gap-1.5 px-3 py-1 border transition-colors cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-1.5 border transition-colors cursor-pointer ${
             activeTab === 'stream'
-              ? 'bg-[#110C1E] border-[#8B5CF6] text-white font-bold'
-              : 'bg-[#0B0813] border-[#1C142E] text-zinc-400 hover:text-zinc-200 hover:border-[#2E1F4A]'
+              ? 'bg-[#120A24] border-[#8B5CF6] text-white font-bold'
+              : 'bg-[#080512] border-white/[0.06] text-zinc-400 hover:text-zinc-200 hover:border-white/[0.12]'
           }`}
         >
-          <Radio className="w-3 h-3 text-[#8B5CF6]" />
-          <span>Live Parity &amp; Active Ops</span>
+          <Radio className="w-3.5 h-3.5 text-[#8B5CF6]" />
+          <span>Lockstep Stream &amp; SRE</span>
         </button>
 
         <button
           onClick={() => setActiveTab('diagnostics')}
-          className={`flex items-center gap-1.5 px-3 py-1 border transition-colors cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-1.5 border transition-colors cursor-pointer ${
             activeTab === 'diagnostics'
-              ? 'bg-[#110C1E] border-[#8B5CF6] text-white font-bold'
-              : 'bg-[#0B0813] border-[#1C142E] text-zinc-400 hover:text-zinc-200 hover:border-[#2E1F4A]'
+              ? 'bg-[#120A24] border-[#8B5CF6] text-white font-bold'
+              : 'bg-[#080512] border-white/[0.06] text-zinc-400 hover:text-zinc-200 hover:border-white/[0.12]'
           }`}
         >
-          <Sparkles className="w-3 h-3 text-[#C084FC]" />
-          <span>Causal Lag &amp; Diagnostics</span>
+          <AlertTriangle className={`w-3.5 h-3.5 ${diag.severity !== 'OK' ? 'text-amber-400' : 'text-[#C084FC]'}`} />
+          <span>Causal Diagnostics</span>
           {diag.severity !== 'OK' && (
-            <span className="w-1.5 h-1.5 bg-amber-400 animate-pulse ml-0.5" />
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping ml-0.5" />
           )}
         </button>
 
         <button
-          onClick={() => setActiveTab('tools')}
-          className={`flex items-center gap-1.5 px-3 py-1 border transition-colors cursor-pointer ${
-            activeTab === 'tools'
-              ? 'bg-[#110C1E] border-[#8B5CF6] text-white font-bold'
-              : 'bg-[#0B0813] border-[#1C142E] text-zinc-400 hover:text-zinc-200 hover:border-[#2E1F4A]'
+          onClick={() => setActiveTab('metrics')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 border transition-colors cursor-pointer ${
+            activeTab === 'metrics'
+              ? 'bg-[#120A24] border-[#8B5CF6] text-white font-bold'
+              : 'bg-[#080512] border-white/[0.06] text-zinc-400 hover:text-zinc-200 hover:border-white/[0.12]'
           }`}
         >
-          <Binary className="w-3 h-3 text-[#00FF9D]" />
-          <span>Mainnet V3 Readiness &amp; Audit</span>
+          <Server className="w-3.5 h-3.5 text-[#00FF9D]" />
+          <span>Hardware &amp; Decimals</span>
         </button>
       </div>
 
-      {/* TAB 1: Live Dual-Block Parity Deck (Testnet V3) */}
+      {/* ================= TAB 1: LOCKSTEP STREAM & SRE ================= */}
       {activeTab === 'stream' && (
-        <div className="space-y-3 font-mono">
-          {/* Top Status Bar: Chain Verification */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 bg-[#090614] border border-[#1C142E]">
-            <div className="flex items-center gap-2.5">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-              </span>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-white tracking-wider uppercase">PORTALDOT NETWORK V3.0 TESTNET</span>
-                  <span className="text-[9px] px-1.5 py-0.2 bg-[#140D26] text-[#C084FC] border border-[#2B1B47]">
-                    CHAIN ID: 420420777
-                  </span>
-                </div>
-                <div className="text-[10px] text-zinc-500">
-                  Direct RPC Telemetry: <span className="text-zinc-400">{substrate.endpoint}</span> &amp; <span className="text-zinc-400">{evm.endpoint}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className={`px-2.5 py-1 text-[10px] font-bold border tracking-wider uppercase ${
-                isHealthy
-                  ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60'
-                  : 'bg-amber-950/40 text-amber-400 border-amber-800/60'
-              }`}>
-                {delta === 0 ? '● 100% LOCKSTEP PARITY' : `▲ PROPAGATION DELTA: ${delta} BLOCK${delta > 1 ? 'S' : ''}`}
-              </span>
-            </div>
-          </div>
-
-          {/* DUAL BLOCK NUMBER HERO CARDS: Side-by-Side (Large, Bold, Crystal Clear) */}
+        <div className="space-y-4">
+          {/* Dual Head Block Cards (WASM vs EVM) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {/* CARD 1: SUBSTRATE WASM RUNTIME */}
-            <div className="p-4 bg-[#08050F] border border-[#23183D] hover:border-[#8B5CF6]/50 transition-colors relative overflow-hidden">
-              <div className="flex items-center justify-between text-xs pb-3 border-b border-[#181126]">
+            {/* CARD 1: SUBSTRATE WASM */}
+            <div className="p-4 bg-[#080512] border border-white/[0.08] hover:border-[#E6007A]/40 transition-colors">
+              <div className="flex items-center justify-between text-xs pb-2.5 border-b border-white/[0.06]">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 bg-[#E6007A]" />
-                  <span className="text-zinc-300 font-bold tracking-wider">SUBSTRATE WASM NATIVE</span>
-                  <span className="text-[9px] text-zinc-500 font-mono">:9944 WS</span>
+                  <span className="text-zinc-200 font-bold tracking-wider">SUBSTRATE WASM RUNTIME</span>
+                  <span className="text-[10px] text-zinc-500">:9944 WS</span>
                 </div>
-                <span className="text-[9px] px-1.5 py-0.5 bg-[#170C24] text-emerald-400 border border-emerald-900/40 flex items-center gap-1 font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  LIVE ON-CHAIN
+                <span className="text-[9px] px-1.5 py-0.5 bg-[#E6007A]/10 text-[#E6007A] border border-[#E6007A]/25 font-bold">
+                  {substrate.is_live_chain ? 'LIVE RPC' : 'TESTNET V3'}
                 </span>
               </div>
 
-              {/* Big Block Number */}
-              <div className="my-4">
-                <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">BEST HEAD BLOCK</div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-1 tabular-nums flex items-baseline gap-2">
+              {/* Block Number & Head Info */}
+              <div className="my-3.5">
+                <div className="text-[10px] text-zinc-500 uppercase tracking-wider">BEST HEAD BLOCK</div>
+                <div className="text-3xl font-extrabold text-white tracking-tight mt-0.5 tabular-nums flex items-baseline gap-2">
                   <span>#{substrate.best_block.toLocaleString()}</span>
-                  <span className="text-xs font-normal text-zinc-500 tracking-normal">
-                    (hex: 0x{substrate.best_block.toString(16)})
+                  <span className="text-xs font-normal text-zinc-500 font-mono">
+                    0x{substrate.best_block.toString(16)}
                   </span>
                 </div>
                 <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-2">
                   <span>Finalized: <strong className="text-zinc-200 tabular-nums">#{substrate.finalized_block.toLocaleString()}</strong></span>
-                  <span className="text-zinc-600">|</span>
+                  <span className="text-zinc-600">•</span>
                   <span>Lag: <strong className="text-zinc-300 tabular-nums">{substrate.finality_lag}</strong> blks</span>
                 </div>
               </div>
 
-              {/* Live Technical Specs */}
-              <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[#181126] text-[10px]">
-                <div>
-                  <div className="text-zinc-500">ENDPOINT</div>
-                  <div className="text-zinc-300 font-semibold truncate" title={substrate.endpoint}>{substrate.endpoint}</div>
-                </div>
+              {/* Technical Metadata Strip */}
+              <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-white/[0.06] text-[10px]">
                 <div>
                   <div className="text-zinc-500">RPC LATENCY</div>
-                  <div className="text-emerald-400 font-semibold tabular-nums">{substrate.latency_ms} ms</div>
-                </div>
-                <div>
-                  <div className="text-zinc-500">NATIVE DECIMALS</div>
-                  <div className="text-zinc-300 font-semibold">{substrate.token_decimals} (POT) · SS58: {substrate.ss58_format}</div>
+                  <div className="text-emerald-400 font-bold tabular-nums">{substrate.latency_ms} ms</div>
                 </div>
                 <div>
                   <div className="text-zinc-500">PENDING EXTRINSICS</div>
-                  <div className="text-zinc-300 font-semibold tabular-nums">{substrate.pending_extrinsics} in pool</div>
+                  <div className="text-zinc-200 font-semibold tabular-nums">{substrate.pending_extrinsics} in mempool</div>
+                </div>
+                <div>
+                  <div className="text-zinc-500">TOKEN DECIMALS</div>
+                  <div className="text-zinc-300 font-semibold">{substrate.token_decimals} (POT) · SS58: {substrate.ss58_format}</div>
+                </div>
+                <div>
+                  <div className="text-zinc-500">ENDPOINT</div>
+                  <div className="text-zinc-400 truncate" title={substrate.endpoint}>{substrate.endpoint}</div>
                 </div>
               </div>
             </div>
 
-            {/* CARD 2: EVM PALLET-REVIVE RUNTIME */}
-            <div className="p-4 bg-[#08050F] border border-[#23183D] hover:border-[#6366F1]/50 transition-colors relative overflow-hidden">
-              <div className="flex items-center justify-between text-xs pb-3 border-b border-[#181126]">
+            {/* CARD 2: FRONTIER EVM */}
+            <div className="p-4 bg-[#080512] border border-white/[0.08] hover:border-[#818CF8]/40 transition-colors">
+              <div className="flex items-center justify-between text-xs pb-2.5 border-b border-white/[0.06]">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-[#6366F1]" />
-                  <span className="text-zinc-300 font-bold tracking-wider">EVM ENGINE (PALLET-REVIVE)</span>
-                  <span className="text-[9px] text-zinc-500 font-mono">:8545 HTTP</span>
+                  <span className="w-2 h-2 bg-[#818CF8]" />
+                  <span className="text-zinc-200 font-bold tracking-wider">FRONTIER EVM (REVIVE)</span>
+                  <span className="text-[10px] text-zinc-500">:8545 HTTP</span>
                 </div>
-                <span className="text-[9px] px-1.5 py-0.5 bg-[#0F1424] text-emerald-400 border border-emerald-900/40 flex items-center gap-1 font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  LIVE ON-CHAIN
+                <span className="text-[9px] px-1.5 py-0.5 bg-[#818CF8]/10 text-[#818CF8] border border-[#818CF8]/25 font-bold">
+                  CHAIN ID: {evm.chain_id}
                 </span>
               </div>
 
-              {/* Big Block Number */}
-              <div className="my-4">
-                <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">EVM BLOCK NUMBER</div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-1 tabular-nums flex items-baseline gap-2">
+              {/* Block Number & Head Info */}
+              <div className="my-3.5">
+                <div className="text-[10px] text-zinc-500 uppercase tracking-wider">EVM BLOCK NUMBER</div>
+                <div className="text-3xl font-extrabold text-[#818CF8] tracking-tight mt-0.5 tabular-nums flex items-baseline gap-2">
                   <span>#{evm.block_number.toLocaleString()}</span>
-                  <span className="text-xs font-normal text-zinc-500 tracking-normal">
-                    (hex: 0x{evm.block_number.toString(16)})
+                  <span className="text-xs font-normal text-zinc-500 font-mono">
+                    0x{evm.block_number.toString(16)}
                   </span>
                 </div>
                 <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-2">
                   <span>Gas Price: <strong className="text-zinc-200 tabular-nums">{evm.gas_price_gwei} Gwei</strong></span>
-                  <span className="text-zinc-600">|</span>
+                  <span className="text-zinc-600">•</span>
                   <span>Base Fee: <strong className="text-zinc-300 tabular-nums">{evm.base_fee_gwei ?? evm.gas_price_gwei} Gwei</strong></span>
                 </div>
               </div>
 
-              {/* Live Technical Specs */}
-              <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[#181126] text-[10px]">
-                <div>
-                  <div className="text-zinc-500">ENDPOINT</div>
-                  <div className="text-zinc-300 font-semibold truncate" title={evm.endpoint}>{evm.endpoint}</div>
-                </div>
+              {/* Technical Metadata Strip */}
+              <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-white/[0.06] text-[10px]">
                 <div>
                   <div className="text-zinc-500">RPC LATENCY</div>
-                  <div className="text-emerald-400 font-semibold tabular-nums">{evm.latency_ms} ms</div>
-                </div>
-                <div>
-                  <div className="text-zinc-500">EVM DECIMALS</div>
-                  <div className="text-zinc-300 font-semibold">18 (Wei) · Chain ID: {evm.chain_id}</div>
+                  <div className="text-emerald-400 font-bold tabular-nums">{evm.latency_ms} ms</div>
                 </div>
                 <div>
                   <div className="text-zinc-500">PENDING TRANSACTIONS</div>
-                  <div className="text-zinc-300 font-semibold tabular-nums">{evm.pending_transactions} in pool</div>
+                  <div className="text-zinc-200 font-semibold tabular-nums">{evm.pending_transactions} in pool</div>
+                </div>
+                <div>
+                  <div className="text-zinc-500">VM STANDARD DECIMALS</div>
+                  <div className="text-zinc-300 font-semibold">18 (Wei) Standard</div>
+                </div>
+                <div>
+                  <div className="text-zinc-500">ENDPOINT</div>
+                  <div className="text-zinc-400 truncate" title={evm.endpoint}>{evm.endpoint}</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* DUAL-VM REALTIME BLOCK LOCKSTEP STREAM (RECENT BLOCKS CONDUIT) */}
+          {/* Real-time Block Lockstep Conduit (5-Block Pair Stream) */}
           <DualBlockConduit
             items={recentBlocks}
             isLoading={isConduitLoading}
             onRefresh={fetchRecentBlocks}
           />
 
-          {/* PARITY CONDUIT & DELTA TRUTH BAR */}
-          <div className="p-3 bg-[#0B0716] border border-[#23183D] flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 flex items-center justify-center border font-bold text-sm ${
-                isHealthy
-                  ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60'
-                  : 'bg-amber-950/40 text-amber-400 border-amber-800/60'
-              }`}>
-                &Delta;
-              </div>
-              <div>
-                <div className="font-bold text-zinc-200 flex items-center gap-2">
-                  <span>DELTA: {delta} {delta === 1 ? 'BLOCK' : 'BLOCKS'}</span>
-                  <span className="text-zinc-500 font-normal">|</span>
-                  <span className="text-[11px] text-zinc-400 font-normal">
-                    {delta === 0
-                      ? 'Substrate WASM and EVM Pallet-Revive are executing in 100% lockstep parity.'
-                      : delta <= 2
-                      ? 'Normal propagation lag between BABE block sealing and fc-mapping-sync worker indexing.'
-                      : 'EVM state mapping has diverged beyond safe margin.'}
-                  </span>
-                </div>
-                <div className="text-[10px] text-zinc-500 mt-0.5">
-                  Threshold: &le; {sync.threshold} blocks · Status Code: {sync.status}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={onRefresh}
-              disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-[#150F26] hover:bg-[#1E1538] border border-[#372459] text-zinc-200 transition-colors cursor-pointer"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>TESTNET PROBE NOW</span>
-            </button>
-          </div>
-
-          {/* ACTIVE SRE REMEDIATION DOCK (1-CLICK INTERVENTION) */}
-          <div className="p-3.5 bg-[#08050F] border border-[#23183D] space-y-2.5">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1A122E] pb-2">
+          {/* Active SRE Remediation Dock */}
+          <div className="p-3.5 bg-[#080512] border border-white/[0.08] space-y-3">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
               <div className="flex items-center gap-2">
                 <Sliders className="w-3.5 h-3.5 text-[#8B5CF6]" />
-                <span className="text-xs font-bold text-white tracking-wider">ACTIVE SRE REMEDIATION DOCK (CAN THIỆP 1-CLICK)</span>
+                <span className="text-xs font-bold text-white tracking-wider uppercase">
+                  ACTIVE SRE REMEDIATION DOCK
+                </span>
               </div>
-              <span className="text-[10px] text-zinc-500">Zero-CLI Operator Action Suite</span>
+              <span className="text-[10px] text-zinc-400">Deterministic Operator Remediation</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
@@ -416,7 +341,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               <button
                 onClick={() => handleRemediate('toggle_circuit_breaker')}
                 disabled={isRemediating}
-                className="p-2.5 bg-[#0D091B] hover:bg-[#160E2E] border border-[#2B1B47] text-left transition-colors cursor-pointer flex flex-col justify-between gap-2"
+                className="p-3 bg-[#0B0716] hover:bg-[#130C26] border border-white/[0.08] hover:border-[#8B5CF6] text-left transition-colors cursor-pointer flex flex-col justify-between gap-2.5"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-zinc-400 font-bold">RPC CIRCUIT BREAKER</span>
@@ -428,12 +353,12 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                     {circuitBreakerArmed ? 'ARMED' : 'BYPASSED'}
                   </span>
                 </div>
-                <div className="text-[10.5px] text-zinc-300">
-                  {circuitBreakerArmed ? 'Auto-gates RPC reads if delta > 2' : 'Protection bypassed'}
+                <div className="text-[11px] text-zinc-300">
+                  {circuitBreakerArmed ? 'Auto-gates reads on delta > 2' : 'Protection bypassed'}
                 </div>
-                <div className="text-[9px] text-[#C084FC] flex items-center gap-1">
-                  <span>Toggle Protection</span>
-                  <ArrowRight className="w-2.5 h-2.5" />
+                <div className="text-[10px] text-[#C084FC] flex items-center gap-1 font-semibold">
+                  <span>Toggle Gate</span>
+                  <ArrowRight className="w-3 h-3" />
                 </div>
               </button>
 
@@ -441,18 +366,18 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               <button
                 onClick={() => handleRemediate('force_fc_sync')}
                 disabled={isRemediating}
-                className="p-2.5 bg-[#0D091B] hover:bg-[#160E2E] border border-[#2B1B47] text-left transition-colors cursor-pointer flex flex-col justify-between gap-2"
+                className="p-3 bg-[#0B0716] hover:bg-[#130C26] border border-white/[0.08] hover:border-[#8B5CF6] text-left transition-colors cursor-pointer flex flex-col justify-between gap-2.5"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-zinc-400 font-bold">FORCE FC-DB SYNC</span>
-                  <Database className="w-3 h-3 text-[#C084FC]" />
+                  <Database className="w-3.5 h-3.5 text-[#C084FC]" />
                 </div>
-                <div className="text-[10.5px] text-zinc-300">
-                  Re-probes and re-indexes fc-mapping pipeline
+                <div className="text-[11px] text-zinc-300">
+                  Re-indexes fc-mapping pipeline
                 </div>
-                <div className="text-[9px] text-[#C084FC] flex items-center gap-1">
-                  <span>Re-sync Worker</span>
-                  <RotateCcw className="w-2.5 h-2.5" />
+                <div className="text-[10px] text-[#C084FC] flex items-center gap-1 font-semibold">
+                  <span>Trigger Worker</span>
+                  <RefreshCw className="w-3 h-3" />
                 </div>
               </button>
 
@@ -460,18 +385,18 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               <button
                 onClick={() => handleRemediate('purge_mempool')}
                 disabled={isRemediating}
-                className="p-2.5 bg-[#0D091B] hover:bg-[#160E2E] border border-[#2B1B47] text-left transition-colors cursor-pointer flex flex-col justify-between gap-2"
+                className="p-3 bg-[#0B0716] hover:bg-[#130C26] border border-white/[0.08] hover:border-[#8B5CF6] text-left transition-colors cursor-pointer flex flex-col justify-between gap-2.5"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-zinc-400 font-bold">PURGE STALE MEMPOOL</span>
-                  <Cpu className="w-3 h-3 text-[#6366F1]" />
+                  <Cpu className="w-3.5 h-3.5 text-[#818CF8]" />
                 </div>
-                <div className="text-[10.5px] text-zinc-300">
-                  Clears out stuck transactions with outdated nonces
+                <div className="text-[11px] text-zinc-300">
+                  Flushes out-of-order nonces
                 </div>
-                <div className="text-[9px] text-[#6366F1] flex items-center gap-1">
-                  <span>Flush EVM Queue</span>
-                  <ArrowRight className="w-2.5 h-2.5" />
+                <div className="text-[10px] text-[#818CF8] flex items-center gap-1 font-semibold">
+                  <span>Flush Queue</span>
+                  <ArrowRight className="w-3 h-3" />
                 </div>
               </button>
 
@@ -479,356 +404,292 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               <button
                 onClick={() => handleRemediate('trigger_failover')}
                 disabled={isRemediating}
-                className="p-2.5 bg-[#0D091B] hover:bg-[#160E2E] border border-[#2B1B47] text-left transition-colors cursor-pointer flex flex-col justify-between gap-2"
+                className="p-3 bg-[#0B0716] hover:bg-[#130C26] border border-white/[0.08] hover:border-[#8B5CF6] text-left transition-colors cursor-pointer flex flex-col justify-between gap-2.5"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-zinc-400 font-bold">LEASE FAILOVER</span>
-                  <ShieldCheck className="w-3 h-3 text-[#00FF9D]" />
+                  <span className="text-[10px] text-zinc-400 font-bold">STANDBY FAILOVER</span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 </div>
-                <div className="text-[10.5px] text-zinc-300">
-                  Transfers block-signing lease to standby node
+                <div className="text-[11px] text-zinc-300">
+                  Promotes standby author lease
                 </div>
-                <div className="text-[9px] text-[#00FF9D] flex items-center gap-1">
-                  <span>Claim On-Chain Lease</span>
-                  <ArrowRight className="w-2.5 h-2.5" />
+                <div className="text-[10px] text-emerald-400 flex items-center gap-1 font-semibold">
+                  <span>Claim Lease</span>
+                  <ArrowRight className="w-3 h-3" />
                 </div>
               </button>
             </div>
 
             {remediationMsg && (
-              <div className="p-2 bg-[#06040C] border border-[#2E1F4A] text-[11px] text-[#00FF9D] flex items-center gap-2">
+              <div className="p-2.5 bg-[#05030A] border border-white/[0.08] text-xs text-[#00FF9D] flex items-center gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                 <span>{remediationMsg}</span>
               </div>
             )}
           </div>
 
-          {/* FOUR-TRACK ECOSYSTEM PULSE RADAR (PORTALDOT V3.0) */}
-          <div className="p-3.5 bg-[#08050F] border border-[#23183D] space-y-2.5">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1A122E] pb-2">
-              <div className="flex items-center gap-2">
-                <Layers className="w-3.5 h-3.5 text-[#C084FC]" />
-                <span className="text-xs font-bold text-white tracking-wider">PORTALDOT V3.0 ECOSYSTEM PULSE RADAR (4 TRACKS)</span>
-              </div>
-              <span className="text-[10px] text-zinc-500">Unified Macro Telemetry</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-[11px]">
-              {/* Track 1 */}
-              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
-                <div className="flex items-center justify-between text-[10px] text-zinc-500">
-                  <span>TRACK 1: MIDDLEWARE</span>
-                  <span className="text-emerald-400 font-bold">HEALTHY</span>
-                </div>
-                <div className="font-bold text-zinc-200">Modular Cloud &amp; RPC</div>
-                <div className="text-[10px] text-zinc-400">
-                  RPC Shield: <strong className="text-zinc-200">Active Filter</strong>
-                </div>
-                <div className="text-[9px] text-zinc-500">
-                  fc-db latency: {Math.round(evm.latency_ms * 0.4)}ms · 240 QPS
-                </div>
-              </div>
-
-              {/* Track 2 */}
-              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
-                <div className="flex items-center justify-between text-[10px] text-zinc-500">
-                  <span>TRACK 2: CROSS-CHAIN</span>
-                  <span className={isHealthy ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
-                    {isHealthy ? 'SYNCHRONIZED' : 'LAG DETECTED'}
-                  </span>
-                </div>
-                <div className="font-bold text-zinc-200">Consensus &amp; Bridge</div>
-                <div className="text-[10px] text-zinc-400">
-                  GRANDPA Finality Lag: <strong className="text-zinc-200">{substrate.finality_lag} blks</strong>
-                </div>
-                <div className="text-[9px] text-zinc-500">
-                  BABE slot: 6.0s · CLI Score: {data.causal_lag_index?.cli_score ?? 12}/100
-                </div>
-              </div>
-
-              {/* Track 3 */}
-              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
-                <div className="flex items-center justify-between text-[10px] text-zinc-500">
-                  <span>TRACK 3: NODE OPS</span>
-                  <span className="text-emerald-400 font-bold">PROTECTED</span>
-                </div>
-                <div className="font-bold text-zinc-200">Security &amp; Tooling</div>
-                <div className="text-[10px] text-zinc-400">
-                  Active Signer: <strong className="text-zinc-200">Alice (Authority)</strong>
-                </div>
-                <div className="text-[9px] text-zinc-500">
-                  Equivocation Mutex: Locked · Fencing Epoch: 1
-                </div>
-              </div>
-
-              {/* Track 4 */}
-              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
-                <div className="flex items-center justify-between text-[10px] text-zinc-500">
-                  <span>TRACK 4: ECOSYSTEM DAPPS</span>
-                  <span className="text-emerald-400 font-bold">READY</span>
-                </div>
-                <div className="font-bold text-zinc-200">Pallet-Revive VM</div>
-                <div className="text-[10px] text-zinc-400">
-                  Base Fee: <strong className="text-zinc-200">{evm.base_fee_gwei ?? evm.gas_price_gwei} Gwei</strong>
-                </div>
-                <div className="text-[9px] text-zinc-500">
-                  Storage Deposit: ~0.08 POT/byte
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* VERIFIABLE ON-CHAIN PROOF ACCORDION / TERMINAL SNIPPET */}
-          <div className="p-3 bg-[#06040C] border border-[#181126] text-[11px]">
-            <div className="flex items-center justify-between text-zinc-400 pb-2 border-b border-[#140D22]">
+          {/* Collapsible Verifiable Developer RPC Queries */}
+          <div className="border border-white/[0.08] bg-[#07040E]">
+            <button
+              onClick={() => setShowRpcCommands(!showRpcCommands)}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-mono text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            >
               <div className="flex items-center gap-2">
                 <Terminal className="w-3.5 h-3.5 text-[#8B5CF6]" />
-                <span className="font-bold text-zinc-300 text-xs">VERIFIABLE RPC COMMANDS (PORTALDOT V3.0 TESTNET)</span>
+                <span className="font-bold text-zinc-300 uppercase tracking-wider">
+                  DEVELOPER RPC VERIFICATION PROOFS
+                </span>
+                <span className="text-[10px] text-zinc-500 hidden sm:inline">
+                  (Direct curl commands for testing)
+                </span>
               </div>
-              <span className="text-[10px] text-zinc-500">Judges can execute directly to verify accuracy</span>
-            </div>
+              {showRpcCommands ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
 
-            <div className="mt-2.5 grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px]">
-              <div className="p-2 bg-[#0A0714] border border-[#1C142E]">
-                <div className="text-zinc-500 mb-1 flex items-center justify-between">
-                  <span>1. EVM eth_blockNumber (HTTP)</span>
-                  <span className="text-indigo-400 font-bold">curl</span>
+            {showRpcCommands && (
+              <div className="p-3 border-t border-white/[0.06] grid grid-cols-1 md:grid-cols-2 gap-2.5 text-[11px]">
+                <div className="p-2.5 bg-[#05030A] border border-white/[0.06] space-y-1.5">
+                  <div className="flex items-center justify-between text-zinc-400 text-[10px]">
+                    <span className="font-bold">EVM eth_blockNumber (:8545)</span>
+                    <button
+                      onClick={() => handleCopy(evmCurlCmd, 'evm')}
+                      className="flex items-center gap-1 text-[#8B5CF6] hover:text-[#C084FC] cursor-pointer"
+                    >
+                      {copiedCmd === 'evm' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedCmd === 'evm' ? 'COPIED' : 'COPY'}</span>
+                    </button>
+                  </div>
+                  <div className="p-2 bg-[#0A0714] border border-white/[0.04] text-zinc-300 text-[10px] font-mono break-all select-all">
+                    {evmCurlCmd}
+                  </div>
                 </div>
-                <div className="text-zinc-300 font-mono text-[9.5px] select-all bg-[#05030A] p-1.5 border border-[#140E24] overflow-x-auto">
-                  curl -s -X POST https://test-evm-rpc-v3.portaldot.dev -H "Content-Type: application/json" -d &apos;&#123;&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;eth_blockNumber&quot;,&quot;params&quot;:[],&quot;id&quot;:1&#125;&apos;
-                </div>
-              </div>
 
-              <div className="p-2 bg-[#0A0714] border border-[#1C142E]">
-                <div className="text-zinc-500 mb-1 flex items-center justify-between">
-                  <span>2. Substrate chain_getHeader (WebSocket / RPC)</span>
-                  <span className="text-pink-400 font-bold">wscat / curl</span>
-                </div>
-                <div className="text-zinc-300 font-mono text-[9.5px] select-all bg-[#05030A] p-1.5 border border-[#140E24] overflow-x-auto">
-                  wscat -c wss://test-node-v3.portaldot.dev -x &apos;&#123;&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;chain_getHeader&quot;,&quot;params&quot;:[],&quot;id&quot;:1&#125;&apos;
+                <div className="p-2.5 bg-[#05030A] border border-white/[0.06] space-y-1.5">
+                  <div className="flex items-center justify-between text-zinc-400 text-[10px]">
+                    <span className="font-bold">Substrate chain_getHeader (:9944)</span>
+                    <button
+                      onClick={() => handleCopy(wasmCurlCmd, 'wasm')}
+                      className="flex items-center gap-1 text-[#E6007A] hover:text-pink-400 cursor-pointer"
+                    >
+                      {copiedCmd === 'wasm' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedCmd === 'wasm' ? 'COPIED' : 'COPY'}</span>
+                    </button>
+                  </div>
+                  <div className="p-2 bg-[#0A0714] border border-white/[0.04] text-zinc-300 text-[10px] font-mono break-all select-all">
+                    {wasmCurlCmd}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* TAB 2: Causal Lag Index & Root-Cause Matrix */}
+      {/* ================= TAB 2: CAUSAL LAG DIAGNOSTICS ================= */}
       {activeTab === 'diagnostics' && (
         <div className="space-y-4">
-          {/* 1.5. Algorithmic Cross-VM Causal Lag Index (CLI) Heuristic Diagnostics */}
+          {/* Causal Lag Index (CLI) Heuristic Diagnostics */}
           {data.causal_lag_index && (
-            <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1C142E] pb-2.5">
+            <div className="p-4 bg-[#080512] border border-white/[0.08] space-y-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#C084FC]" />
-                  <span className="text-xs font-mono font-bold text-white tracking-wider">
-                    CROSS-VM CAUSAL LAG INDEX (CLI) — HEURISTIC DIAGNOSTIC ENGINE
+                  <Zap className="w-4 h-4 text-[#C084FC]" />
+                  <span className="text-xs font-bold text-white tracking-wider uppercase">
+                    CROSS-VM CAUSAL LAG INDEX (CLI)
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 border ${
+                  <span className={`text-[10px] font-bold px-2 py-0.5 border ${
                     data.causal_lag_index.classification === 'NOMINAL_PARITY'
-                      ? 'bg-[#00FF9D]/10 text-[#00FF9D] border-[#00FF9D]/30'
+                      ? 'bg-emerald-950/40 text-[#00FF9D] border-emerald-800/40'
                       : data.causal_lag_index.classification === 'FRONTIER_DB_LOCK'
                       ? 'bg-amber-950/40 text-amber-400 border-amber-800/40'
-                      : data.causal_lag_index.classification === 'EVM_GAS_SATURATION'
-                      ? 'bg-[#140D24] text-[#C084FC] border-[#2E1F4A]'
                       : 'bg-rose-950/40 text-rose-400 border-rose-800/40'
                   }`}>
-                    [{data.causal_lag_index.classification}]
+                    {data.causal_lag_index.classification}
                   </span>
-                  <span className="text-xs font-mono font-bold text-white tabular-nums bg-[#06040A] px-2 py-0.5 border border-[#1C142E]">
-                    CLI SCORE: {data.causal_lag_index.cli_score} / 100
+                  <span className="text-xs font-bold text-white tabular-nums bg-[#05030A] px-2.5 py-0.5 border border-white/[0.08]">
+                    SCORE: {data.causal_lag_index.cli_score} / 100
                   </span>
                 </div>
               </div>
 
-              <p className="text-[11px] font-mono text-zinc-300">
+              <p className="text-xs text-zinc-300">
                 {data.causal_lag_index.diagnosis_message}
               </p>
 
               {/* 3 Orthogonal Vectors Display */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-                {/* Vector 1: Block Lag */}
-                <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
-                  <div className="flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-zinc-500">VECTOR 1 (w₁ = 0.50): BLOCK LAG</span>
+                {/* Vector 1 */}
+                <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-zinc-400 font-bold">VECTOR 1: BLOCK LAG (w₁=0.50)</span>
                     <span className="text-white font-bold tabular-nums">
-                      {data.causal_lag_index.vector_breakdown.block_delta} blk (v₁: {data.causal_lag_index.vector_breakdown.block_lag_vector})
+                      {data.causal_lag_index.vector_breakdown.block_delta} blk
                     </span>
                   </div>
-                  <div className="w-full bg-[#110C1E] h-1.5 overflow-hidden border border-[#1C142E]">
+                  <div className="w-full bg-[#110C1E] h-1.5 overflow-hidden">
                     <div
                       className="bg-[#E6007A] h-full transition-all duration-300"
                       style={{ width: `${Math.min(100, data.causal_lag_index.vector_breakdown.block_lag_vector * 100)}%` }}
                     />
                   </div>
-                  <div className="text-[9px] font-mono text-zinc-500">
-                    Frontier/Revive fc-db mapping lag ratio
+                  <div className="text-[10px] text-zinc-500">
+                    Frontier fc-db mapping lag ratio
                   </div>
                 </div>
 
-                {/* Vector 2: Mempool Skew */}
-                <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
-                  <div className="flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-zinc-500">VECTOR 2 (w₂ = 0.30): MEMPOOL SKEW</span>
+                {/* Vector 2 */}
+                <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-zinc-400 font-bold">VECTOR 2: MEMPOOL SKEW (w₂=0.30)</span>
                     <span className="text-white font-bold tabular-nums">
                       {data.causal_lag_index.vector_breakdown.evm_pending} EVM / {data.causal_lag_index.vector_breakdown.wasm_pending} WASM
                     </span>
                   </div>
-                  <div className="w-full bg-[#110C1E] h-1.5 overflow-hidden border border-[#1C142E]">
+                  <div className="w-full bg-[#110C1E] h-1.5 overflow-hidden">
                     <div
-                      className="bg-[#6366F1] h-full transition-all duration-300"
+                      className="bg-[#818CF8] h-full transition-all duration-300"
                       style={{ width: `${Math.min(100, (data.causal_lag_index.vector_breakdown.mempool_skew_vector / 5.0) * 100)}%` }}
                     />
                   </div>
-                  <div className="text-[9px] font-mono text-zinc-500">
-                    Solidity VM gas saturation vs Extrinsic pool
+                  <div className="text-[10px] text-zinc-500">
+                    Solidity VM gas saturation ratio
                   </div>
                 </div>
 
-                {/* Vector 3: Latency Skew */}
-                <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
-                  <div className="flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-zinc-500">VECTOR 3 (w₃ = 0.20): TRANSPORT SKEW</span>
+                {/* Vector 3 */}
+                <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-zinc-400 font-bold">VECTOR 3: I/O SKEW (w₃=0.20)</span>
                     <span className="text-white font-bold tabular-nums">
                       {data.causal_lag_index.vector_breakdown.evm_latency_ms}ms / {data.causal_lag_index.vector_breakdown.wasm_latency_ms}ms
                     </span>
                   </div>
-                  <div className="w-full bg-[#110C1E] h-1.5 overflow-hidden border border-[#1C142E]">
+                  <div className="w-full bg-[#110C1E] h-1.5 overflow-hidden">
                     <div
                       className="bg-[#00FF9D] h-full transition-all duration-300"
                       style={{ width: `${Math.min(100, (data.causal_lag_index.vector_breakdown.latency_skew_vector / 3.0) * 100)}%` }}
                     />
                   </div>
-                  <div className="text-[9px] font-mono text-zinc-500">
-                    JSON-RPC :8545 vs Substrate WS :9944 I/O
+                  <div className="text-[10px] text-zinc-500">
+                    JSON-RPC vs Substrate WS I/O
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* 2. 3-Tier Root-Cause Isolation Funnel Matrix */}
-          <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3">
-            <div className="flex items-center justify-between border-b border-[#1C142E] pb-2">
+          {/* 3-Tier Root-Cause Isolation Funnel Matrix */}
+          <div className="p-4 bg-[#080512] border border-white/[0.08] space-y-3">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
               <div className="flex items-center gap-2">
                 <Radio className="w-3.5 h-3.5 text-[#8B5CF6]" />
-                <span className="text-xs font-mono font-bold text-white tracking-wider">
+                <span className="text-xs font-bold text-white tracking-wider uppercase">
                   3-TIER ROOT-CAUSE ISOLATION MATRIX
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-zinc-500">
-                Click tier to inspect isolation rules
+              <span className="text-[10px] text-zinc-400">
+                Click a tier to inspect isolation boundary
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {/* Tier 1: P2P Network Swarm */}
+              {/* Tier 1 */}
               <div
                 onClick={() => setSelectedTier(1)}
-                className={`p-3 border cursor-pointer transition-all ${
+                className={`p-3.5 border transition-all cursor-pointer ${
                   diag.tier === 1
                     ? 'border-[#EF4444] bg-[#14080D]'
-                    : 'border-[#1C142E] bg-[#06040A] hover:border-[#2E1F4A]'
+                    : selectedTier === 1
+                    ? 'border-[#8B5CF6] bg-[#120A24]'
+                    : 'border-white/[0.08] bg-[#05030A] hover:border-white/[0.15]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono font-bold text-zinc-500">TIER 1 — P2P SWARM</span>
-                  {diag.tier === 1 ? (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40 font-bold">
-                      STALL DETECTED
-                    </span>
-                  ) : (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 font-bold">
-                      HEALTHY
-                    </span>
-                  )}
+                  <span className="text-[10px] font-bold text-zinc-400">TIER 1 — P2P SWARM</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 border font-bold ${
+                    diag.tier === 1
+                      ? 'bg-rose-950/40 text-rose-400 border-rose-800/40'
+                      : 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40'
+                  }`}>
+                    {diag.tier === 1 ? 'STALL DETECTED' : 'HEALTHY'}
+                  </span>
                 </div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Radio className="w-4 h-4 text-[#8B5CF6]" />
-                  <span className="text-xs font-semibold text-white">Substrate P2P Layer</span>
-                </div>
+                <div className="text-xs font-bold text-white mb-1">Substrate P2P Layer</div>
                 <p className="text-[11px] text-zinc-400 leading-relaxed">
-                  Monitors <code className="text-zinc-300">system_peers</code> (&ge; 2) and libp2p block gap (&le; 10).
+                  Monitors system_peers (&ge; 2) and libp2p block gap (&le; 10).
                 </p>
               </div>
 
-              {/* Tier 2: Frontier Mapping Sync Lag */}
+              {/* Tier 2 */}
               <div
                 onClick={() => setSelectedTier(2)}
-                className={`p-3 border cursor-pointer transition-all ${
+                className={`p-3.5 border transition-all cursor-pointer ${
                   diag.tier === 2
                     ? 'border-[#F59E0B] bg-[#140E06]'
-                    : 'border-[#1C142E] bg-[#06040A] hover:border-[#2E1F4A]'
+                    : selectedTier === 2
+                    ? 'border-[#8B5CF6] bg-[#120A24]'
+                    : 'border-white/[0.08] bg-[#05030A] hover:border-white/[0.15]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono font-bold text-zinc-500">TIER 2 — FC-DB BRIDGE</span>
-                  {diag.tier === 2 ? (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 font-bold">
-                      MAPPING LAG
-                    </span>
-                  ) : (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 font-bold">
-                      IN LOCKSTEP
-                    </span>
-                  )}
+                  <span className="text-[10px] font-bold text-zinc-400">TIER 2 — FC-DB BRIDGE</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 border font-bold ${
+                    diag.tier === 2
+                      ? 'bg-amber-950/40 text-amber-400 border-amber-800/40'
+                      : 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40'
+                  }`}>
+                    {diag.tier === 2 ? 'MAPPING LAG' : 'IN LOCKSTEP'}
+                  </span>
                 </div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Database className="w-4 h-4 text-[#C084FC]" />
-                  <span className="text-xs font-semibold text-white">Frontier DB Sync</span>
-                </div>
+                <div className="text-xs font-bold text-white mb-1">Frontier DB Sync</div>
                 <p className="text-[11px] text-zinc-400 leading-relaxed">
-                  Tracks <code className="text-zinc-300">fc-mapping-sync</code> delta and RocksDB commit pipeline.
+                  Tracks fc-mapping-sync delta and RocksDB commit pipeline.
                 </p>
               </div>
 
-              {/* Tier 3: EVM Execution VM */}
+              {/* Tier 3 */}
               <div
                 onClick={() => setSelectedTier(3)}
-                className={`p-3 border cursor-pointer transition-all ${
+                className={`p-3.5 border transition-all cursor-pointer ${
                   diag.tier === 3
                     ? 'border-[#EF4444] bg-[#14080D]'
-                    : 'border-[#1C142E] bg-[#06040A] hover:border-[#2E1F4A]'
+                    : selectedTier === 3
+                    ? 'border-[#8B5CF6] bg-[#120A24]'
+                    : 'border-white/[0.08] bg-[#05030A] hover:border-white/[0.15]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono font-bold text-zinc-500">TIER 3 — EVM ENGINE</span>
-                  {diag.tier === 3 ? (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40 font-bold">
-                      CONGESTION
-                    </span>
-                  ) : (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 font-bold">
-                      OPTIMAL GAS
-                    </span>
-                  )}
+                  <span className="text-[10px] font-bold text-zinc-400">TIER 3 — EVM ENGINE</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 border font-bold ${
+                    diag.tier === 3
+                      ? 'bg-rose-950/40 text-rose-400 border-rose-800/40'
+                      : 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40'
+                  }`}>
+                    {diag.tier === 3 ? 'CONGESTION' : 'OPTIMAL GAS'}
+                  </span>
                 </div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Terminal className="w-4 h-4 text-[#6366F1]" />
-                  <span className="text-xs font-semibold text-white">Virtual Machine Pool</span>
-                </div>
+                <div className="text-xs font-bold text-white mb-1">VM Gas &amp; Mempool</div>
                 <p className="text-[11px] text-zinc-400 leading-relaxed">
-                  Monitors pending transaction spikes and BaseFeePerGas saturation.
+                  Monitors BaseFeePerGas saturation and stuck nonces.
                 </p>
               </div>
             </div>
 
             {/* Diagnosis Callout Card with 1-Click Remediation */}
-            <div className="p-3.5 bg-[#06040A] border border-[#1C142E] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-3.5 bg-[#05030A] border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-start gap-3">
                 <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${
                   diag.severity === 'OK' ? 'text-[#00FF9D]' : 'text-amber-400'
                 }`} />
                 <div className="space-y-1">
-                  <div className="text-xs font-mono font-bold text-white flex items-center gap-2">
+                  <div className="text-xs font-bold text-white flex items-center gap-2">
                     <span>ROOT CAUSE: {diag.root_cause_code}</span>
                     <span className="text-zinc-500 font-normal">| Severity: {diag.severity}</span>
                   </div>
-                  <p className="text-[11px] text-zinc-300 font-mono">{diag.message}</p>
-                  <p className="text-[11px] text-[#C084FC] font-mono">
+                  <p className="text-[11px] text-zinc-300">{diag.message}</p>
+                  <p className="text-[11px] text-[#C084FC]">
                     <strong>Action:</strong> {diag.recommended_action}
                   </p>
                 </div>
@@ -849,253 +710,198 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
         </div>
       )}
 
-      {/* TAB 3: Safe Decimal Mapping & Mempool Segregation */}
-      {activeTab === 'tools' && (
+      {/* ================= TAB 3: HARDWARE & DECIMALS ================= */}
+      {activeTab === 'metrics' && (
         <div className="space-y-4">
-          {/* 3. Decimal Normalizer & BigInt Parity ($10^14 vs $10^18) */}
-          <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1C142E] pb-2.5">
+          {/* Host OS & Hardware Resource Telemetry */}
+          <div className="p-4 bg-[#080512] border border-white/[0.08] space-y-3">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
               <div className="flex items-center gap-2">
-                <Binary className="w-3.5 h-3.5 text-[#C084FC]" />
-                <span className="text-xs font-mono font-bold text-white tracking-wider">
-                  SAFE DECIMAL MAPPING &amp; BIGINT PARITY GAUGE
+                <Server className="w-3.5 h-3.5 text-[#00FF9D]" />
+                <span className="text-xs font-bold text-white tracking-wider uppercase">
+                  VALIDATOR HOST HARDWARE TELEMETRY
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-[#00FF9D] bg-[#00FF9D]/10 px-2 py-0.5 border border-[#00FF9D]/30 font-bold">
-                SCALE MULTIPLIER: 10^4 (10,000)
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-zinc-400 flex items-center gap-1.5 font-bold">
-                    <span className="w-1.5 h-1.5 bg-[#E6007A]" />
-                    Substrate Native POT (14 Decimals)
-                  </span>
-                  <span className="text-zinc-500 text-[10px]">PLANCK BASE UNITS</span>
-                </div>
-                <div className="text-sm sm:text-base font-bold font-mono text-white tabular-nums break-all">
-                  {decimal_normalization?.substrate_balance_planck || '10000000000000000'}
-                </div>
-                <div className="text-[11px] font-mono text-[#E6007A] pt-1 border-t border-[#140D24]">
-                  1.0 POT = 100,000,000,000,000 Planck
-                </div>
-              </div>
-
-              <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-zinc-400 flex items-center gap-1.5 font-bold">
-                    <span className="w-1.5 h-1.5 bg-[#6366F1]" />
-                    Frontier EVM Display (18 Decimals)
-                  </span>
-                  <span className="text-zinc-500 text-[10px]">WEI STANDARD UNITS</span>
-                </div>
-                <div className="text-sm sm:text-base font-bold font-mono text-zinc-200 tabular-nums break-all">
-                  {decimal_normalization?.evm_balance_wei || '100000000000000000000'}
-                </div>
-                <div className="text-[11px] font-mono text-[#818CF8] pt-1 border-t border-[#140D24]">
-                  1.0 POT = 1,000,000,000,000,000,000 Wei
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 bg-[#06040A] border border-[#1C142E] text-[11px] font-mono text-zinc-300 gap-1.5">
-              <span className="flex items-center gap-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#00FF9D] shrink-0" />
-                <span>Discrepancy: <strong className="text-white">0 Planck (Zero Precision Loss)</strong></span>
-              </span>
-              <span className="text-zinc-500">
-                Protected against JS <code className="text-zinc-300">Number.MAX_SAFE_INTEGER</code> overflow via BigInt
-              </span>
-            </div>
-          </div>
-
-          {/* 4. Host OS & Hardware Resource Telemetry */}
-          <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3 font-mono">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1 border-b border-[#1C142E] pb-2">
-              <span className="font-bold text-white flex items-center gap-2">
-                <Server className="w-3.5 h-3.5 text-[#00F5FF]" />
-                HOST HARDWARE &amp; OS RESILIENCE METRICS (PORTALDOT VALIDATOR NODE)
-              </span>
               <span className={`text-[10px] px-2 py-0.5 border font-bold ${
-                (data.hardware?.status || 'HEALTHY') === 'HEALTHY' 
+                (hardware?.status || 'HEALTHY') === 'HEALTHY' 
                   ? 'text-emerald-400 bg-emerald-950/40 border-emerald-800/60' 
                   : 'text-amber-400 bg-amber-950/40 border-amber-800/60'
               }`}>
-                STATUS: {data.hardware?.status || 'HEALTHY'}
+                STATUS: {hardware?.status || 'HEALTHY'}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-[11px]">
-              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] flex flex-col justify-between">
-                <div className="flex items-center justify-between text-zinc-400 mb-1">
-                  <span className="flex items-center gap-1.5"><Cpu className="w-3 h-3 text-[#00F5FF]" /> CPU Load</span>
-                  <span className="font-bold text-white tabular-nums">{data.hardware?.cpu_percent ?? 18.5}%</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+              <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-2">
+                <div className="flex items-center justify-between text-zinc-400 text-[10px]">
+                  <span className="flex items-center gap-1.5"><Cpu className="w-3 h-3 text-[#00FF9D]" /> CPU Load</span>
+                  <span className="font-bold text-white tabular-nums">{hardware?.cpu_percent ?? 18.5}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-[#120B22] overflow-hidden">
-                  <div style={{ width: `${Math.min(100, data.hardware?.cpu_percent ?? 18.5)}%` }} className={`h-full ${(data.hardware?.cpu_percent ?? 0) > 80 ? 'bg-rose-500' : 'bg-[#00F5FF]'}`} />
+                  <div style={{ width: `${Math.min(100, hardware?.cpu_percent ?? 18.5)}%` }} className={`h-full ${(hardware?.cpu_percent ?? 0) > 80 ? 'bg-rose-500' : 'bg-[#00FF9D]'}`} />
                 </div>
               </div>
 
-              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] flex flex-col justify-between">
-                <div className="flex items-center justify-between text-zinc-400 mb-1">
-                  <span className="flex items-center gap-1.5"><Activity className="w-3 h-3 text-[#A855F7]" /> RAM Used</span>
-                  <span className="font-bold text-white tabular-nums">{data.hardware?.ram_percent ?? 42.1}%</span>
+              <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-2">
+                <div className="flex items-center justify-between text-zinc-400 text-[10px]">
+                  <span className="flex items-center gap-1.5"><Activity className="w-3 h-3 text-[#C084FC]" /> RAM Used</span>
+                  <span className="font-bold text-white tabular-nums">{hardware?.ram_percent ?? 42.1}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-[#120B22] overflow-hidden">
-                  <div style={{ width: `${Math.min(100, data.hardware?.ram_percent ?? 42.1)}%` }} className={`h-full ${(data.hardware?.ram_percent ?? 0) > 85 ? 'bg-rose-500' : 'bg-[#A855F7]'}`} />
+                  <div style={{ width: `${Math.min(100, hardware?.ram_percent ?? 42.1)}%` }} className={`h-full ${(hardware?.ram_percent ?? 0) > 85 ? 'bg-rose-500' : 'bg-[#C084FC]'}`} />
                 </div>
               </div>
 
-              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] flex flex-col justify-between">
-                <div className="flex items-center justify-between text-zinc-400 mb-1">
-                  <span className="flex items-center gap-1.5"><HardDrive className="w-3 h-3 text-[#22D3EE]" /> NVMe Free</span>
-                  <span className="font-bold text-white tabular-nums">{data.hardware?.disk_free_gb ?? 220.5} GB</span>
+              <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-2">
+                <div className="flex items-center justify-between text-zinc-400 text-[10px]">
+                  <span className="flex items-center gap-1.5"><HardDrive className="w-3 h-3 text-[#38BDF8]" /> NVMe Free</span>
+                  <span className="font-bold text-white tabular-nums">{hardware?.disk_free_gb ?? 220.5} GB</span>
                 </div>
                 <div className="h-1.5 w-full bg-[#120B22] overflow-hidden">
-                  <div style={{ width: `${Math.min(100, data.hardware?.disk_percent ?? 54.2)}%` }} className={`h-full ${(data.hardware?.disk_percent ?? 0) > 85 ? 'bg-rose-500' : 'bg-[#22D3EE]'}`} />
+                  <div style={{ width: `${Math.min(100, hardware?.disk_percent ?? 54.2)}%` }} className={`h-full ${(hardware?.disk_percent ?? 0) > 85 ? 'bg-rose-500' : 'bg-[#38BDF8]'}`} />
                 </div>
               </div>
 
-              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] flex flex-col justify-between">
-                <div className="flex items-center justify-between text-zinc-400 mb-1">
-                  <span className="flex items-center gap-1.5"><Database className="w-3 h-3 text-[#F59E0B]" /> RocksDB Size</span>
-                  <span className="font-bold text-amber-400 tabular-nums">{data.hardware?.db_size_mb ?? 1450} MB</span>
+              <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1">
+                <div className="flex items-center justify-between text-zinc-400 text-[10px]">
+                  <span className="flex items-center gap-1.5"><Database className="w-3 h-3 text-amber-400" /> RocksDB Size</span>
+                  <span className="font-bold text-amber-400 tabular-nums">{hardware?.db_size_mb ?? 1450} MB</span>
                 </div>
-                <div className="text-[10px] text-zinc-500">Full Chain Storage</div>
+                <div className="text-[10px] text-zinc-500 pt-1">Node DB Footprint</div>
               </div>
             </div>
           </div>
 
-          {/* 5. Mempool Flow Segregation */}
-          <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3 font-mono">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1 border-b border-[#1C142E] pb-2">
-              <span className="font-bold text-white flex items-center gap-2">
-                <Cpu className="w-3.5 h-3.5 text-[#8B5CF6]" />
+          {/* Mempool Flow Segregation */}
+          <div className="p-4 bg-[#080512] border border-white/[0.08] space-y-3">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+              <span className="text-xs font-bold text-white tracking-wider uppercase">
                 MEMPOOL SEGREGATION: WASM EXTRINSICS VS EVM TRANSACTIONS
               </span>
-              <span className="text-zinc-400">Total Pending: {mempool.total_pending} txs</span>
+              <span className="text-zinc-400 text-xs">Total: {mempool.total_pending} txs</span>
             </div>
 
-            <div className="h-2.5 w-full bg-[#06040A] flex overflow-hidden border border-[#1C142E]">
+            <div className="h-2 w-full bg-[#05030A] flex overflow-hidden border border-white/[0.06]">
               <div
                 style={{ width: `${mempool.wasm_ratio_pct}%` }}
-                className="bg-[#E6007A] transition-all duration-500"
+                className="bg-[#E6007A] transition-all duration-300"
                 title={`WASM Extrinsics: ${mempool.wasm_ratio_pct}%`}
               />
               <div
                 style={{ width: `${mempool.evm_ratio_pct}%` }}
-                className="bg-[#6366F1] transition-all duration-500"
+                className="bg-[#818CF8] transition-all duration-300"
                 title={`EVM Transactions: ${mempool.evm_ratio_pct}%`}
               />
             </div>
 
-            <div className="flex flex-col xs:flex-row xs:justify-between text-[11px] gap-1">
-              <span className="text-[#E6007A] flex items-center gap-1.5 font-semibold">
-                <span className="w-2 h-2 rounded-none bg-[#E6007A] shrink-0" />
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#E6007A] font-bold">
                 WASM Extrinsics: {mempool.wasm_extrinsics} ({mempool.wasm_ratio_pct}%)
               </span>
-              <span className="text-[#818CF8] flex items-center gap-1.5 font-semibold">
-                <span className="w-2 h-2 rounded-none bg-[#6366F1] shrink-0" />
+              <span className="text-[#818CF8] font-bold">
                 EVM Transactions: {mempool.evm_transactions} ({mempool.evm_ratio_pct}%)
               </span>
             </div>
           </div>
 
-          {/* 5. Mainnet V3 Storage Deposit & Pallet-Revive Compliance Inspector */}
-          <div className="p-3 sm:p-4 bg-[#08050F] border border-[#1C142E] space-y-3 font-mono">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1C142E] pb-2">
+          {/* Safe Decimal Mapping & BigInt Parity */}
+          <div className="p-4 bg-[#080512] border border-white/[0.08] space-y-3">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
               <div className="flex items-center gap-2">
-                <FileCode className="w-4 h-4 text-[#8B5CF6]" />
-                <span className="text-xs font-bold text-white tracking-wider">
-                  PORTALDOT MAINNET V3.0 CONTRACT SUITABILITY &amp; STORAGE DEPOSIT AUDITOR
+                <Binary className="w-3.5 h-3.5 text-[#C084FC]" />
+                <span className="text-xs font-bold text-white tracking-wider uppercase">
+                  SAFE DECIMAL MAPPING &amp; BIGINT PARITY
                 </span>
               </div>
-              <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 border border-emerald-800/60 font-bold">
-                BTC DIRECTIVE: SUITABLE FOR MAINNET V3.0
+              <span className="text-[10px] text-[#00FF9D] bg-emerald-950/40 px-2 py-0.5 border border-emerald-800/40 font-bold">
+                SCALE MULTIPLIER: 10^4 (10,000)
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-2">
-                <div className="text-[10px] text-zinc-400 font-bold">SELECT CONTRACT TO AUDIT</div>
-                <div className="space-y-1.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1">
+                <div className="text-[10px] text-[#E6007A] font-bold uppercase">
+                  Substrate Native POT (14 Decimals)
+                </div>
+                <div className="text-sm font-bold text-white tabular-nums break-all">
+                  {decimal_normalization?.substrate_balance_planck || '10000000000000000'}
+                </div>
+                <div className="text-[10px] text-zinc-500">1.0 POT = 10^14 Planck base units</div>
+              </div>
+
+              <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1">
+                <div className="text-[10px] text-[#818CF8] font-bold uppercase">
+                  Frontier EVM Display (18 Decimals)
+                </div>
+                <div className="text-sm font-bold text-zinc-200 tabular-nums break-all">
+                  {decimal_normalization?.evm_balance_wei || '100000000000000000000'}
+                </div>
+                <div className="text-[10px] text-zinc-500">1.0 POT = 10^18 Wei standard units</div>
+              </div>
+            </div>
+
+            <div className="p-2.5 bg-[#05030A] border border-white/[0.06] text-[11px] text-zinc-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Zero Discrepancy Parity Verified</span>
+              </span>
+              <span className="text-zinc-500 text-[10px]">
+                Protected against JS Number.MAX_SAFE_INTEGER overflow
+              </span>
+            </div>
+          </div>
+
+          {/* Storage Deposit Auditor for Contracts */}
+          <div className="p-4 bg-[#080512] border border-white/[0.08] space-y-3">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+              <div className="flex items-center gap-2">
+                <Database className="w-3.5 h-3.5 text-[#8B5CF6]" />
+                <span className="text-xs font-bold text-white tracking-wider uppercase">
+                  PALLET-REVIVE STORAGE DEPOSIT CALCULATOR
+                </span>
+              </div>
+              <span className="text-[10px] text-zinc-400">Bytecode rate: 0.08 POT/byte</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-2">
+                <div className="text-[10px] text-zinc-400 font-bold uppercase">Select Smart Contract</div>
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setSelectedAuditContract('SlashGuardLeaseRegistry')}
-                    className={`w-full text-left p-2 border text-xs transition-colors cursor-pointer ${
+                    className={`p-2 border text-left cursor-pointer transition-colors ${
                       selectedAuditContract === 'SlashGuardLeaseRegistry'
                         ? 'bg-[#150F26] border-[#8B5CF6] text-white font-bold'
-                        : 'bg-[#090614] border-[#1C142E] text-zinc-400 hover:text-zinc-200'
+                        : 'bg-[#090614] border-white/[0.06] text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
-                    <div>SlashGuardLeaseRegistry.sol</div>
-                    <div className="text-[9.5px] text-zinc-500 font-normal">Anti-Equivocation Lease Arbiter</div>
+                    <div className="text-[11px] font-bold">LeaseRegistry</div>
+                    <div className="text-[9.5px] text-zinc-500">Slashing Mutex</div>
                   </button>
 
                   <button
                     onClick={() => setSelectedAuditContract('DotNexusStakingVault')}
-                    className={`w-full text-left p-2 border text-xs transition-colors cursor-pointer ${
+                    className={`p-2 border text-left cursor-pointer transition-colors ${
                       selectedAuditContract === 'DotNexusStakingVault'
                         ? 'bg-[#150F26] border-[#8B5CF6] text-white font-bold'
-                        : 'bg-[#090614] border-[#1C142E] text-zinc-400 hover:text-zinc-200'
+                        : 'bg-[#090614] border-white/[0.06] text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
-                    <div>DotNexusStakingVault.sol</div>
-                    <div className="text-[9.5px] text-zinc-500 font-normal">Non-Custodial NPoS &amp; SLA Vault</div>
+                    <div className="text-[11px] font-bold">StakingVault</div>
+                    <div className="text-[9.5px] text-zinc-500">NPoS SLA Vault</div>
                   </button>
                 </div>
               </div>
 
-              {/* Storage Deposit Calculation */}
-              <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-2">
-                <div className="text-[10px] text-zinc-400 font-bold">PALLET-REVIVE STORAGE DEPOSIT (MAINNET)</div>
-                <div className="text-2xl font-extrabold text-white tabular-nums">
+              <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1">
+                <div className="text-[10px] text-zinc-400 font-bold uppercase">Estimated Storage Deposit</div>
+                <div className="text-xl font-extrabold text-white tabular-nums">
                   {auditResult ? `${auditResult.estimated_storage_deposit_pot} POT` : '458.00 POT'}
                 </div>
-                <div className="text-[10px] text-zinc-400 space-y-1">
-                  <div>Bytecode Size: <strong className="text-zinc-200 tabular-nums">{auditResult?.bytecode_size_bytes ?? 5725} bytes</strong></div>
-                  <div>Rate: <strong className="text-zinc-200">0.08 POT per byte</strong></div>
-                  <div className="text-[9px] text-[#00FF9D] pt-1 border-t border-[#140D24]">
-                    Estimated Wei: {auditResult?.estimated_storage_deposit_wei ? `${auditResult.estimated_storage_deposit_wei.slice(0, 10)}...` : '4.58e20'}
-                  </div>
+                <div className="text-[10px] text-zinc-500">
+                  Bytecode: {auditResult?.bytecode_size_bytes ?? 5725} bytes · {isAuditing ? 'Calculating...' : 'Storage deposit calculated'}
                 </div>
               </div>
-
-              {/* Mainnet Compliance Checklist */}
-              <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-2">
-                <div className="text-[10px] text-zinc-400 font-bold">MAINNET V3.0 COMPLIANCE CHECKLIST</div>
-                <div className="space-y-1 text-[10px]">
-                  <div className="flex items-center gap-1.5 text-emerald-400">
-                    <Check className="w-3 h-3 shrink-0" />
-                    <span>Pallet-Revive EVM Opcode Parity</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-emerald-400">
-                    <Check className="w-3 h-3 shrink-0" />
-                    <span>Custom Errors (Gas &amp; Storage Lean)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-emerald-400">
-                    <Check className="w-3 h-3 shrink-0" />
-                    <span>Decimals 14 &harr; 18 Scaling Handled</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-emerald-400">
-                    <Check className="w-3 h-3 shrink-0" />
-                    <span>Compiler: Shanghai + via_ir Enabled</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-emerald-400">
-                    <Check className="w-3 h-3 shrink-0" />
-                    <span>Zero Unbounded State Slots (Event Driven)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-2.5 bg-[#0B0716] border border-[#23183D] flex flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-300">
-              <span className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#00FF9D]" />
-                <span>Audit Status: <strong className="text-white">100% COMPLIANT WITH PORTALDOT MAINNET V3.0</strong></span>
-              </span>
-              <span className="text-zinc-500 text-[10px]">Zero storage bloat · Validated against pallet-revive bytecode specifications</span>
             </div>
           </div>
         </div>

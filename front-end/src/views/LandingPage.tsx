@@ -379,8 +379,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
         </div>
 
         <div className="flex items-center gap-2 font-mono text-xs">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+          <div className="flex items-center px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
             <span>{isExecuting ? `SIMULATING STEP 0${execStep}/03` : `CYCLE #${cycleCount} • READY`}</span>
           </div>
 
@@ -429,7 +428,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
 
         {/* Interactive Floating Hint Pill */}
         <div className="absolute bottom-3 left-3 z-30 pointer-events-none px-2.5 py-1 rounded-lg bg-[#0E081F]/90 border border-white/[0.08] text-[10px] font-mono text-zinc-400 backdrop-blur-sm flex items-center gap-2 shadow-lg">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D]" />
+          <span className="text-[#00FF9D] font-bold">[TIP]</span>
           <span>Interactive Canvas: Pan (drag background) • Move nodes • Click to inspect</span>
         </div>
       </div>
@@ -473,7 +472,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
                   {isDone ? log.doneText : isCurrent ? log.activeText : `[QUEUED] Waiting for upstream token...`}
                 </span>
                 {isCurrent && (
-                  <span className="text-emerald-400 animate-pulse font-bold text-[10px]">[EXECUTING]</span>
+                  <span className="text-emerald-400 font-bold text-[10px]">[EXECUTING]</span>
                 )}
                 {isDone && (
                   <span className="text-emerald-400 font-bold text-[10px]">[OK]</span>
@@ -487,20 +486,11 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
       {/* Bottom Action Strip */}
       <div className="px-4 sm:px-6 py-3 border-t border-white/[0.06] bg-[#06030F] flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-zinc-400">
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
-            <span>Full Bi-directional Bezier Wire Routing</span>
-          </span>
+          <span className="text-zinc-300">Full Bi-directional Bezier Wire Routing</span>
           <span className="hidden sm:inline text-zinc-600">•</span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6]" />
-            <span>Real-time Port Snap Connection</span>
-          </span>
+          <span className="text-zinc-300">Real-time Port Snap Connection</span>
           <span className="hidden sm:inline text-zinc-600">•</span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
-            <span>Exportable to Standby Python CLI</span>
-          </span>
+          <span className="text-zinc-300">Exportable to Standby Python CLI</span>
         </div>
 
         <button
@@ -558,19 +548,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* Live Cluster Heartbeat Chip (Zeabur Style) */}
         <div className="hidden lg:flex items-center gap-3 px-3 py-1 rounded-full border border-white/[0.08] bg-[#0E081F]/90 text-[11px] font-mono shadow-inner">
           <div className="flex items-center gap-1.5 text-zinc-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#E6007A]" />
-            <span className="text-zinc-500 text-[10px]">WASM:</span>
+            <span className="text-[#E6007A] text-[10px] font-bold">WASM:</span>
             <span className="text-zinc-100 font-bold tabular-nums">#{dualData?.substrate?.best_block ? dualData.substrate.best_block.toLocaleString() : '161,594'}</span>
           </div>
           <span className="text-zinc-700">•</span>
           <div className="flex items-center gap-1.5 text-zinc-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#6366F1]" />
-            <span className="text-zinc-500 text-[10px]">EVM:</span>
+            <span className="text-[#818CF8] text-[10px] font-bold">EVM:</span>
             <span className="text-[#818CF8] font-bold tabular-nums">#{dualData?.evm?.block_number ? dualData.evm.block_number.toLocaleString() : '161,594'}</span>
           </div>
           <span className="text-zinc-700">•</span>
           <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D] animate-ping" />
             <span className="text-[#00FF9D] font-bold text-[10px] tracking-wider uppercase">0 DELTA (SYNCED)</span>
           </div>
         </div>
@@ -682,7 +669,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="p-3.5 rounded-xl bg-[#080512] border border-white/[0.06] relative overflow-hidden group">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">WASM BEST BLOCK</span>
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#00FF9D] animate-ping" />
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">[LIVE]</span>
                 </div>
                 <div className="text-base font-bold text-white tabular-nums">
                   #{dualData?.substrate?.best_block ? dualData.substrate.best_block.toLocaleString() : '161,594'}
@@ -695,7 +682,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="p-3.5 rounded-xl bg-[#080512] border border-white/[0.06] relative overflow-hidden group">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">EVM JSON-RPC</span>
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#818CF8] animate-pulse" />
+                  <span className="text-[10px] text-[#818CF8] font-mono font-bold">[RPC]</span>
                 </div>
                 <div className="text-base font-bold text-[#818CF8] tabular-nums">
                   #{dualData?.evm?.block_number ? dualData.evm.block_number.toLocaleString() : '161,594'}
@@ -708,7 +695,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="p-3.5 rounded-xl bg-[#080512] border border-white/[0.06] relative overflow-hidden group">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">SLASHING DEFENSE</span>
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#00FF9D] animate-ping" />
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">[GUARD]</span>
                 </div>
                 <div className="text-base font-bold text-[#10B981] tabular-nums">
                   {secData?.equivocation_guard_active || secData?.lock_file_status === 'LOCKED_SAFE' ? '100% Zero-Loss' : 'Active Safe'}
@@ -721,7 +708,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="p-3.5 rounded-xl bg-[#080512] border border-white/[0.06] relative overflow-hidden group">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">POT STAKING YIELD</span>
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#C084FC] animate-pulse" />
+                  <span className="text-[10px] text-[#C084FC] font-mono font-bold">[NPoS]</span>
                 </div>
                 <div className="text-base font-bold text-[#C084FC] tabular-nums">
                   {nposData?.auto_compounded_apy ? `${nposData.auto_compounded_apy.toFixed(2)}% APY` : '17.13% APY'}
@@ -739,12 +726,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section className="relative py-7 overflow-hidden border-y border-white/[0.08] bg-[#07040E]/80 backdrop-blur-sm z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 mb-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] animate-pulse" />
-            <span className="text-zinc-600">//</span>
+            <span className="text-[#8B5CF6] font-bold">//</span>
             <span className="text-zinc-300 font-semibold">Dual-VM Protocol Stack &amp; Runtime Ecosystem</span>
           </div>
           <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D]" />
             <span>PORTALDOT NETWORK V3.0 • SS58: 42 • POT DECIMALS: 14</span>
           </div>
         </div>
@@ -763,11 +748,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 key={`${item.name}-${idx}`}
                 className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg border border-white/[0.08] bg-[#110A24]/90 hover:bg-[#180F33] hover:border-[#8B5CF6]/50 transition-all duration-200 group/chip cursor-default shadow-sm"
               >
-                <span className={`w-2 h-2 rounded-full ${item.dotColor} shadow-sm group-hover/chip:scale-125 transition-transform`} />
                 <span className="text-xs font-mono font-bold text-zinc-200 group-hover/chip:text-white whitespace-nowrap">
                   {item.name}
                 </span>
-                <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
+                <span 
+                  className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] font-semibold"
+                  style={{ color: item.accent }}
+                >
                   {item.category}
                 </span>
               </div>
@@ -782,8 +769,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#C084FC] animate-pulse" />
+              <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
                 <span>ENGINE ARCHITECTURE</span>
               </div>
               <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
@@ -837,26 +823,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-lg bg-[#080512] border border-white/[0.06] text-xs font-mono">
                     <div className="space-y-1">
                       <div className="text-[10px] text-zinc-500 uppercase">SUBSTRATE WASM</div>
-                      <div className="text-sm font-bold text-white tabular-nums flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#E6007A]" />
-                        <span>#{dualData?.substrate?.best_block ? dualData.substrate.best_block.toLocaleString() : '161,594'}</span>
+                      <div className="text-sm font-bold text-white tabular-nums">
+                        #{dualData?.substrate?.best_block ? dualData.substrate.best_block.toLocaleString() : '161,594'}
                       </div>
                       <div className="text-[10px] text-emerald-400">14.2ms Latency</div>
                     </div>
 
                     <div className="space-y-1 sm:border-l sm:border-white/[0.08] sm:pl-3">
                       <div className="text-[10px] text-zinc-500 uppercase">FRONTIER EVM</div>
-                      <div className="text-sm font-bold text-[#818CF8] tabular-nums flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#6366F1]" />
-                        <span>#{dualData?.evm?.block_number ? dualData.evm.block_number.toLocaleString() : '161,594'}</span>
+                      <div className="text-sm font-bold text-[#818CF8] tabular-nums">
+                        #{dualData?.evm?.block_number ? dualData.evm.block_number.toLocaleString() : '161,594'}
                       </div>
                       <div className="text-[10px] text-emerald-400">18.7ms Latency</div>
                     </div>
 
                     <div className="space-y-1 sm:border-l sm:border-white/[0.08] sm:pl-3">
                       <div className="text-[10px] text-zinc-500 uppercase">PARITY STATUS</div>
-                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[11px]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                      <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[11px]">
                         <span>0 BLK (100% LOCKSTEP)</span>
                       </div>
                       <div className="text-[10px] text-zinc-400">CLI Score: 12.5 / 100</div>
@@ -878,9 +861,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between text-xs font-mono text-[#E6007A] font-bold pt-3 border-t border-white/[0.06] mt-4">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>Dual-Engine Telemetry Online</span>
+                  <span className="flex items-center gap-1.5 text-emerald-400">
+                    <span className="text-[10px] font-mono">[ONLINE]</span>
+                    <span className="text-zinc-300">Dual-Engine Telemetry</span>
                   </span>
                   <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                     <span>Open Parity Console</span>
@@ -944,8 +927,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span className="text-[#8B5CF6]/80 font-bold text-xs">+</span>
                 <div className="h-px flex-1 bg-gradient-to-r from-[#8B5CF6]/50 via-white/[0.1] to-transparent" />
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#110A24] border border-white/[0.08] text-zinc-300 text-[10px] uppercase tracking-wider shadow-inner">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D] animate-ping" />
-                  <span className="text-zinc-500">//</span>
+                  <span className="text-[#8B5CF6] font-bold">//</span>
                   <span className="text-zinc-300 font-semibold">GRID JUNCTION</span>
                   <span className="text-zinc-500">|</span>
                   <span className="text-[#C084FC]">SYNCHRONICITY &amp; DEFENSE LAYERS</span>
@@ -1074,8 +1056,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#C084FC] animate-pulse" />
+              <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
                 <span>AUTOMATION PIPELINE</span>
               </div>
               <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
@@ -1101,8 +1082,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       >
         <div className="max-w-5xl mx-auto space-y-10 sm:space-y-12">
           <div className="text-center space-y-2.5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C084FC] animate-pulse" />
+            <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
               <span>COMPETITIVE ANALYSIS</span>
             </div>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
@@ -1182,8 +1162,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#C084FC] animate-pulse" />
+              <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
                 <span>DELIVERY LINE JOURNEY</span>
               </div>
               <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
@@ -1242,8 +1221,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="flex flex-col items-center text-center space-y-3.5">
                 {/* Station Junction Node on Rail */}
                 <div className="w-9 h-9 rounded-xl bg-[#120B24] border-2 border-[#C084FC] flex items-center justify-center text-[#C084FC] z-10 relative shadow-lg shadow-[#C084FC]/30">
-                  <span className="w-3 h-3 rounded-full bg-[#C084FC] animate-ping absolute" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#C084FC] relative z-10" />
+                  <Activity className="w-4 h-4 text-[#C084FC]" />
                   <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#2E1452] border border-[#C084FC]/60 text-[#C084FC] text-[9px] font-mono font-bold rounded">
                     02
                   </span>
@@ -1370,7 +1348,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {/* Station 02 */}
             <div className="relative pl-10">
               <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-lg bg-[#120B24] border-2 border-[#C084FC] flex items-center justify-center z-10">
-                <span className="w-2 h-2 rounded-full bg-[#C084FC] animate-ping" />
+                <Activity className="w-3 h-3 text-[#C084FC]" />
               </div>
               <div className="p-3.5 rounded-xl border border-[#8B5CF6]/50 bg-[#120A24] space-y-1.5 shadow-lg">
                 <div className="flex items-center justify-between text-[10px] font-mono">

@@ -6,6 +6,7 @@
 > **Chain ID (EVM)**: `420420777`  
 > **SS58 Prefix**: `42`  
 > **EVM Runtime Layer**: `pallet-revive` (Polkadot SDK Dual-VM execution engine)  
+> **Live Web3 App**: [https://dotnexus-hackerhouse.vercel.app/](https://dotnexus-hackerhouse.vercel.app/)  
 
 ---
 

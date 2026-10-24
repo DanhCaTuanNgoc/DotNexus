@@ -11,6 +11,7 @@
 [![Portaldot V3.0 Testnet](https://img.shields.io/badge/Portaldot-V3.0_Testnet_(420420777)-24C6DC?style=for-the-badge&logo=polkadot&logoColor=white)](https://portaldot.network)
 [![Track: Node Operations & Tooling](https://img.shields.io/badge/Track-Node_Operations_%26_Tooling-FF6B6B?style=for-the-badge)](https://dorahacks.io/hackathon/2362/detail)
 [![Hackathon Check-in Ready](https://img.shields.io/badge/DoraHacks_Check--in-READY_(Oct_24)-8B5CF6?style=for-the-badge)](https://dorahacks.io)
+[![Live Web3 App](https://img.shields.io/badge/Live_App-dotnexus--hackerhouse.vercel.app-00FF9D?style=for-the-badge&logo=vercel&logoColor=black)](https://dotnexus-hackerhouse.vercel.app/)
 [![Smart Contracts](https://img.shields.io/badge/Smart_Contracts-SlashGuard_%26_Vault-8B5CF6?style=for-the-badge&logo=solidity&logoColor=white)](contracts/)
 [![Tests Passing](https://img.shields.io/badge/Tests-173%2F173_Passed_(100%25)-00e676?style=for-the-badge&logo=checkmarx&logoColor=white)](tests/test_engine.py)
 [![Substrate WASM Engine](https://img.shields.io/badge/Substrate-WASM_Runtime_(SS58%3A42)-282C34?style=for-the-badge&logo=rust&logoColor=white)](https://substrate.io)
@@ -20,7 +21,7 @@
 
 <br/>
 
-🌐 **Live Gateway Server:** `http://127.0.0.1:5050` &nbsp;•&nbsp; ⚡ **Portaldot V3 Testnet:** `Chain ID: 420420777` &nbsp;•&nbsp; 📜 **Lease Registry:** [`0xba114d21CC41a30880CcfA53673B743316387355`](contracts/SlashGuardLeaseRegistry.sol) &nbsp;•&nbsp; 📜 **Staking Vault:** [`0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A`](contracts/DotNexusStakingVault.sol)
+🚀 **Live Web3 App:** [https://dotnexus-hackerhouse.vercel.app/](https://dotnexus-hackerhouse.vercel.app/) &nbsp;•&nbsp; 🌐 **Live Gateway Server:** `http://127.0.0.1:5050` &nbsp;•&nbsp; ⚡ **Portaldot V3 Testnet:** `Chain ID: 420420777` &nbsp;•&nbsp; 📜 **Lease Registry:** [`0xba114d21CC41a30880CcfA53673B743316387355`](contracts/SlashGuardLeaseRegistry.sol) &nbsp;•&nbsp; 📜 **Staking Vault:** [`0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A`](contracts/DotNexusStakingVault.sol)
 
 <br/>
 </div>
@@ -83,7 +84,7 @@
 | **Outstanding Items for Final Phase**<br/>*(Target: Nov 06, 04:00 UTC Code Freeze)* | • Multi-validator cluster fleet synchronization (remote heartbeat mesh across distributed data centers).<br/>• Hardware Security Module (HSM / YubiKey PKCS#11) session key signing lease integration.<br/>• Exportable community DAG Runbook catalog (.json format for automated incident response exchange).<br/>• Comprehensive foundation live demonstration scenarios for Demo Day (Nov 07–08). | • Section [14. Future Roadmap](#️-14-future-roadmap--acknowledgements) |
 | **Public GitHub Repository** | **Publicly Accessible & Continuously Updated**<br/>• Active commit history with conventional commit hygiene.<br/>• Complete README, architecture diagrams, and mathematical specifications. | [`https://github.com/DanhCaTuanNgoc/DotNexus`](https://github.com/DanhCaTuanNgoc/DotNexus) |
 | **Portaldot Testnet Deployment** | **Deployed & Verified on Portaldot Network V3.0 (`420420777`)**<br/>• **`SlashGuardLeaseRegistry`**: `0xba114d21CC41a30880CcfA53673B743316387355`<br/>&nbsp;&nbsp;Tx: `0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f`<br/>&nbsp;&nbsp;Substrate Block: `#147264` (Extrinsic: `147264-1`)<br/>• **`DotNexusStakingVault`**: `0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A`<br/>&nbsp;&nbsp;Tx: `0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb`<br/>&nbsp;&nbsp;Substrate Block: `#147358` (Extrinsic: `147358-1`, Hash: `0x1c7d...c213`)<br/>• **Deployer Dual-VM Identity**: EVM `0xC521...166` • SS58 `5GXBDove...V9r9` | • [View Block 147264 on Explorer](https://node-console.portaldot.dev/#/explorer/query/147264)<br/>• [View Block 147358 on Explorer](https://node-console.portaldot.dev/#/explorer/query/147358)<br/>• [`DEPLOYMENT.md`](DEPLOYMENT.md) |
-| **Initial Demo Material** | **Demonstrable Working Full-Stack Web3 DApp**<br/>• Landing Page with interactive 3-node DAG Runbook simulation.<br/>• Dual-Engine Telemetry Control Plane with Live Parity Stream (`DualBlockConduit`) and 1-Click SRE Remediation Dock.<br/>• Visual DAG Canvas Studio for custom operational runbook creation.<br/>• Comprehensive administrative CLI for terminal diagnostics. | • [Local Setup Guide](#⚡-13-local-installation--development-guide)<br/>• [`FOR_JUDGES.md`](FOR_JUDGES.md)<br/>• Web UI: `http://localhost:5173`<br/>• REST Gateway: `http://127.0.0.1:5050` |
+| **Initial Demo Material** | **Demonstrable Working Full-Stack Web3 DApp**<br/>• **Live Production Web3 App:** [https://dotnexus-hackerhouse.vercel.app/](https://dotnexus-hackerhouse.vercel.app/)<br/>• Landing Page with interactive 3-node DAG Runbook simulation.<br/>• Dual-Engine Telemetry Control Plane with Live Parity Stream (`DualBlockConduit`) and 1-Click SRE Remediation Dock.<br/>• Visual DAG Canvas Studio for custom operational runbook creation.<br/>• Comprehensive administrative CLI for terminal diagnostics. | • **Live App:** [dotnexus-hackerhouse.vercel.app](https://dotnexus-hackerhouse.vercel.app/)<br/>• [Local Setup Guide](#⚡-13-local-installation--development-guide)<br/>• [`FOR_JUDGES.md`](FOR_JUDGES.md)<br/>• Web UI: `http://localhost:5173`<br/>• REST Gateway: `http://127.0.0.1:5050` |
 
 ---
 
@@ -91,7 +92,7 @@
 
 | Evaluation Dimension | DotNexus Technical Implementation | Verified Proof / Code Link |
 | :--- | :--- | :--- |
-| **What is DotNexus?** | Visual Control Plane and autonomous security operations engine built specifically for Portaldot Network V3.0 Dual-VM. | [Live Control Room](front-end/) &nbsp;•&nbsp; [`App.tsx`](front-end/src/App.tsx) |
+| **What is DotNexus?** | Visual Control Plane and autonomous security operations engine built specifically for Portaldot Network V3.0 Dual-VM. | [Live Web3 App (Vercel)](https://dotnexus-hackerhouse.vercel.app/) &nbsp;•&nbsp; [`App.tsx`](front-end/src/App.tsx) |
 | **The Core Problem** | Solves split-brain double-signing slashing, Substrate/EVM runtime desync, RPC starvation attacks, and nominator yield erosion. | [Problem Analysis](#-2-the-core-problem--the-5-pillar-operational-matrix) |
 | **Consensus & Slashing Defense** | Mathematically proven **Dead Man's Switch** ($10\text{s} < 12\text{s} < 15\text{s}$) paired with on-chain lease arbiter contract on `pallet-revive`. | [`slash_guard.py`](engine/slash_guard.py) &nbsp;•&nbsp; [`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol) |
 | **Dual-VM Telemetry Core** | **DualBlockConduit** live 5-block lockstep stream correlating Substrate WASM (`:9944`) and Frontier EVM (`:8545`) with optical mapping latency + **3-Tier Root-Cause Isolator**. | [`dual_tracker.py`](engine/dual_tracker.py) &nbsp;•&nbsp; [`DualBlockConduit.tsx`](front-end/src/components/DualBlockConduit.tsx) |
@@ -537,7 +538,7 @@ python -m engine.server
 cd front-end
 npm run dev
 ```
-Open **[http://localhost:5173](http://localhost:5173)** in your browser.
+Open **[http://localhost:5173](http://localhost:5173)** in your browser, or visit the live cloud deployment directly at **[https://dotnexus-hackerhouse.vercel.app/](https://dotnexus-hackerhouse.vercel.app/)**.
 
 ---
 

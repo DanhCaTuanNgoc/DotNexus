@@ -3,6 +3,7 @@
 > **Track:** Node Operations & Tooling — Portaldot Hacker House 2026  
 > **Project:** DotNexus (Visual Control Plane & Automated Security Operations Engine for Portaldot V3.0)  
 > **Ecosystem:** Portaldot Network V3.0 (Substrate WASM + EVM Dual-VM, SS58: 42, POT Token Decimals: 14)  
+> **Live Production App:** [https://dotnexus-hackerhouse.vercel.app/](https://dotnexus-hackerhouse.vercel.app/)  
 
 ---
 
@@ -42,7 +43,7 @@ In another terminal:
 cd front-end
 npm run dev
 ```
-Open browser at `http://localhost:5173`.
+Open browser at `http://localhost:5173`, or visit the live cloud deployment at **[https://dotnexus-hackerhouse.vercel.app/](https://dotnexus-hackerhouse.vercel.app/)**.
 
 ---
 

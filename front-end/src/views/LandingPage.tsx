@@ -301,22 +301,22 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-white/[0.08] bg-[#05030C]">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
+            <span className="w-2.5 h-2.5 rounded-none bg-[#EF4444]" />
+            <span className="w-2.5 h-2.5 rounded-none bg-[#F59E0B]" />
+            <span className="w-2.5 h-2.5 rounded-none bg-[#10B981]" />
           </div>
           <span className="text-zinc-600 text-xs font-mono">|</span>
           <div className="flex items-center gap-2 text-xs font-mono">
             <Workflow className="w-3.5 h-3.5 text-[#C084FC]" />
             <span className="text-white font-bold tracking-wide">CANVAS RUNBOOK: {initialWorkflow.name}</span>
-            <span className="hidden md:inline-block text-[10px] px-1.5 py-0.5 rounded bg-[#8B5CF6]/20 text-[#C084FC] border border-[#8B5CF6]/30 uppercase font-mono">
+            <span className="hidden md:inline-block text-[10px] px-1.5 py-0.5 rounded-none bg-[#8B5CF6]/20 text-[#C084FC] border border-[#8B5CF6]/30 uppercase font-mono">
               3 NODES • 2 WIRES
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 font-mono text-xs">
-          <div className="flex items-center px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
+          <div className="flex items-center px-2.5 py-1 rounded-none bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
             <span>
               {isExecuting
                 ? `SIMULATING STEP 0${execStep}/03`
@@ -329,7 +329,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
           <button
             onClick={runSimulation}
             disabled={isExecuting}
-            className={`px-3 py-1 rounded text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-none text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
               isExecuting
                 ? 'bg-[#181028] border border-[#8B5CF6]/40 text-[#C084FC] animate-pulse cursor-wait'
                 : 'bg-[#8B5CF6] hover:bg-[#7C3AED] text-white shadow-md shadow-[#8B5CF6]/25 hover:scale-[1.02]'
@@ -341,7 +341,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
 
           <button
             onClick={handleReset}
-            className="p-1.5 rounded bg-[#110A24] hover:bg-[#180F33] border border-white/[0.08] text-zinc-300 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-none bg-[#110A24] hover:bg-[#180F33] border border-white/[0.08] text-zinc-300 hover:text-white transition-colors cursor-pointer"
             title="Reset Topology to Default"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -394,7 +394,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
             return (
               <div
                 key={log.step}
-                className={`flex items-start gap-2 py-0.5 px-2 rounded transition-colors ${
+                className={`flex items-start gap-2 py-0.5 px-2 rounded-none transition-colors ${
                   isCurrent
                     ? 'bg-[#180F33] text-white font-semibold'
                     : isDone
@@ -434,7 +434,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
 
         <button
           onClick={() => onLaunchApp('canvas')}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 text-xs font-mono rounded-lg border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-md shadow-[#8B5CF6]/20 cursor-pointer hover:scale-[1.02]"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 text-xs font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-md shadow-[#8B5CF6]/20 cursor-pointer hover:scale-[1.02]"
         >
           <Workflow className="w-3.5 h-3.5" />
           <span>Open Full Studio Canvas</span>
@@ -472,12 +472,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <img
             src={dotnexusIcon}
             alt="DotNexus"
-            className="w-10 h-10 sm:w-11 sm:h-11 object-contain rounded-lg border border-white/[0.08]"
+            className="w-10 h-10 sm:w-11 sm:h-11 object-contain rounded-none border border-white/[0.08]"
           />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-base tracking-wider text-white font-mono">DOTNEXUS</span>
-              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[#C084FC] font-semibold">
+              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-none border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[#C084FC] font-semibold">
                 Portaldot V3.0
               </span>
             </div>
@@ -485,7 +485,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
 
         {/* Live Cluster Heartbeat Chip (Zeabur Style) */}
-        <div className="hidden lg:flex items-center gap-3 px-3 py-1 rounded-full border border-white/[0.08] bg-[#0E081F]/90 text-[11px] font-mono shadow-inner">
+        <div className="hidden lg:flex items-center gap-3 px-3 py-1 rounded-none border border-white/[0.08] bg-[#0E081F]/90 text-[11px] font-mono shadow-inner">
           <div className="flex items-center gap-1.5 text-zinc-400">
             <span className="text-[#E6007A] text-[10px] font-bold">WASM:</span>
             <span className="text-zinc-100 font-bold tabular-nums">#{dualData?.substrate?.best_block ? dualData.substrate.best_block.toLocaleString() : '161,594'}</span>
@@ -515,7 +515,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => onLaunchApp()}
-            className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs font-mono rounded-lg border border-[#8B5CF6]/80 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-lg shadow-[#8B5CF6]/25 hover:scale-[1.02] cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs font-mono rounded-none border border-[#8B5CF6]/80 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-lg shadow-[#8B5CF6]/25 hover:scale-[1.02] cursor-pointer"
           >
             <span>Launch Console</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -523,7 +523,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-zinc-400 hover:text-white hover:bg-[#1E113E] rounded-lg border border-white/[0.08]"
+            className="md:hidden p-2 text-zinc-400 hover:text-white hover:bg-[#1E113E] rounded-none border border-white/[0.08]"
             title="Toggle Menu"
           >
             {isMobileMenuOpen ? <X className="w-4 h-4 text-[#C084FC]" /> : <Menu className="w-4 h-4" />}
@@ -537,28 +537,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <a
             href="#pillars"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-lg transition-colors"
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors"
           >
             → The 4 Pillars
           </a>
           <a
             href="#dag-canvas"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-lg transition-colors"
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors"
           >
             → Visual DAG Automation Canvas
           </a>
           <a
             href="#comparison"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-lg transition-colors"
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors"
           >
             → Why DotNexus Stands Apart
           </a>
           <a
             href="#roadmap"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-lg transition-colors"
+            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors"
           >
             → Hackathon Delivery Timeline
           </a>
@@ -567,8 +567,38 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Hero Section — Full Viewport Width (100vw) for Three.js Dual-VM Cyber Mesh */}
       <section className="relative w-full min-h-[100vh] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6 overflow-hidden z-10 border-b border-white/[0.08] bg-[#06040A]">
-        {/* 3D Background: Three.js Dual-VM Cyber Mesh */}
-        <ThreeCanvas />
+        {/* Glow Video Background: Royal Violet Planet Rim on Black (UI_PROMPT_LANDINGPAGE) */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden z-0 select-none">
+          {/* Violet / Magenta Planet Rim Glow Video with mix-blend-screen */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1672px] h-[620px] sm:h-[740px] object-cover mix-blend-screen opacity-90 transition-opacity duration-1000"
+          >
+            <source
+              src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/e859f229-8ebd-43fb-a5a0-58006ba75327.mp4"
+              type="video/mp4"
+            />
+            {/* Fallback alternative hero video */}
+            <source
+              src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_065045_c44942da-53c6-4804-b734-f9e07fc22e08.mp4"
+              type="video/mp4"
+            />
+          </video>
+
+          {/* Dashboard Glow: Screen-blended strip accent */}
+          <img
+            src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/e0e14572-12e1-4c08-b471-a21521844945.png"
+            alt=""
+            className="pointer-events-none absolute top-[280px] sm:top-[340px] left-1/2 -translate-x-1/2 w-full max-w-[1204px] mix-blend-screen opacity-75 z-0"
+            aria-hidden="true"
+          />
+
+          {/* Soft vignette gradient to seamlessly blend video edge into deep obsidian base */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-[#06040A]/30 to-[#06040A] z-0" />
+        </div>
 
         {/* Foreground Hero Content */}
         <div className="relative z-20 max-w-5xl mx-auto text-center space-y-6 sm:space-y-8">
@@ -587,18 +617,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2 pointer-events-auto">
             <button
               onClick={() => onLaunchApp('dual-vm')}
-              className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-lg border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/30 hover:scale-[1.02] cursor-pointer"
+              className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/30 hover:scale-[1.02] cursor-pointer"
             >
               <Zap className="w-4 h-4 fill-white" />
               <span>Launch Live Control Center</span>
             </button>
 
             <a
-              href="#pillars"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-lg bg-[#110A24]/90 hover:bg-[#180F33] border border-white/[0.08] hover:border-[#8B5CF6] text-zinc-200 transition-all backdrop-blur-md"
+              href="https://github.com/DanhCaTuanNgoc/DotNexus"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-none bg-[#110A24]/90 hover:bg-[#180F33] border border-white/[0.08] hover:border-[#8B5CF6] text-zinc-200 transition-all backdrop-blur-md cursor-pointer group"
             >
-              <Layers className="w-4 h-4 text-[#8B5CF6]" />
-              <span>Explore The 4 Pillars</span>
+              <svg className="w-4 h-4 fill-current text-zinc-300 group-hover:text-white transition-colors" viewBox="0 0 24 24" aria-hidden="true">
+                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+              </svg>
+              <span>GitHub Repository</span>
+              <ArrowRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
             </a>
           </div>
 
@@ -613,7 +648,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="p-4 bg-[#080512]/90 hover:bg-white/[0.02] transition-colors relative">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">WASM BEST BLOCK</span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">[LIVE]</span>
+            
                 </div>
                 <div className="text-base font-bold text-white tabular-nums">
                   #{dualData?.substrate?.best_block ? dualData.substrate.best_block.toLocaleString() : '161,594'}
@@ -626,7 +661,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="p-4 bg-[#080512]/90 hover:bg-white/[0.02] transition-colors relative">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">EVM JSON-RPC</span>
-                  <span className="text-[10px] text-[#818CF8] font-mono font-bold">[RPC]</span>
                 </div>
                 <div className="text-base font-bold text-[#818CF8] tabular-nums">
                   #{dualData?.evm?.block_number ? dualData.evm.block_number.toLocaleString() : '161,594'}
@@ -639,7 +673,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="p-4 bg-[#080512]/90 hover:bg-white/[0.02] transition-colors relative">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">SLASHING DEFENSE</span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">[GUARD]</span>
                 </div>
                 <div className="text-base font-bold text-[#10B981] tabular-nums">
                   {secData?.equivocation_guard_active || secData?.lock_file_status === 'LOCKED_SAFE' ? '100% Zero-Loss' : 'Active Safe'}
@@ -652,7 +685,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="p-4 bg-[#080512]/90 hover:bg-white/[0.02] transition-colors relative">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase">POT STAKING YIELD</span>
-                  <span className="text-[10px] text-[#C084FC] font-mono font-bold">[NPoS]</span>
                 </div>
                 <div className="text-base font-bold text-[#C084FC] tabular-nums">
                   {nposData?.auto_compounded_apy ? `${nposData.auto_compounded_apy.toFixed(2)}% APY` : '17.13% APY'}
@@ -676,15 +708,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Section 2: Infinite Techstack Protocol Marquee Carousel — Full Bleed 100vw */}
       <section className="relative w-full py-7 overflow-hidden border-b border-white/[0.08] bg-[#07040E]/80 backdrop-blur-sm z-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 mb-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-            <span className="text-[#8B5CF6] font-bold">//</span>
-            <span className="text-zinc-300 font-semibold">Dual-VM Protocol Stack &amp; Runtime Ecosystem</span>
-          </div>
-          <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500">
-            <span>PORTALDOT NETWORK V3.0 • SS58: 42 • POT DECIMALS: 14</span>
-          </div>
-        </div>
+        
 
         {/* Marquee Track with Lateral Fading Gradient Masks */}
         <div className="relative w-full overflow-hidden">
@@ -698,13 +722,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {[...TECH_STACK_ITEMS, ...TECH_STACK_ITEMS].map((item, idx) => (
               <div
                 key={`${item.name}-${idx}`}
-                className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg border border-white/[0.08] bg-[#110A24]/90 hover:bg-[#180F33] hover:border-[#8B5CF6]/50 transition-all duration-200 group/chip cursor-default shadow-sm"
+                className="flex items-center gap-2.5 px-3.5 py-2 rounded-none border border-white/[0.08] bg-[#110A24]/90 hover:bg-[#180F33] hover:border-[#8B5CF6]/50 transition-all duration-200 group/chip cursor-default shadow-sm"
               >
                 <span className="text-xs font-mono font-bold text-zinc-200 group-hover/chip:text-white whitespace-nowrap">
                   {item.name}
                 </span>
                 <span 
-                  className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] font-semibold"
+                  className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-none bg-white/[0.04] border border-white/[0.06] font-semibold"
                   style={{ color: item.accent }}
                 >
                   {item.category}
@@ -734,10 +758,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-                <span>ENGINE ARCHITECTURE</span>
-              </div>
+            <div className="space-y-1">
               <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
                 The Four Mission-Critical Pillars
               </h2>
@@ -765,7 +786,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[#E6007A]/15 border border-[#E6007A]/40 flex items-center justify-center text-[#E6007A]">
+                      <div className="w-10 h-10 rounded-none bg-[#E6007A]/15 border border-[#E6007A]/40 flex items-center justify-center text-[#E6007A]">
                         <Layers className="w-5 h-5" />
                       </div>
                       <div>
@@ -775,7 +796,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         <span className="text-[10px] text-zinc-400 font-mono">Real-time Cross-VM Synchronicity &amp; Active SRE</span>
                       </div>
                     </div>
-                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#E6007A]/15 text-[#E6007A] border border-[#E6007A]/30 font-bold uppercase tracking-wider">
+                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-none bg-[#E6007A]/15 text-[#E6007A] border border-[#E6007A]/30 font-bold uppercase tracking-wider">
                       PILLAR // 01
                     </span>
                   </div>
@@ -786,7 +807,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </p>
 
                   {/* Interactive Live Parity Preview Box */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-lg bg-[#080512] border border-white/[0.06] text-xs font-mono">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-none bg-[#080512] border border-white/[0.06] text-xs font-mono">
                     <div className="space-y-1">
                       <div className="text-[10px] text-zinc-500 uppercase">SUBSTRATE WASM</div>
                       <div className="text-sm font-bold text-white tabular-nums">
@@ -805,7 +826,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                     <div className="space-y-1 sm:border-l sm:border-white/[0.08] sm:pl-3">
                       <div className="text-[10px] text-zinc-500 uppercase">PARITY STATUS</div>
-                      <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[11px]">
+                      <div className="inline-flex items-center px-2 py-0.5 rounded-none bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[11px]">
                         <span>0 BLK (100% LOCKSTEP)</span>
                       </div>
                       <div className="text-[10px] text-zinc-400">CLI Score: 12.5 / 100</div>
@@ -814,13 +835,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                   {/* SRE Action Pills Mini Dock */}
                   <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] font-mono text-zinc-400">
-                    <span className="px-2 py-0.5 rounded border border-white/[0.08] bg-[#0A0615] text-[#C084FC]">
+                    <span className="px-2 py-0.5 rounded-none border border-white/[0.08] bg-[#0A0615] text-[#C084FC]">
                       ⚡ SRE Action: Circuit Breaker ARMED
                     </span>
-                    <span className="px-2 py-0.5 rounded border border-white/[0.08] bg-[#0A0615] text-[#818CF8]">
+                    <span className="px-2 py-0.5 rounded-none border border-white/[0.08] bg-[#0A0615] text-[#818CF8]">
                       🔄 FC-Sync Probe Ready
                     </span>
-                    <span className="px-2 py-0.5 rounded border border-white/[0.08] bg-[#0A0615] text-emerald-400">
+                    <span className="px-2 py-0.5 rounded-none border border-white/[0.08] bg-[#0A0615] text-emerald-400">
                       🧹 Mempool Zero Conflict
                     </span>
                   </div>
@@ -846,10 +867,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-lg bg-[#8B5CF6]/15 border border-[#8B5CF6]/40 flex items-center justify-center text-[#8B5CF6]">
+                    <div className="w-10 h-10 rounded-none bg-[#8B5CF6]/15 border border-[#8B5CF6]/40 flex items-center justify-center text-[#8B5CF6]">
                       <ShieldCheck className="w-5 h-5" />
                     </div>
-                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#8B5CF6]/15 text-[#C084FC] border border-[#8B5CF6]/30 font-bold uppercase tracking-wider">
+                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-none bg-[#8B5CF6]/15 text-[#C084FC] border border-[#8B5CF6]/30 font-bold uppercase tracking-wider">
                       PILLAR // 02
                     </span>
                   </div>
@@ -864,7 +885,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
 
                   {/* Invariant Box */}
-                  <div className="p-3 rounded-lg bg-[#080512] border border-white/[0.06] font-mono text-[11px] space-y-1.5">
+                  <div className="p-3 rounded-none bg-[#080512] border border-white/[0.06] font-mono text-[11px] space-y-1.5">
                     <div className="text-[10px] text-zinc-500 uppercase font-bold">TIMING INVARIANT</div>
                     <div className="text-emerald-400 font-bold">10.0s &lt; 12.0s &lt; 15.0s</div>
                     <div className="text-[10px] text-zinc-400">Self-Fence &lt; Lease &lt; Standby</div>
@@ -899,10 +920,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-lg bg-[#C084FC]/15 border border-[#C084FC]/40 flex items-center justify-center text-[#C084FC]">
+                    <div className="w-10 h-10 rounded-none bg-[#C084FC]/15 border border-[#C084FC]/40 flex items-center justify-center text-[#C084FC]">
                       <TrendingUp className="w-5 h-5" />
                     </div>
-                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#C084FC]/15 text-[#C084FC] border border-[#C084FC]/30 font-bold uppercase tracking-wider">
+                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-none bg-[#C084FC]/15 text-[#C084FC] border border-[#C084FC]/30 font-bold uppercase tracking-wider">
                       PILLAR // 03
                     </span>
                   </div>
@@ -917,7 +938,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
 
                   {/* Staking Yield Box */}
-                  <div className="p-3 rounded-lg bg-[#080512] border border-white/[0.06] font-mono text-[11px] space-y-1.5">
+                  <div className="p-3 rounded-none bg-[#080512] border border-white/[0.06] font-mono text-[11px] space-y-1.5">
                     <div className="text-[10px] text-zinc-500 uppercase font-bold">POT STAKING YIELD</div>
                     <div className="text-white font-bold text-base tabular-nums">
                       {nposData?.auto_compounded_apy ? `${nposData.auto_compounded_apy.toFixed(2)}% APY` : '17.13% APY'}
@@ -952,7 +973,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[#38BDF8]/15 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8]">
+                      <div className="w-10 h-10 rounded-none bg-[#38BDF8]/15 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8]">
                         <Shield className="w-5 h-5" />
                       </div>
                       <div>
@@ -962,7 +983,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         <span className="text-[10px] text-zinc-400 font-mono">&lt; 1ms Asynchronous Packet Filtering &amp; Eclipse Guard</span>
                       </div>
                     </div>
-                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-full bg-[#38BDF8]/15 text-[#38BDF8] border border-[#38BDF8]/30 font-bold uppercase tracking-wider">
+                    <span className="text-[9px] font-mono px-2.5 py-1 rounded-none bg-[#38BDF8]/15 text-[#38BDF8] border border-[#38BDF8]/30 font-bold uppercase tracking-wider">
                       PILLAR // 04
                     </span>
                   </div>
@@ -972,7 +993,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     enforces 256KB socket ceilings, and continuously detects /24 Sybil subnet concentration attacks.
                   </p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-lg bg-[#080512] border border-white/[0.06] text-xs font-mono">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-none bg-[#080512] border border-white/[0.06] text-xs font-mono">
                     <div>
                       <span className="text-[10px] text-zinc-500 uppercase block">INSPECTION OVERHEAD</span>
                       <span className="font-bold text-emerald-400">&lt; 0.25ms (Zero-Copy)</span>
@@ -1024,9 +1045,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
               <div className="space-y-2">
-                <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-                  <span>AUTOMATION PIPELINE</span>
-                </div>
                 <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
                   Visual DAG Automation Canvas
                 </h2>
@@ -1062,15 +1080,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           minHeight="min-h-[500px]"
           fallbackText="LOADING COMPARATIVE BENCHMARKS..."
         >
-          <div className="max-w-5xl mx-auto space-y-10 sm:space-y-12">
-            <div className="text-center space-y-2.5">
-              <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-                <span>COMPETITIVE ANALYSIS</span>
+          <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
+              <div className="space-y-2">
+                <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
+                  <span>COMPETITIVE ANALYSIS</span>
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+                  Why DotNexus Stands Apart
+                </h2>
               </div>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
-                Why DotNexus Stands Apart
-              </h2>
-              <p className="text-zinc-400 text-xs sm:text-sm max-w-xl mx-auto font-mono">
+              <p className="text-zinc-400 text-xs sm:text-sm max-w-md font-mono">
                 Evaluating DotNexus against traditional Linux CLI bash scripts and generic passive Grafana metrics.
               </p>
             </div>
@@ -1162,9 +1182,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
               <div className="space-y-2">
-                <div className="inline-flex items-center px-3 py-1 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[10px] font-mono text-[#C084FC] font-bold tracking-widest uppercase">
-                  <span>DELIVERY LINE JOURNEY</span>
-                </div>
                 <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
                   Portaldot Hacker House 2026 Timeline
                 </h2>
@@ -1185,9 +1202,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Station 01 */}
               <div className="flex flex-col items-center text-center space-y-3.5">
                 {/* Station Junction Node on Rail */}
-                <div className="w-9 h-9 rounded-xl bg-[#07040E] border-2 border-[#10B981] flex items-center justify-center text-[#10B981] z-10 relative shadow-lg shadow-[#10B981]/20">
+                <div className="w-9 h-9 rounded-none bg-[#07040E] border-2 border-[#10B981] flex items-center justify-center text-[#10B981] z-10 relative shadow-lg shadow-[#10B981]/20">
                   <Check className="w-4 h-4 text-[#10B981]" />
-                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#0A261B] border border-[#10B981]/40 text-[#10B981] text-[9px] font-mono font-bold rounded">
+                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#0A261B] border border-[#10B981]/40 text-[#10B981] text-[9px] font-mono font-bold rounded-none">
                     01
                   </span>
                 </div>
@@ -1197,13 +1214,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="text-[11px] font-mono text-[#10B981] font-bold block tracking-wider">
                     OCT 14, 2026
                   </span>
-                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#10B981]/15 text-[#10B981] font-bold border border-[#10B981]/30 rounded-full inline-block uppercase">
+                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#10B981]/15 text-[#10B981] font-bold border border-[#10B981]/30 rounded-none inline-block uppercase">
                     PHASE 01 // COMPLETED
                   </span>
                 </div>
 
                 {/* Milestone Deliverable Card */}
-                <div className="w-full p-4 rounded-xl border border-white/[0.08] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
+                <div className="w-full p-4 rounded-none border border-white/[0.08] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">Architecture Kick-off</h4>
                     <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
@@ -1220,9 +1237,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Station 02 */}
               <div className="flex flex-col items-center text-center space-y-3.5">
                 {/* Station Junction Node on Rail */}
-                <div className="w-9 h-9 rounded-xl bg-[#120B24] border-2 border-[#C084FC] flex items-center justify-center text-[#C084FC] z-10 relative shadow-lg shadow-[#C084FC]/30">
+                <div className="w-9 h-9 rounded-none bg-[#120B24] border-2 border-[#C084FC] flex items-center justify-center text-[#C084FC] z-10 relative shadow-lg shadow-[#C084FC]/30">
                   <Activity className="w-4 h-4 text-[#C084FC]" />
-                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#2E1452] border border-[#C084FC]/60 text-[#C084FC] text-[9px] font-mono font-bold rounded">
+                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#2E1452] border border-[#C084FC]/60 text-[#C084FC] text-[9px] font-mono font-bold rounded-none">
                     02
                   </span>
                 </div>
@@ -1232,13 +1249,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="text-[11px] font-mono text-[#C084FC] font-bold block tracking-wider">
                     OCT 24, 2026 (12:00 UTC)
                   </span>
-                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#8B5CF6]/25 text-[#C084FC] font-bold border border-[#8B5CF6]/40 rounded-full inline-block uppercase">
+                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#8B5CF6]/25 text-[#C084FC] font-bold border border-[#8B5CF6]/40 rounded-none inline-block uppercase">
                     PHASE 02 // TARGET
                   </span>
                 </div>
 
                 {/* Milestone Deliverable Card */}
-                <div className="w-full p-4 rounded-xl border border-[#8B5CF6]/50 bg-[#120A24] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
+                <div className="w-full p-4 rounded-none border border-[#8B5CF6]/50 bg-[#120A24] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">DoraHacks Check-in</h4>
                     <p className="text-[11px] text-zinc-300 mt-1.5 leading-relaxed">
@@ -1255,9 +1272,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Station 03 */}
               <div className="flex flex-col items-center text-center space-y-3.5">
                 {/* Station Junction Node on Rail */}
-                <div className="w-9 h-9 rounded-xl bg-[#07040E] border-2 border-zinc-700 flex items-center justify-center text-zinc-500 z-10 relative">
+                <div className="w-9 h-9 rounded-none bg-[#07040E] border-2 border-zinc-700 flex items-center justify-center text-zinc-500 z-10 relative">
                   <Clock className="w-4 h-4 text-zinc-500" />
-                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#120B24] border border-zinc-700 text-zinc-500 text-[9px] font-mono font-bold rounded">
+                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#120B24] border border-zinc-700 text-zinc-500 text-[9px] font-mono font-bold rounded-none">
                     03
                   </span>
                 </div>
@@ -1267,13 +1284,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="text-[11px] font-mono text-zinc-400 font-bold block tracking-wider">
                     NOV 06, 2026 (04:00 UTC)
                   </span>
-                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#120B24] text-zinc-500 font-bold border border-white/[0.08] rounded-full inline-block uppercase">
+                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#120B24] text-zinc-500 font-bold border border-white/[0.08] rounded-none inline-block uppercase">
                     PHASE 03 // SCHEDULED
                   </span>
                 </div>
 
                 {/* Milestone Deliverable Card */}
-                <div className="w-full p-4 rounded-xl border border-white/[0.08] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
+                <div className="w-full p-4 rounded-none border border-white/[0.08] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">Code Freeze &amp; Hardening</h4>
                     <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
@@ -1290,9 +1307,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Station 04 */}
               <div className="flex flex-col items-center text-center space-y-3.5">
                 {/* Station Junction Node on Rail */}
-                <div className="w-9 h-9 rounded-xl bg-[#07040E] border-2 border-zinc-800 flex items-center justify-center text-zinc-600 z-10 relative">
+                <div className="w-9 h-9 rounded-none bg-[#07040E] border-2 border-zinc-800 flex items-center justify-center text-zinc-600 z-10 relative">
                   <CircleDot className="w-4 h-4 text-zinc-600" />
-                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#120B24] border border-zinc-800 text-zinc-600 text-[9px] font-mono font-bold rounded">
+                  <span className="absolute -top-2.5 -right-2 px-1 py-0.2 bg-[#120B24] border border-zinc-800 text-zinc-600 text-[9px] font-mono font-bold rounded-none">
                     04
                   </span>
                 </div>
@@ -1302,13 +1319,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="text-[11px] font-mono text-zinc-500 font-bold block tracking-wider">
                     NOV 07–08, 2026
                   </span>
-                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#120B24] text-zinc-600 font-bold border border-white/[0.08] rounded-full inline-block uppercase">
+                  <span className="text-[9px] font-mono px-2 py-0.5 bg-[#120B24] text-zinc-600 font-bold border border-white/[0.08] rounded-none inline-block uppercase">
                     PHASE 04 // DEMO DAY
                   </span>
                 </div>
 
                 {/* Milestone Deliverable Card */}
-                <div className="w-full p-4 rounded-xl border border-white/[0.08] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
+                <div className="w-full p-4 rounded-none border border-white/[0.08] bg-[#0B0813] space-y-2 text-left h-[170px] flex flex-col justify-between shadow-lg">
                   <div>
                     <h4 className="text-xs font-bold text-white font-mono">Live Demo Day</h4>
                     <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
@@ -1332,13 +1349,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Station 01 */}
             <div className="relative pl-10">
-              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-lg bg-[#07040E] border-2 border-[#10B981] flex items-center justify-center z-10">
+              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-none bg-[#07040E] border-2 border-[#10B981] flex items-center justify-center z-10">
                 <Check className="w-3 h-3 text-[#10B981]" />
               </div>
-              <div className="p-3.5 rounded-xl border border-white/[0.08] bg-[#0B0813] space-y-1.5 shadow-lg">
+              <div className="p-3.5 rounded-none border border-white/[0.08] bg-[#0B0813] space-y-1.5 shadow-lg">
                 <div className="flex items-center justify-between text-[10px] font-mono">
                   <span className="text-[#10B981] font-bold">OCT 14, 2026</span>
-                  <span className="px-2 py-0.5 bg-[#10B981]/15 text-[#10B981] text-[9px] font-bold rounded-full">PHASE 01 // COMPLETED</span>
+                  <span className="px-2 py-0.5 bg-[#10B981]/15 text-[#10B981] text-[9px] font-bold rounded-none">PHASE 01 // COMPLETED</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">Architecture Kick-off &amp; Baseline</div>
                 <p className="text-[11px] text-zinc-400">Finalized Dual-VM WebSocket &amp; RPC baseline collectors.</p>
@@ -1347,13 +1364,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Station 02 */}
             <div className="relative pl-10">
-              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-lg bg-[#120B24] border-2 border-[#C084FC] flex items-center justify-center z-10">
+              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-none bg-[#120B24] border-2 border-[#C084FC] flex items-center justify-center z-10">
                 <Activity className="w-3 h-3 text-[#C084FC]" />
               </div>
-              <div className="p-3.5 rounded-xl border border-[#8B5CF6]/50 bg-[#120A24] space-y-1.5 shadow-lg">
+              <div className="p-3.5 rounded-none border border-[#8B5CF6]/50 bg-[#120A24] space-y-1.5 shadow-lg">
                 <div className="flex items-center justify-between text-[10px] font-mono">
                   <span className="text-[#C084FC] font-bold">OCT 24, 2026 (12:00 UTC)</span>
-                  <span className="px-2 py-0.5 bg-[#8B5CF6]/25 text-[#C084FC] text-[9px] font-bold rounded-full">PHASE 02 // TARGET</span>
+                  <span className="px-2 py-0.5 bg-[#8B5CF6]/25 text-[#C084FC] text-[9px] font-bold rounded-none">PHASE 02 // TARGET</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">DoraHacks Check-in &amp; Working Prototype</div>
                 <p className="text-[11px] text-zinc-300">Dual-Engine Tracker, Slashing Guard failover &amp; DAG Canvas prototype.</p>
@@ -1362,13 +1379,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Station 03 */}
             <div className="relative pl-10">
-              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-lg bg-[#07040E] border-2 border-zinc-700 flex items-center justify-center z-10">
+              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-none bg-[#07040E] border-2 border-zinc-700 flex items-center justify-center z-10">
                 <Clock className="w-3 h-3 text-zinc-500" />
               </div>
-              <div className="p-3.5 rounded-xl border border-white/[0.08] bg-[#0B0813] space-y-1.5 shadow-lg">
+              <div className="p-3.5 rounded-none border border-white/[0.08] bg-[#0B0813] space-y-1.5 shadow-lg">
                 <div className="flex items-center justify-between text-[10px] font-mono">
                   <span className="text-zinc-400 font-bold">NOV 06, 2026 (04:00 UTC)</span>
-                  <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-[9px] font-bold rounded-full">PHASE 03 // SCHEDULED</span>
+                  <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-[9px] font-bold rounded-none">PHASE 03 // SCHEDULED</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">Code Freeze &amp; Security Hardening</div>
                 <p className="text-[11px] text-zinc-400">Complete code package, pitch deck &amp; test suite verification.</p>
@@ -1377,13 +1394,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Station 04 */}
             <div className="relative pl-10">
-              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-lg bg-[#07040E] border-2 border-zinc-800 flex items-center justify-center z-10">
+              <div className="absolute left-[1px] top-1.5 w-6 h-6 rounded-none bg-[#07040E] border-2 border-zinc-800 flex items-center justify-center z-10">
                 <CircleDot className="w-3 h-3 text-zinc-600" />
               </div>
-              <div className="p-3.5 rounded-xl border border-white/[0.08] bg-[#0B0813] space-y-1.5 shadow-lg">
+              <div className="p-3.5 rounded-none border border-white/[0.08] bg-[#0B0813] space-y-1.5 shadow-lg">
                 <div className="flex items-center justify-between text-[10px] font-mono">
                   <span className="text-zinc-500 font-bold">NOV 07–08, 2026</span>
-                  <span className="px-2 py-0.5 bg-zinc-800 text-zinc-500 text-[9px] font-bold rounded-full">PHASE 04 // DEMO DAY</span>
+                  <span className="px-2 py-0.5 bg-zinc-800 text-zinc-500 text-[9px] font-bold rounded-none">PHASE 04 // DEMO DAY</span>
                 </div>
                 <div className="text-xs font-bold text-white font-mono">Live Demo Day &amp; Foundation Review</div>
                 <p className="text-[11px] text-zinc-400">Live demonstration with Portaldot Network foundation judges.</p>

@@ -218,3 +218,7 @@ Dưới đây là **bảng kế hoạch chi tiết các giai đoạn triển kha
 <br>• Deploy lên Vercel. | Bản hoàn thiện sẵn sàng đưa vào Production. |
 
 ---
+
+## 7. Tài Liệu Nghiên Cứu Điển Hình: Zeabur Design Benchmark
+Chi tiết phân tích ngôn ngữ thiết kế tối giản, kiến trúc thẻ Bento Grid và kế hoạch nâng cấp UI/UX cho DotNexus lấy cảm hứng từ [Zeabur](https://zeabur.com/) được lưu trữ đầy đủ tại:
+📄 [`ZEABUR_UI_UX_ANALYSIS_AND_IMPROVEMENT_PLAN.md`](ZEABUR_UI_UX_ANALYSIS_AND_IMPROVEMENT_PLAN.md)

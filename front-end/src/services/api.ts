@@ -15,6 +15,22 @@ export interface LogItem {
   nodeId?: string;
 }
 
+export interface DualBlockConduitItem {
+  block_number_wasm: number;
+  block_number_evm: number;
+  hash_wasm: string;
+  hash_evm: string;
+  babe_author: string;
+  extrinsics_count: number;
+  evm_tx_count: number;
+  evm_gas_used: number;
+  evm_base_fee_gwei: number;
+  mapping_latency_ms: number;
+  delta_blocks: number;
+  status: 'LOCKSTEP' | 'PROPAGATION_LAG' | 'SLOW_INDEXING' | 'DESYNC_CRITICAL';
+  timestamp: number;
+}
+
 export interface DualTelemetryState {
   timestamp: number;
   substrate: {
@@ -344,6 +360,18 @@ export const api = {
   getDualTracker: async (): Promise<{ success: boolean; data: DualTelemetryState }> => {
     const res = await fetch(`${BASE_URL}/dual-tracker`);
     return res.json();
+  },
+  getRecentDualBlocks: async (limit: number = 5): Promise<{ success: boolean; data: DualBlockConduitItem[] }> => {
+    try {
+      const res = await fetch(`${BASE_URL}/telemetry/dual/recent-blocks?limit=${limit}`);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return await res.json();
+    } catch (e) {
+      console.warn('Recent dual blocks fetch failed, falling back:', e);
+      return { success: false, data: [] };
+    }
   },
   remediateDualEngine: async (action: string, details?: any): Promise<{ success: boolean; data: any }> => {
     const res = await fetch(`${BASE_URL}/dual-tracker/remediate`, {

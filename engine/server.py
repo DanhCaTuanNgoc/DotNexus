@@ -166,6 +166,19 @@ def get_dual_tracker():
     return jsonify({"success": True, "data": data})
 
 
+@app.route("/api/telemetry/dual/recent-blocks", methods=["GET"])
+@app.route("/api/dual-tracker/recent-blocks", methods=["GET"])
+def get_recent_dual_blocks():
+    """Returns the list of recent blocks correlating Substrate WASM and Frontier EVM"""
+    try:
+        limit = min(int(request.args.get("limit", 5)), 10)
+        blocks = DUAL_TRACKER.get_recent_dual_blocks(limit=limit)
+        return jsonify({"success": True, "data": blocks, "timestamp": time.time()})
+    except Exception as e:
+        logger.error(f"Error retrieving recent dual blocks: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route("/api/dual-tracker/remediate", methods=["POST"])
 def remediate_dual_tracker():
     """Executes active self-healing action on Dual-Engine node"""

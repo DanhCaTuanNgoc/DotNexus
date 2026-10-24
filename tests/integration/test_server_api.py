@@ -247,6 +247,26 @@ class TestServerAPIIntegration(unittest.TestCase):
             self.assertTrue(data.get("success"))
             self.assertEqual(data.get("data", {}).get("tx_hash"), "0x987fed654")
 
+    def test_get_recent_dual_blocks_endpoint(self):
+        """Verifies GET /api/telemetry/dual/recent-blocks returns recent correlated blocks"""
+        res = self.client.get("/api/telemetry/dual/recent-blocks?limit=5")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        blocks = data.get("data", [])
+        self.assertEqual(len(blocks), 5)
+        self.assertIn("block_number_wasm", blocks[0])
+        self.assertIn("block_number_evm", blocks[0])
+        self.assertIn("mapping_latency_ms", blocks[0])
+        self.assertIn("status", blocks[0])
+
+    def test_get_recent_dual_blocks_alias_endpoint(self):
+        """Verifies GET /api/dual-tracker/recent-blocks alias endpoint responds with HTTP 200"""
+        res = self.client.get("/api/dual-tracker/recent-blocks")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+
 
 if __name__ == "__main__":
     unittest.main()

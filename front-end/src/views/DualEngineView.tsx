@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Layers,
   RefreshCw,
@@ -26,7 +26,8 @@ import {
   HardDrive,
   Server
 } from 'lucide-react';
-import { api, DualTelemetryState, ContractAuditResult } from '../services/api';
+import { api, DualTelemetryState, ContractAuditResult, DualBlockConduitItem } from '../services/api';
+import { DualBlockConduit } from '../components/DualBlockConduit';
 
 interface DualEngineViewProps {
   data: DualTelemetryState;
@@ -46,6 +47,28 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
   const [selectedAuditContract, setSelectedAuditContract] = useState<'SlashGuardLeaseRegistry' | 'DotNexusStakingVault'>('SlashGuardLeaseRegistry');
   const [auditResult, setAuditResult] = useState<ContractAuditResult | null>(null);
   const [isAuditing, setIsAuditing] = useState(false);
+
+  // Dual-VM Realtime Block Lockstep Stream
+  const [recentBlocks, setRecentBlocks] = useState<DualBlockConduitItem[]>([]);
+  const [isConduitLoading, setIsConduitLoading] = useState(false);
+
+  const fetchRecentBlocks = useCallback(async () => {
+    try {
+      setIsConduitLoading(true);
+      const res = await api.getRecentDualBlocks(5);
+      if (res && res.success && res.data && res.data.length > 0) {
+        setRecentBlocks(res.data);
+      }
+    } catch (e) {
+      console.warn('Failed to load recent dual blocks:', e);
+    } finally {
+      setIsConduitLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRecentBlocks();
+  }, [fetchRecentBlocks, data.substrate.best_block, data.evm.block_number]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -114,21 +137,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
     phaseDetail = 'Calculating WASM state root';
   }
 
-  // 4 confirmed historical blocks + 1 candidate block currently authoring
-  const wasmBlocks = [
-    substrate.best_block - 3,
-    substrate.best_block - 2,
-    substrate.best_block - 1,
-    substrate.best_block
-  ];
-  const evmBlocks = [
-    evm.block_number - 3,
-    evm.block_number - 2,
-    evm.block_number - 1,
-    evm.block_number
-  ];
-  const candidateWasm = substrate.best_block + 1;
-  const candidateEvm = evm.block_number + 1;
+
 
   const diag = root_cause_diagnosis || {
     tier: delta === 0 ? 0 : delta > 2 ? 1 : 2,
@@ -346,6 +355,13 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               </div>
             </div>
           </div>
+
+          {/* DUAL-VM REALTIME BLOCK LOCKSTEP STREAM (RECENT BLOCKS CONDUIT) */}
+          <DualBlockConduit
+            items={recentBlocks}
+            isLoading={isConduitLoading}
+            onRefresh={fetchRecentBlocks}
+          />
 
           {/* PARITY CONDUIT & DELTA TRUTH BAR */}
           <div className="p-3 bg-[#0B0716] border border-[#23183D] flex flex-wrap items-center justify-between gap-3 text-xs">

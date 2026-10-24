@@ -347,6 +347,44 @@ class TestDualTrackerUnit(unittest.TestCase):
         self.assertIn("hardware", state)
         self.assertIn("cpu_percent", state["hardware"])
 
+    def test_get_recent_dual_blocks_schema(self):
+        """Verifies get_recent_dual_blocks returns correlated WASM and EVM block items with all required schema fields"""
+        blocks = self.dual_tracker.get_recent_dual_blocks(limit=5)
+        self.assertEqual(len(blocks), 5)
+        required_keys = [
+            "block_number_wasm", "block_number_evm", "hash_wasm", "hash_evm",
+            "babe_author", "extrinsics_count", "evm_tx_count", "evm_gas_used",
+            "evm_base_fee_gwei", "mapping_latency_ms", "delta_blocks", "status", "timestamp"
+        ]
+        valid_statuses = ["LOCKSTEP", "PROPAGATION_LAG", "SLOW_INDEXING", "DESYNC_CRITICAL"]
+        for b in blocks:
+            for k in required_keys:
+                self.assertIn(k, b)
+            self.assertIn(b["status"], valid_statuses)
+            self.assertTrue(b["hash_wasm"].startswith("0x"))
+            self.assertTrue(b["hash_evm"].startswith("0x"))
+            self.assertGreaterEqual(b["mapping_latency_ms"], 0.0)
+
+    def test_get_recent_dual_blocks_custom_limits(self):
+        """Verifies get_recent_dual_blocks correctly respects and clamps limits"""
+        self.dual_tracker._recent_blocks_cache = []
+        self.dual_tracker._recent_blocks_cache_time = 0.0
+        blocks_3 = self.dual_tracker.get_recent_dual_blocks(limit=3)
+        self.assertEqual(len(blocks_3), 3)
+
+        self.dual_tracker._recent_blocks_cache = []
+        self.dual_tracker._recent_blocks_cache_time = 0.0
+        blocks_clamped = self.dual_tracker.get_recent_dual_blocks(limit=100)
+        self.assertLessEqual(len(blocks_clamped), 10)
+
+    def test_get_recent_dual_blocks_caching(self):
+        """Verifies get_recent_dual_blocks caches result within TTL"""
+        self.dual_tracker._recent_blocks_cache = []
+        self.dual_tracker._recent_blocks_cache_time = 0.0
+        b1 = self.dual_tracker.get_recent_dual_blocks(limit=4)
+        b2 = self.dual_tracker.get_recent_dual_blocks(limit=4)
+        self.assertEqual(b1, b2)
+
 
 if __name__ == "__main__":
     unittest.main()

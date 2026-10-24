@@ -239,11 +239,11 @@ Thank you for building with Portaldot! @everyone
 
 ---
 
-### 1. Project Information
+### 1. Project Information & Executive Overview
 - **Project Name**: DotNexus
 - **Track**: Node Operations & Tooling
-- **One-Sentence Overview**: The Visual Control Plane & Automated Security Operations Engine for Portaldot Network V3.0 Dual-VM (Substrate WASM + EVM).
-- **Core Value Proposition**: Solves the critical Dual-VM observability blind spot, prevents validator double-signing / equivocation slashing via smart contract leases, and automates NPoS staking yield optimization.
+- **Executive Overview**: DotNexus is the visual control plane and automated security operations engine engineered specifically for Portaldot Network V3.0 Dual-VM (Substrate WASM + EVM). As Portaldot transitions into a high-performance Dual-VM architecture, node operations face unprecedented complexity. DotNexus solves the critical cross-VM observability blind spot, prevents validator double-signing slashing via distributed smart contract leases, normalizes cross-VM 10^14 Planck vs 10^18 Wei accounting, and automates NPoS yield rebalancing.
+- **Core Value Proposition**: Real-time cross-VM telemetry with Causal Lag Index (CLI) diagnosis, automated Dead Man's Switch with on-chain mutex fencing, algorithmic Phragmén staking optimizer, and adaptive RPC reverse proxy defense.
 
 ---
 
@@ -306,7 +306,10 @@ Thank you for building with Portaldot! @everyone
 
 ---
 
-### 6. Outstanding Items (Planned for Final Submission / Code Freeze)
-1. **Dual-VM Realtime Block Lockstep Stream**: Visual live feed comparing the 5 most recent blocks across WASM and EVM with mapping latency measurement directly on DualEngine.
-2. **Demo Video Production**: High-resolution 3-minute walkthrough demonstrating live interaction with Portaldot Testnet V3.
-3. **Pitch Deck & Final Documentation**: Finalize presentation slides for the Live Demo Day pitch session.
+### 6. Outstanding Items & Roadmap (Planned for Final Submission / Code Freeze)
+1. **Real-Data Normalization for Staking & Slashing Modules**: Complete full on-chain storage queries for active era exposures (`staking.erasStakers`), real-time BABE epoch session keys (`session.validators`), and live distributed lease state from `SlashGuardLeaseRegistry.sol` directly on Testnet V3.
+2. **Hardened RPC Shield & Advanced Threat Defense**: Implement recursive JSON-RPC batch bomb detection, EVM re-entrancy / state-bloat pre-filtering, dynamic IP reputation quarantine, and Substrate storage OOM protection.
+3. **Live Action Execution Engine for Canvas Runbook DAGs**: Upgrade unbonded visual workflow nodes into real operational handlers (dispatching live on-chain `nominate` extrinsics, executing real keystore isolation, and triggering smart contract lease renewals).
+4. **Dual-VM Realtime Block Lockstep Stream**: Visual live feed comparing the 5 most recent blocks across WASM and EVM with mapping latency measurement directly on DualEngine.
+5. **Demo Video Production**: High-resolution 3-minute walkthrough demonstrating live interaction with Portaldot Testnet V3.
+6. **Pitch Deck & Final Documentation**: Finalize presentation slides for the Live Demo Day pitch session.

@@ -10,8 +10,15 @@ Live Demo URL: https://dotnexus-hackerhouse.vercel.app
 GitHub Repository: https://github.com/DanhCaTuanNgoc/DotNexus
 
 
-[2. ONE-SENTENCE SUMMARY]
-DotNexus is the visual control plane and automated security operations engine built specifically for Portaldot Network V3.0, solving the critical Dual-VM (Substrate WASM + EVM) observability blind spot, preventing validator equivocation slashing, and automating NPoS yield rebalancing.
+[2. EXECUTIVE SUMMARY & ARCHITECTURAL OVERVIEW]
+DotNexus is the visual control plane and automated security operations engine engineered specifically for Portaldot Network V3.0. As Portaldot transitions into a high-performance Dual-VM architecture running native Substrate WASM consensus alongside an EVM-compatible execution layer (Pallet-Revive / Frontier), node operations face unprecedented complexity. Traditional single-chain explorers and monitoring tools are fundamentally blind to cross-VM synchronization latencies, state mapping bottlenecks, and dual-layer mempool dynamics.
+
+DotNexus addresses this paradigm shift by delivering an integrated, enterprise-grade operations platform for node operators, validators, and institutional stakers:
+- Cross-VM Observability: Correlates WASM block authoring with EVM state commits in real time via the Causal Lag Index (CLI), diagnosing whether node lag stems from P2P network stalls, RocksDB mapping sync overhead, or EVM gas saturation.
+- Slashing Elimination: Implements an automated Dead Man's Switch with on-chain smart contract lease verification, strictly preventing dual-instance equivocation (double-signing) during primary-to-standby node failovers.
+- Precision Accounting: Automatically reconciles the 10^14 Planck (Substrate) vs. 10^18 Wei (EVM) decimal discrepancy across all metrics, ensuring accurate balance and gas valuation.
+- Yield Optimization: Features an automated NPoS staking vault with Phragmén election modeling that rebalances delegations across top-performing validators.
+- Infrastructure Hardening: Enforces a reverse-proxy RPC Shield protecting validator endpoints from JSON-bombing, storage DoS, and malicious payload abuse.
 
 
 [3. THE PROBLEM WE SOLVE]
@@ -74,8 +81,31 @@ Both core contracts have been deployed and verified on Portaldot Network V3.0 Of
 - Full production frontend deployed and live on Vercel with zero TypeScript build errors.
 
 
-[7. NEXT STEPS TOWARD FINAL SUBMISSION]
-- Integrate the visual Dual-VM Realtime Block Lockstep Stream (5-block conduit) into DualEngineView.
-- Record high-resolution 3-minute video walkthrough demonstrating live Testnet V3 interaction.
-- Complete pitch deck presentation for Live Demo Day.
+[7. ROADMAP & REMAINING DELIVERABLES TOWARDS FINAL SUBMISSION]
+For the final submission and code freeze (November 6), DotNexus is advancing through three critical engineering milestones:
+
+1. Real-Data Normalization for Staking & Slashing Modules:
+   - Transition all secondary and simulated data feeds in the NPoS Staking and Slashing Guard modules into 100% normalized live chain queries.
+   - Direct on-chain polling of Portaldot V3 storage: querying live active era validator exposures (`staking.erasStakers`), real-time BABE epoch session keys (`session.validators`), and live distributed lease state from `SlashGuardLeaseRegistry.sol`.
+
+2. Hardened RPC Shield & Advanced Threat Defense:
+   - Strengthen the RPC Shield defense engine with enhanced attack vector mitigation:
+     * Recursive JSON-RPC batch bomb detection and memory limits.
+     * EVM re-entrancy and state-bloat transaction pre-filtering.
+     * Dynamic client IP reputation scoring with automated progressive quarantine.
+     * Substrate storage query ceiling enforcement to prevent node OOM crashes.
+
+3. Live Action Execution Engine for Canvas Runbook DAGs:
+   - Upgrade the Visual Canvas Runbook DAG orchestrator from visual representation to full live execution capability.
+   - Implement real backend execution handlers for all currently unbonded workflow nodes:
+     * Dispatching live on-chain `nominate` extrinsics directly to Substrate.
+     * Executing real atomic keystore isolation and session key rotation during failover.
+     * Invoking live smart contract lease renewal transactions on Testnet V3.
+
+4. Dual-VM Realtime Block Lockstep Stream (Conduit):
+   - Deliver the live comparative stream of recent blocks (WASM block vs. EVM block, BABE author, extrinsics count, gas used, and mapping sync latency in ms) directly on the DualEngine dashboard.
+
+5. Final Media & Presentation Materials:
+   - High-definition 3-minute video walkthrough demonstrating full live Testnet V3 interactions.
+   - Comprehensive pitch deck slide package for Live Demo Day.
 ================================================================================

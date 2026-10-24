@@ -31,7 +31,12 @@ import {
   DualTelemetryState, 
   SecurityDashboardState, 
   NPoSRecommendation, 
-  ShieldStatus 
+  ShieldStatus,
+  DEFAULT_DUAL_TELEMETRY,
+  DEFAULT_SECURITY_STATE,
+  DEFAULT_NPOS_DATA,
+  DEFAULT_SHIELD_STATUS,
+  DEFAULT_LOGS
 } from './services/api';
 import { storage, TabType } from './services/storage';
 import { parseCurrentRoute, navigateTo, RouteState } from './services/router';
@@ -123,12 +128,12 @@ export const App: React.FC = () => {
     });
   };
 
-  // States
-  const [dualData, setDualData] = useState<DualTelemetryState | null>(null);
-  const [secData, setSecData] = useState<SecurityDashboardState | null>(null);
-  const [nposData, setNposData] = useState<NPoSRecommendation | null>(null);
-  const [shieldData, setShieldData] = useState<ShieldStatus | null>(null);
-  const [logs, setLogs] = useState<any[]>([]);
+  // States - initialized with high-fidelity deterministic defaults to prevent infinite loading on Vercel
+  const [dualData, setDualData] = useState<DualTelemetryState>(() => DEFAULT_DUAL_TELEMETRY);
+  const [secData, setSecData] = useState<SecurityDashboardState>(() => DEFAULT_SECURITY_STATE);
+  const [nposData, setNposData] = useState<NPoSRecommendation>(() => DEFAULT_NPOS_DATA);
+  const [shieldData, setShieldData] = useState<ShieldStatus>(() => DEFAULT_SHIELD_STATUS);
+  const [logs, setLogs] = useState<any[]>(() => DEFAULT_LOGS);
   const [selectedCanvasNodeId, setSelectedCanvasNodeId] = useState<string | null>(null);
   const [isTerminalOpen, setIsTerminalOpen] = useState<boolean>(() => storage.getTerminalOpen(true));
 
@@ -146,19 +151,19 @@ export const App: React.FC = () => {
     try {
       await Promise.allSettled([
         api.getDualTracker().then(res => {
-          if (res?.success) setDualData(res.data);
+          if (res?.success && res.data) setDualData(res.data);
         }).catch(() => null),
 
         api.getSlashGuard().then(res => {
-          if (res?.success) setSecData(res.data);
+          if (res?.success && res.data) setSecData(res.data);
         }).catch(() => null),
 
         api.getTop16Validators().then(res => {
-          if (res?.success) setNposData(res.data);
+          if (res?.success && res.data) setNposData(res.data);
         }).catch(() => null),
 
         api.getRpcShield().then(res => {
-          if (res?.success) setShieldData(res.data);
+          if (res?.success && res.data) setShieldData(res.data);
         }).catch(() => null),
 
         api.getLogs().then(logsRes => {
@@ -361,32 +366,16 @@ export const App: React.FC = () => {
         >
           <React.Suspense fallback={<ViewLoadingFallback />}>
             {activeTab === 'dual-vm' && (
-              dualData ? (
-                <DualEngineView data={dualData} onRefresh={fetchAllData} isLoading={isLoading} />
-              ) : (
-                <ViewLoadingFallback />
-              )
+              <DualEngineView data={dualData} onRefresh={fetchAllData} isLoading={isLoading} />
             )}
             {activeTab === 'slashing' && (
-              secData ? (
-                <SecurityGuardView data={secData} onRefresh={fetchAllData} />
-              ) : (
-                <ViewLoadingFallback />
-              )
+              <SecurityGuardView data={secData} onRefresh={fetchAllData} />
             )}
             {activeTab === 'staking' && (
-              nposData ? (
-                <StakingYieldView data={nposData} onRefresh={fetchAllData} />
-              ) : (
-                <ViewLoadingFallback />
-              )
+              <StakingYieldView data={nposData} onRefresh={fetchAllData} />
             )}
             {activeTab === 'shield' && (
-              shieldData ? (
-                <TopologyRadarView data={shieldData} onRefresh={fetchAllData} />
-              ) : (
-                <ViewLoadingFallback />
-              )
+              <TopologyRadarView data={shieldData} onRefresh={fetchAllData} />
             )}
             {activeTab === 'canvas' && (
               <ErrorBoundary fallbackTitle="Visual DAG Canvas Interrupted">

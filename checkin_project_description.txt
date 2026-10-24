@@ -17,16 +17,18 @@ DotNexus addresses this paradigm shift by delivering an integrated, enterprise-g
 - Cross-VM Observability: Correlates WASM block authoring with EVM state commits in real time via the Causal Lag Index (CLI), diagnosing whether node lag stems from P2P network stalls, RocksDB mapping sync overhead, or EVM gas saturation.
 - Slashing Elimination: Implements an automated Dead Man's Switch with on-chain smart contract lease verification, strictly preventing dual-instance equivocation (double-signing) during primary-to-standby node failovers.
 - Precision Accounting: Automatically reconciles the 10^14 Planck (Substrate) vs. 10^18 Wei (EVM) decimal discrepancy across all metrics, ensuring accurate balance and gas valuation.
+- Visual Runbook Orchestration (Automation Canvas): Replaces error-prone manual CLI scripting with an interactive, node-based DAG workflow engine to safely execute complex operational remediation, failover, and rebalance procedures.
 - Yield Optimization: Features an automated NPoS staking vault with Phragmén election modeling that rebalances delegations across top-performing validators.
 - Infrastructure Hardening: Enforces a reverse-proxy RPC Shield protecting validator endpoints from JSON-bombing, storage DoS, and malicious payload abuse.
 
 
 [3. THE PROBLEM WE SOLVE]
-Portaldot Network V3.0 introduces high-performance EVM execution alongside native Substrate WASM consensus. However, running production nodes on this dual architecture introduces three critical operational challenges:
+Portaldot Network V3.0 introduces high-performance EVM execution alongside native Substrate WASM consensus. However, running production nodes on this dual architecture introduces four critical operational challenges:
 
 1. The Dual-VM Blind Spot: Existing explorers (such as Polkadot-js) only inspect the Substrate consensus layer and are completely blind to the underlying EVM (Frontier / Pallet-Revive) state. Node operators have no unified visibility into block lockstep parity, EVM storage sync delays, or cross-VM mempool imbalances.
 2. Slashing & Equivocation Risk: Setting up standby backup nodes without atomic distributed fencing creates severe double-signing risks. A split-second network partition can cause both primary and secondary nodes to sign identical BABE block slots, resulting in devastating 100% staking slashes.
 3. Decimal Inconsistencies & Staking Inefficiency: Substrate native POT uses 14 base decimals (Planck), whereas EVM contracts default to 18 decimals (Wei). This 10^4 scale discrepancy leads to severe accounting errors, while manual NPoS staking fails to dynamically optimize validator APY and compound rewards.
+4. Fragile Manual Runbooks & High-Pressure Incident Errors: When node lag, missed heartbeats, or network forks occur, operators currently rely on ad-hoc SSH sessions, custom bash scripts, and manual key rotations. Under stress, human operational errors frequently cause service downtime, keystore corruption, or accidental double-signing.
 
 
 [4. THE SOLUTION & CORE FEATURES]
@@ -38,16 +40,21 @@ DotNexus delivers an enterprise-grade industrial control center tailored for Por
 2. Automated Slashing Guard & Dead Man's Switch:
    Strict distributed lease invariants (Primary Self-Fence Timeout < Lease TTL < Standby Takeover Delay). Implements on-chain mutex fencing via smart contract to ensure only one validator holds signing authority at any given block slot.
 
-3. Dynamic Decimal Normalization Policy:
+3. Visual Automation Canvas & DAG Runbook Orchestrator:
+   An interactive, flow-based visual workflow editor allowing operators to model, simulate, and execute multi-step operational runbooks with deterministic safety:
+   - Pre-engineered automated runbooks: "Zero-Downtime Standby Failover", "NPoS Dynamic Rebalance", "Emergency RPC Isolation", and "Cross-VM State Recovery".
+   - Step-by-step visual execution tracking with live status indicators, condition gating, and automated keystore rollback upon failure.
+
+4. Dynamic Decimal Normalization Policy:
    Automated cross-VM arithmetic converter reconciling 10^14 Planck with 10^18 Wei base units to ensure 100% balance consistency across Substrate and Solidity layers.
 
-4. NPoS Staking Optimizer & Auto-Compounding Vault:
+5. NPoS Staking Optimizer & Auto-Compounding Vault:
    Algorithmic selection of optimal 16 validators using deterministic Phragmén simulation. Automates yield rebalancing and compounding to maximize staking yield while mitigating validator slash exposure.
 
-5. RPC Shield & Threat Defense:
+6. RPC Shield & Threat Defense:
    Integrated reverse-proxy shield enforcing 256KB payload ceilings, JSON-RPC batch size limits, rate limiting, and automated IP quarantine against storage DoS attacks.
 
-6. Blueprint Grid Industrial UI:
+7. Blueprint Grid Industrial UI:
    High-density, low-latency control center built on React 19, Tailwind CSS, and Three.js 3D Cyber Mesh, engineered with sharp brutalist blueprints and zero generic AI slop.
 
 
@@ -75,7 +82,7 @@ Both core contracts have been deployed and verified on Portaldot Network V3.0 Of
 
 
 [6. CURRENT PROGRESS (MILESTONE 1 / CHECK-IN)]
-- 100% of core backend telemetry and security algorithms implemented in Python 3.11.
+- 100% of core backend telemetry, security algorithms, and DAG execution engine implemented in Python 3.11.
 - Full test suite passing: 173/173 unit tests (100% OK in tests/test_engine.py).
 - On-chain contracts successfully compiled, deployed, and state-verified on Testnet V3.
 - Full production frontend deployed and live on Vercel with zero TypeScript build errors.

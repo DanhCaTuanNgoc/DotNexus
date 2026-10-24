@@ -264,6 +264,7 @@ Thank you for building with Portaldot! @everyone
   - Causal Lag Index (CLI) root-cause isolation.
   - Dynamic decimal normalization (10^14 Planck vs 10^18 Wei).
   - Anti-slashing Dead Man's Switch simulation & Session Key Rotation.
+  - Visual Automation Canvas: Interactive DAG runbook orchestrator for incident remediation.
   - NPoS Top 16 validator recommendation & staking vault interface.
   - Cyberpunk Blueprint Grid industrial control plane.
 
@@ -299,10 +300,11 @@ Thank you for building with Portaldot! @everyone
 1. **Dual-VM Engine Telemetry & Causal Lag Index (CLI)**: Implemented real-time parallel telemetry between Substrate WASM (:9944) and Frontier/Revive EVM (:8545) with 3-tier root-cause classification.
 2. **Dynamic Decimals Policy Engine**: Fully resolved the cross-VM 10^14 vs 10^18 decimal discrepancy, guaranteeing accurate balances across both VMs.
 3. **Automated Slashing Guard & Dead Man's Switch**: Verified distributed lease invariants (`Primary Fence Timeout < Lease TTL < Standby Takeover Delay`) and deployed on-chain lease registry contract.
-4. **NPoS Validator Auto-Compounding Optimizer**: Algorithmic selection of optimal 16 validators using deterministic Phragmén simulation and automated yield rebalancing.
-5. **RPC Shield & Threat Defense**: Real-time rate limiting, payload inspection (256KB ceiling), batch size enforcement, and storage DoS mitigation.
-6. **Industrial Cyberpunk Control Plane (UI)**: Production React 19 frontend with Blueprint Grid architecture, sharp brutalist ergonomics, and interactive real-time visualizers.
-7. **Quality Assurance**: Complete standard unit test suite passing 173/173 tests (100% OK).
+4. **Visual Automation Canvas & DAG Runbook Orchestrator**: Flow-based operational runbook modeler enabling deterministic multi-step remediation ("Standby Failover", "RPC Isolation", "State Recovery") without fragile manual scripts.
+5. **NPoS Validator Auto-Compounding Optimizer**: Algorithmic selection of optimal 16 validators using deterministic Phragmén simulation and automated yield rebalancing.
+6. **RPC Shield & Threat Defense**: Real-time rate limiting, payload inspection (256KB ceiling), batch size enforcement, and storage DoS mitigation.
+7. **Industrial Cyberpunk Control Plane (UI)**: Production React 19 frontend with Blueprint Grid architecture, sharp brutalist ergonomics, and interactive real-time visualizers.
+8. **Quality Assurance**: Complete standard unit test suite passing 173/173 tests (100% OK).
 
 ---
 

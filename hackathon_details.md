@@ -227,3 +227,86 @@ Node Console: https://node-console.portaldot.dev/
 Please submit before the deadline!
 
 Thank you for building with Portaldot! @everyone
+
+
+---
+
+# DotNexus Check-in Submission Package (DoraHacks Milestone 1)
+
+> **Status**: Ready for submission on DoraHacks  
+> **Target Network**: Portaldot Network V3.0 (Substrate WASM + EVM Dual-VM)  
+> **Track**: Node Operations & Tooling  
+
+---
+
+### 1. Project Information
+- **Project Name**: DotNexus
+- **Track**: Node Operations & Tooling
+- **One-Sentence Overview**: The Visual Control Plane & Automated Security Operations Engine for Portaldot Network V3.0 Dual-VM (Substrate WASM + EVM).
+- **Core Value Proposition**: Solves the critical Dual-VM observability blind spot, prevents validator double-signing / equivocation slashing via smart contract leases, and automates NPoS staking yield optimization.
+
+---
+
+### 2. Public GitHub Repository
+- **Repository URL**: `https://github.com/DanhCaTuanNgoc/DotNexus`
+- **Repository Compliance**:
+  - Publicly accessible.
+  - Complete technical README with architecture diagrams and mathematical formalisms.
+  - Rigorous test suite: 173/173 unit tests passing (`tests/test_engine.py`).
+  - SpecKit structured engineering workflows and continuous commit history throughout the hackathon period.
+
+---
+
+### 3. Live Demo / Web3 DApp Link
+- **Live Production URL**: `https://dotnexus-hackerhouse.vercel.app`
+- **Features Demonstrable Live**:
+  - Live Dual-VM Telemetry conduit (WASM block vs EVM block).
+  - Causal Lag Index (CLI) root-cause isolation.
+  - Dynamic decimal normalization (10^14 Planck vs 10^18 Wei).
+  - Anti-slashing Dead Man's Switch simulation & Session Key Rotation.
+  - NPoS Top 16 validator recommendation & staking vault interface.
+  - Cyberpunk Blueprint Grid industrial control plane.
+
+---
+
+### 4. Portaldot Testnet V3.0 Deployment Evidence
+
+| Parameter | Value |
+| :--- | :--- |
+| **Network** | Portaldot Network V3.0 Official Testnet |
+| **Substrate WebSocket RPC** | `wss://test-node-v3.portaldot.dev` |
+| **EVM JSON-RPC** | `https://test-evm-rpc-v3.portaldot.dev` |
+| **EVM Chain ID** | `420420777` |
+| **SS58 Prefix** | `42` (Native Substrate address prefix) |
+| **Native Token Decimals** | `14` (1 POT = 10^14 base units / Planck) |
+| **Block Explorer** | `https://node-console.portaldot.dev/#/explorer` |
+
+#### Contract 1: SlashGuardLeaseRegistry.sol
+- **Contract Address**: `0xba114d21CC41a30880CcfA53673B743316387355`
+- **Deployment Tx Hash**: `0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f`
+- **Block Height**: `#147264` (Status: `0x1 Success`)
+- **Functional Role**: Distributed on-chain mutex registry and mutual exclusion fencing to strictly prevent validator double-signing and equivocation slashing across primary and standby nodes.
+
+#### Contract 2: DotNexusStakingVault.sol
+- **Contract Address**: `0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A`
+- **Deployment Tx Hash**: `0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb`
+- **Block Height**: `#147358` (Status: `0x1 Success`)
+- **Functional Role**: Non-custodial auto-compounding staking vault that automatically rebalances pooled stake across the Top 16 NPoS validators based on commission, slash risk, and optimal APY.
+
+---
+
+### 5. Current Project Progress (Completed Modules)
+1. **Dual-VM Engine Telemetry & Causal Lag Index (CLI)**: Implemented real-time parallel telemetry between Substrate WASM (:9944) and Frontier/Revive EVM (:8545) with 3-tier root-cause classification.
+2. **Dynamic Decimals Policy Engine**: Fully resolved the cross-VM 10^14 vs 10^18 decimal discrepancy, guaranteeing accurate balances across both VMs.
+3. **Automated Slashing Guard & Dead Man's Switch**: Verified distributed lease invariants (`Primary Fence Timeout < Lease TTL < Standby Takeover Delay`) and deployed on-chain lease registry contract.
+4. **NPoS Validator Auto-Compounding Optimizer**: Algorithmic selection of optimal 16 validators using deterministic Phragmén simulation and automated yield rebalancing.
+5. **RPC Shield & Threat Defense**: Real-time rate limiting, payload inspection (256KB ceiling), batch size enforcement, and storage DoS mitigation.
+6. **Industrial Cyberpunk Control Plane (UI)**: Production React 19 frontend with Blueprint Grid architecture, sharp brutalist ergonomics, and interactive real-time visualizers.
+7. **Quality Assurance**: Complete standard unit test suite passing 173/173 tests (100% OK).
+
+---
+
+### 6. Outstanding Items (Planned for Final Submission / Code Freeze)
+1. **Dual-VM Realtime Block Lockstep Stream**: Visual live feed comparing the 5 most recent blocks across WASM and EVM with mapping latency measurement directly on DualEngine.
+2. **Demo Video Production**: High-resolution 3-minute walkthrough demonstrating live interaction with Portaldot Testnet V3.
+3. **Pitch Deck & Final Documentation**: Finalize presentation slides for the Live Demo Day pitch session.

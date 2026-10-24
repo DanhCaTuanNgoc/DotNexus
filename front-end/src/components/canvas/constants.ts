@@ -1,4 +1,4 @@
-import { FlowHandleId, NodeCategory, NodeTemplate } from './types';
+import { CanvasEdge, CanvasNode, CanvasWorkflow, FlowHandleId, NodeCategory, NodeTemplate } from './types';
 
 export const NODE_WIDTH = 250;
 export const NODE_HEIGHT = 150;
@@ -548,3 +548,115 @@ export const DEFAULT_RUNBOOKS = [
     ]
   }
 ];
+
+
+/**
+ * Convert a preset Runbook into a structured CanvasWorkflow
+ */
+export function convertRunbookToWorkflow(rb: any): CanvasWorkflow {
+  const convertedNodes: CanvasNode[] = (rb.nodes || []).map((n: any, idx: number) => {
+    let cat: NodeCategory = 'INFRA';
+    const t = (n.type || '').toLowerCase();
+    const labelLower = (n.label || '').toLowerCase();
+
+    if (
+      t.includes('watch') || 
+      labelLower.includes('heartbeat') || 
+      labelLower.includes('scanner') || 
+      labelLower.includes('detector') || 
+      labelLower.includes('filter')
+    ) {
+      cat = 'WATCHER';
+    } else if (
+      t.includes('sec') || 
+      t.includes('mutex') || 
+      t.includes('lock') || 
+      labelLower.includes('mutex') || 
+      labelLower.includes('equivocation') || 
+      labelLower.includes('shield') || 
+      labelLower.includes('rate-limit')
+    ) {
+      cat = 'SECURITY';
+    } else if (
+      t.includes('stak') || 
+      t.includes('yield') || 
+      t.includes('bond') || 
+      labelLower.includes('compound') || 
+      labelLower.includes('top 16')
+    ) {
+      cat = 'STAKING';
+    } else if (
+      t.includes('chaos') ||
+      labelLower.includes('chaos') ||
+      labelLower.includes('cut') ||
+      labelLower.includes('ddos') ||
+      labelLower.includes('inject')
+    ) {
+      cat = 'CHAOS';
+    } else if (
+      t.includes('action') || 
+      t.includes('promot') || 
+      t.includes('alert') || 
+      labelLower.includes('standby') || 
+      labelLower.includes('bot')
+    ) {
+      cat = 'ACTION';
+    }
+
+    let matchedKind = n.id;
+    if (labelLower.includes('heartbeat') && !labelLower.includes('cut')) matchedKind = 'heartbeat_daemon';
+    else if (labelLower.includes('cut') || labelLower.includes('partition')) matchedKind = 'chaos_heartbeat_cut';
+    else if (labelLower.includes('ddos')) matchedKind = 'chaos_rpc_ddos';
+    else if (labelLower.includes('inject') || (labelLower.includes('lag') && !labelLower.includes('desync'))) matchedKind = 'chaos_evm_lag';
+    else if (labelLower.includes('mutex') || labelLower.includes('equivocation')) matchedKind = 'mutex_lock';
+    else if (labelLower.includes('standby')) matchedKind = 'promote_standby';
+    else if (labelLower.includes('substrate')) matchedKind = 'ws_substrate';
+    else if (labelLower.includes('evm')) matchedKind = 'evm_rpc';
+    else if (labelLower.includes('desync')) matchedKind = 'desync_detector';
+    else if (labelLower.includes('alert') || labelLower.includes('bot')) matchedKind = 'discord_alert';
+    else if (labelLower.includes('era')) matchedKind = 'era_scanner';
+    else if (labelLower.includes('top 16') || labelLower.includes('optimizer')) matchedKind = 'top_16_filter';
+    else if (labelLower.includes('compound') || labelLower.includes('bond')) matchedKind = 'compound_yield';
+    else if (labelLower.includes('shield') || labelLower.includes('rate-limit')) matchedKind = 'rpc_rate_limiter';
+
+    const posX = Number.isFinite(n?.position?.x) ? n.position.x : 80 + idx * 300;
+    const posY = Number.isFinite(n?.position?.y) ? n.position.y : 160;
+
+    return {
+      id: n.id,
+      type: n.type || 'infra',
+      position: { x: posX, y: posY },
+      data: {
+        kind: matchedKind,
+        category: cat,
+        label: n.label,
+        description: `Configured operational step: ${n.label}`,
+        status: 'idle',
+        config: { ...(n.data || {}) },
+      },
+    };
+  });
+
+  const convertedEdges: CanvasEdge[] = (rb.edges || []).map((e: any) => ({
+    id: e.id,
+    source: e.source,
+    target: e.target,
+    sourceHandle: e.sourceHandle || 'right',
+    targetHandle: e.targetHandle || 'left',
+    animated: e.animated !== false,
+    label: e.label || 'Trigger Flow',
+  }));
+
+  return {
+    id: rb.id,
+    name: rb.name,
+    description: rb.description || '',
+    category: rb.category || 'CUSTOM',
+    nodes: convertedNodes,
+    edges: convertedEdges,
+    viewport: { x: 30, y: 30, zoom: 0.88 },
+    isCustom: false,
+    status: rb.id === 'runbook-health-bot' ? 'ACTIVE' : 'ARMED',
+    updatedAt: Date.now(),
+  };
+}

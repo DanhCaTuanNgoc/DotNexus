@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   Zap, 
   Layers, 
@@ -35,6 +35,9 @@ import {
   ShieldStatus 
 } from '../services/api';
 import { TabType } from '../services/storage';
+import { InteractiveCanvas } from '../components/canvas/InteractiveCanvas';
+import { DEFAULT_RUNBOOKS, convertRunbookToWorkflow } from '../components/canvas/constants';
+import { CanvasNode, CanvasEdge, CanvasViewport } from '../components/canvas/types';
 
 interface LazySectionProps {
   id?: string;
@@ -200,345 +203,314 @@ const TECH_STACK_ITEMS: TechStackItem[] = [
   { name: 'POT Token (14 Decimals)', category: 'Native Utility', accent: '#E6007A', dotColor: 'bg-[#E6007A]' },
 ];
 
-interface DagStepInfo {
-  num: string;
-  category: string;
-  title: string;
-  desc: string;
-  target: string;
-  stateActive: string;
-  stateDone: string;
-  stateQueued: string;
-  accent: string;
-  glow: string;
-  badge: string;
-  borderActive: string;
-  bgActive: string;
-  logActive: string;
-  logDone: string;
-  timeOffset: string;
-}
-
-const DAG_MOCKUP_STEPS: DagStepInfo[] = [
-  {
-    num: '01',
-    category: 'WATCHER',
-    title: 'Substrate Heartbeat (:9944)',
-    desc: 'Listens to WebSocket block headers. Triggers when missed pings >= 2 blocks.',
-    target: 'Primary Validator Server',
-    stateActive: 'FIRING TRIGGER (Missed Ping >= 2)',
-    stateDone: 'TRIGGER DETECTED (Delta: +2)',
-    stateQueued: 'MONITORING WS STREAM',
-    accent: '#E6007A',
-    glow: 'rgba(230, 0, 122, 0.25)',
-    badge: 'bg-[#E6007A]/20 text-[#E6007A] border-[#E6007A]/40',
-    borderActive: 'border-[#E6007A]',
-    bgActive: 'bg-[#220B19]',
-    logActive: 'Substrate WS (:9944) missed 2 consecutive blocks. Initializing failover DAG.',
-    logDone: 'WATCHER fired trigger [MISSED_BLOCK >= 2]. Routing execution token to Mutex.',
-    timeOffset: '+0.00s',
-  },
-  {
-    num: '02',
-    category: 'SECURITY',
-    title: 'Anti-Equivocation Mutex',
-    desc: 'Atomically revokes primary keystore lease before standby promotion.',
-    target: 'Atomic Fencing Registry',
-    stateActive: 'REVOKING LEASE (Atomic Fence)',
-    stateDone: 'LEASE REVOKED (0% Slashing)',
-    stateQueued: 'ATOMIC MUTEX ARMED',
-    accent: '#8B5CF6',
-    glow: 'rgba(139, 92, 246, 0.25)',
-    badge: 'bg-[#8B5CF6]/20 text-[#C084FC] border-[#8B5CF6]/40',
-    borderActive: 'border-[#8B5CF6]',
-    bgActive: 'bg-[#18102E]',
-    logActive: 'Executing atomic mutex revocation on key 0xba11...7355. Self-fence active.',
-    logDone: 'Primary lease successfully revoked. Invariant 10s < 12s < 15s satisfied.',
-    timeOffset: '+0.14s',
-  },
-  {
-    num: '03',
-    category: 'ACTION',
-    title: 'Standby Failover (:9945)',
-    desc: 'Binds local keystore and promotes standby validator in < 412ms.',
-    target: 'Standby Validator Node',
-    stateActive: 'PROMOTING AUTHOR (< 412ms)',
-    stateDone: 'STANDBY ACTIVE (Authoring)',
-    stateQueued: 'HOT STANDBY READY',
-    accent: '#10B981',
-    glow: 'rgba(16, 185, 129, 0.25)',
-    badge: 'bg-[#10B981]/20 text-[#10B981] border-[#10B981]/40',
-    borderActive: 'border-[#10B981]',
-    bgActive: 'bg-[#0A1F18]',
-    logActive: 'Binding authority session keys to standby node :9945. Generating proof.',
-    logDone: 'Standby promoted to primary validator. Authoring block production resumed.',
-    timeOffset: '+0.42s',
-  },
-  {
-    num: '04',
-    category: 'TELEMETRY',
-    title: 'Cluster Dispatch & SRE Sync',
-    desc: 'Broadcasts webhook alert, updates Grafana, and validates 0 delta.',
-    target: 'Discord Webhook & Metrics',
-    stateActive: 'DISPATCHING INCIDENT ALERT',
-    stateDone: 'CLUSTER SYNCED (0 Delta)',
-    stateQueued: 'DISPATCH LISTENING',
-    accent: '#38BDF8',
-    glow: 'rgba(56, 189, 248, 0.25)',
-    badge: 'bg-[#38BDF8]/20 text-[#38BDF8] border-[#38BDF8]/40',
-    borderActive: 'border-[#38BDF8]',
-    bgActive: 'bg-[#081824]',
-    logActive: 'Broadcasting incident resolution to SRE webhook & updating Prometheus metric.',
-    logDone: 'Failover runbook complete in 582ms. Dual-VM synchronicity 100% lockstep.',
-    timeOffset: '+0.58s',
-  },
-];
-
 /**
- * Zeabur-inspired Interactive Visual Board with Live Node Animation Mockup
- * Simulates real-time DAG execution, animated laser conduits, active states, and terminal logs.
+ * Real Visual Board Mockup for LandingPage.tsx
+ * Directly incorporates the actual InteractiveCanvas and NodeCard system from CanvasBoard.tsx.
+ * Uses the canonical 'runbook-slash-guard' preset (Heartbeat Daemon -> Anti-Equivocation Lock -> Standby Failover).
  */
-const DagAnimationMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> = ({ onLaunchApp }) => {
-  const [activeStep, setActiveStep] = useState(0);
-  const [cycleCount, setCycleCount] = useState(1);
-  const [isPaused, setIsPaused] = useState(false);
+const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> = ({ onLaunchApp }) => {
+  // Use canonical 'runbook-slash-guard' from DEFAULT_RUNBOOKS (simple 3-node linear topology)
+  const initialWorkflow = useMemo(() => {
+    const raw = DEFAULT_RUNBOOKS.find((rb) => rb.id === 'runbook-slash-guard') || DEFAULT_RUNBOOKS[0];
+    const wf = convertRunbookToWorkflow(raw);
+    // Align node positions nicely for horizontal preview
+    const adjustedNodes = wf.nodes.map((node, idx) => ({
+      ...node,
+      position: {
+        x: 60 + idx * 320,
+        y: 80,
+      },
+    }));
+    return { ...wf, nodes: adjustedNodes };
+  }, []);
 
+  const [nodes, setNodes] = useState<CanvasNode[]>(initialWorkflow.nodes);
+  const [edges, setEdges] = useState<CanvasEdge[]>(initialWorkflow.edges);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [activeEdgeId, setActiveEdgeId] = useState<string | null>(null);
+  const [completedEdgeIds, setCompletedEdgeIds] = useState<string[]>([]);
+  const [execStep, setExecStep] = useState<number>(0);
+  const [cycleCount, setCycleCount] = useState<number>(1);
+  const [viewport, setViewport] = useState<CanvasViewport>({ x: 25, y: 25, zoom: 0.88 });
+
+  // Real-time DAG execution simulation loop
+  const runSimulation = useCallback(async () => {
+    if (isExecuting) return;
+    setIsExecuting(true);
+    setActiveEdgeId(null);
+    setCompletedEdgeIds([]);
+    setExecStep(0);
+
+    // Reset all nodes to idle
+    setNodes((prev) => prev.map((n) => ({ ...n, data: { ...n.data, status: 'idle' } })));
+
+    // Step 1: Heartbeat Daemon (:9944) Running
+    await new Promise((r) => setTimeout(r, 400));
+    setExecStep(1);
+    setNodes((prev) =>
+      prev.map((n, i) => (i === 0 ? { ...n, data: { ...n.data, status: 'running' } } : n))
+    );
+
+    // Step 2: Edge 1 Active -> Node 1 Success, Node 2 Running
+    await new Promise((r) => setTimeout(r, 1100));
+    setActiveEdgeId('e1-2');
+    await new Promise((r) => setTimeout(r, 450));
+    setExecStep(2);
+    setCompletedEdgeIds(['e1-2']);
+    setActiveEdgeId(null);
+    setNodes((prev) =>
+      prev.map((n, i) => {
+        if (i === 0) return { ...n, data: { ...n.data, status: 'success' } };
+        if (i === 1) return { ...n, data: { ...n.data, status: 'running' } };
+        return n;
+      })
+    );
+
+    // Step 3: Edge 2 Active -> Node 2 Success, Node 3 Running
+    await new Promise((r) => setTimeout(r, 1100));
+    setActiveEdgeId('e2-3');
+    await new Promise((r) => setTimeout(r, 450));
+    setExecStep(3);
+    setCompletedEdgeIds(['e1-2', 'e2-3']);
+    setActiveEdgeId(null);
+    setNodes((prev) =>
+      prev.map((n, i) => {
+        if (i === 0) return { ...n, data: { ...n.data, status: 'success' } };
+        if (i === 1) return { ...n, data: { ...n.data, status: 'success' } };
+        if (i === 2) return { ...n, data: { ...n.data, status: 'running' } };
+        return n;
+      })
+    );
+
+    // Step 4: Node 3 Success -> Complete!
+    await new Promise((r) => setTimeout(r, 1100));
+    setExecStep(4);
+    setNodes((prev) =>
+      prev.map((n) => ({ ...n, data: { ...n.data, status: 'success' } }))
+    );
+    setIsExecuting(false);
+    setCycleCount((c) => c + 1);
+  }, [isExecuting]);
+
+  // Support dragging nodes inside the mockup
+  const handleMoveNodes = useCallback((nodeIds: string[], delta: { x: number; y: number }) => {
+    const moving = new Set(nodeIds);
+    setNodes((curr) =>
+      curr.map((n) => {
+        if (!moving.has(n.id)) return n;
+        return {
+          ...n,
+          position: {
+            x: Math.round((n.position?.x ?? 0) + delta.x),
+            y: Math.round((n.position?.y ?? 0) + delta.y),
+          },
+        };
+      })
+    );
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setNodes(initialWorkflow.nodes);
+    setEdges(initialWorkflow.edges);
+    setActiveEdgeId(null);
+    setCompletedEdgeIds([]);
+    setSelectedNodeId(null);
+    setViewport({ x: 25, y: 25, zoom: 0.88 });
+    runSimulation();
+  }, [initialWorkflow, runSimulation]);
+
+  // Auto-play once on initial mount
   useEffect(() => {
-    if (isPaused) return;
+    const timer = setTimeout(() => {
+      runSimulation();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
-    const timer = setInterval(() => {
-      setActiveStep((prev) => {
-        if (prev >= DAG_MOCKUP_STEPS.length - 1) {
-          setCycleCount((c) => c + 1);
-          return 0;
-        }
-        return prev + 1;
-      });
-    }, 2500);
-
-    return () => clearInterval(timer);
-  }, [isPaused]);
+  const traceLogs = [
+    {
+      step: 1,
+      tag: 'WATCHER',
+      accent: '#E6007A',
+      activeText: 'Heartbeat Daemon: WebSocket (:9944) delta >= 2 blks -> Evaluating trigger condition',
+      doneText: 'Heartbeat Daemon: Missed ping detected (delta: 2 blocks) -> Fired execution token to Mutex Lock',
+    },
+    {
+      step: 2,
+      tag: 'SECURITY',
+      accent: '#8B5CF6',
+      activeText: 'Anti-Equivocation Mutex: Initiating atomic self-fence for primary key 0xba11...7355',
+      doneText: 'Anti-Equivocation Mutex: Primary authority lease revoked atomically. Invariant 10s < 12s < 15s satisfied (0% slashing loss)',
+    },
+    {
+      step: 3,
+      tag: 'ACTION',
+      accent: '#10B981',
+      activeText: 'Standby Promotion: Transferring session authority lease to standby node IP ws://127.0.0.1:9945',
+      doneText: 'Standby Promotion: Standby validator successfully promoted to primary author (Latency: 388ms, 0 delta)',
+    },
+  ];
 
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-[#090518]/90 backdrop-blur-md shadow-2xl overflow-hidden relative">
+    <div className="rounded-2xl border border-white/[0.08] bg-[#080514]/95 backdrop-blur-md shadow-2xl overflow-hidden relative">
       {/* Corner Blueprint Crosshairs (+) */}
-      <span className="pointer-events-none absolute top-2 left-2 font-mono text-[9px] text-zinc-600 select-none">+</span>
-      <span className="pointer-events-none absolute top-2 right-2 font-mono text-[9px] text-zinc-600 select-none">+</span>
-      <span className="pointer-events-none absolute bottom-2 left-2 font-mono text-[9px] text-zinc-600 select-none">+</span>
-      <span className="pointer-events-none absolute bottom-2 right-2 font-mono text-[9px] text-zinc-600 select-none">+</span>
+      <span className="pointer-events-none absolute top-2 left-2 font-mono text-[9px] text-zinc-600 select-none z-30">+</span>
+      <span className="pointer-events-none absolute top-2 right-2 font-mono text-[9px] text-zinc-600 select-none z-30">+</span>
+      <span className="pointer-events-none absolute bottom-2 left-2 font-mono text-[9px] text-zinc-600 select-none z-30">+</span>
+      <span className="pointer-events-none absolute bottom-2 right-2 font-mono text-[9px] text-zinc-600 select-none z-30">+</span>
 
       {/* Top Window Control Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-white/[0.08] bg-[#06030F]/90">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-white/[0.08] bg-[#05030C]">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]/80" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]/80" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
           </div>
           <span className="text-zinc-600 text-xs font-mono">|</span>
           <div className="flex items-center gap-2 text-xs font-mono">
             <Workflow className="w-3.5 h-3.5 text-[#C084FC]" />
-            <span className="text-white font-bold tracking-wide">RUNBOOK // RB-001: AUTOMATED_2_BLOCK_FAILOVER.dag</span>
+            <span className="text-white font-bold tracking-wide">CANVAS RUNBOOK: {initialWorkflow.name}</span>
+            <span className="hidden md:inline-block text-[10px] px-1.5 py-0.5 rounded bg-[#8B5CF6]/20 text-[#C084FC] border border-[#8B5CF6]/30 uppercase font-mono">
+              3 NODES • 2 WIRES
+            </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 font-mono text-xs">
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-            <span>CYCLE #{cycleCount} • STEP 0{activeStep + 1}/04</span>
+            <span>{isExecuting ? `SIMULATING STEP 0${execStep}/03` : `CYCLE #${cycleCount} • READY`}</span>
           </div>
 
           <button
-            onClick={() => setIsPaused(!isPaused)}
-            className="px-2.5 py-1 rounded bg-[#110A24] hover:bg-[#180F33] border border-white/[0.08] text-zinc-300 text-[10px] flex items-center gap-1 transition-colors cursor-pointer"
-            title={isPaused ? 'Resume Simulation' : 'Pause Simulation'}
+            onClick={runSimulation}
+            disabled={isExecuting}
+            className={`px-3 py-1 rounded text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              isExecuting
+                ? 'bg-[#181028] border border-[#8B5CF6]/40 text-[#C084FC] animate-pulse cursor-wait'
+                : 'bg-[#8B5CF6] hover:bg-[#7C3AED] text-white shadow-md shadow-[#8B5CF6]/25 hover:scale-[1.02]'
+            }`}
           >
-            {isPaused ? <Play className="w-3 h-3 text-emerald-400" /> : <Clock className="w-3 h-3 text-zinc-400" />}
-            <span>{isPaused ? 'RESUME' : 'PAUSE'}</span>
+            <Play className={`w-3 h-3 fill-current ${isExecuting ? 'animate-pulse' : ''}`} />
+            <span>{isExecuting ? 'Executing...' : 'Run Pipeline'}</span>
           </button>
 
           <button
-            onClick={() => {
-              setActiveStep(0);
-              setCycleCount((c) => c + 1);
-            }}
-            className="px-2.5 py-1 rounded bg-[#110A24] hover:bg-[#180F33] border border-white/[0.08] text-zinc-300 text-[10px] flex items-center gap-1 transition-colors cursor-pointer"
-            title="Restart Runbook Simulation"
+            onClick={handleReset}
+            className="p-1.5 rounded bg-[#110A24] hover:bg-[#180F33] border border-white/[0.08] text-zinc-300 hover:text-white transition-colors cursor-pointer"
+            title="Reset Topology to Default"
           >
-            <RotateCcw className="w-3 h-3 text-[#C084FC]" />
-            <span>REPLAY</span>
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Main Visual Board Surface */}
-      <div className="p-4 sm:p-6 space-y-5 bg-[#06030F] cyber-grid relative">
-        {/* Dynamic Nodes Grid with Animated Connectors */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5 relative">
-          {DAG_MOCKUP_STEPS.map((step, idx) => {
-            const isCurrent = idx === activeStep;
-            const isDone = idx < activeStep;
-            const isQueued = idx > activeStep;
+      {/* Actual InteractiveCanvas Component from CanvasBoard */}
+      <div className="relative h-[360px] sm:h-[400px] w-full bg-[#06030D] overflow-hidden">
+        <InteractiveCanvas
+          nodes={nodes}
+          edges={edges}
+          selectedNodeId={selectedNodeId}
+          violatedNodeIds={[]}
+          onMoveNodes={handleMoveNodes}
+          onConnect={() => {}}
+          onEdgesChange={setEdges}
+          onSelectNode={setSelectedNodeId}
+          onDropTemplate={() => {}}
+          initialViewport={viewport}
+          onViewportChange={setViewport}
+          flowConnectMode={true}
+          isExecuting={isExecuting}
+          activeEdgeId={activeEdgeId}
+          completedEdgeIds={completedEdgeIds}
+        />
+
+        {/* Interactive Floating Hint Pill */}
+        <div className="absolute bottom-3 left-3 z-30 pointer-events-none px-2.5 py-1 rounded-lg bg-[#0E081F]/90 border border-white/[0.08] text-[10px] font-mono text-zinc-400 backdrop-blur-sm flex items-center gap-2 shadow-lg">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D]" />
+          <span>Interactive Canvas: Pan (drag background) • Move nodes • Click to inspect</span>
+        </div>
+      </div>
+
+      {/* Live Terminal Log Drawer Beneath the Canvas */}
+      <div className="p-3.5 sm:p-4 border-t border-white/[0.08] bg-[#05020C] font-mono text-[11px] space-y-1.5 shadow-inner">
+        <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.06] text-zinc-500 text-[10px]">
+          <div className="flex items-center gap-1.5">
+            <Terminal className="w-3.5 h-3.5 text-[#C084FC]" />
+            <span className="text-zinc-300 font-bold uppercase tracking-wider">LIVE EXECUTION TRACE</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-emerald-400 font-bold">ZERO EQUIVOCATION INVARIANT SATISFIED</span>
+            <span className="text-zinc-600">•</span>
+            <span className="text-zinc-400">FAILOVER LATENCY: &lt; 388ms</span>
+          </div>
+        </div>
+
+        <div className="space-y-1 pt-1 font-mono">
+          {traceLogs.map((log) => {
+            const isCurrent = execStep === log.step;
+            const isDone = execStep > log.step;
 
             return (
               <div
-                key={step.num}
-                onClick={() => setActiveStep(idx)}
-                className={`relative p-4 rounded-xl border transition-all duration-300 cursor-pointer select-none group ${
+                key={log.step}
+                className={`flex items-start gap-2 py-0.5 px-2 rounded transition-colors ${
                   isCurrent
-                    ? `${step.borderActive} ${step.bgActive} shadow-lg ring-2 ring-white/[0.1]`
+                    ? 'bg-[#180F33] text-white font-semibold'
                     : isDone
-                    ? 'border-emerald-500/30 bg-[#0A1813]/80 hover:border-emerald-500/50'
-                    : 'border-white/[0.06] bg-[#0E091E]/60 opacity-60 hover:opacity-90 hover:border-white/[0.15]'
+                    ? 'text-emerald-400/90'
+                    : 'text-zinc-600'
                 }`}
-                style={isCurrent ? { boxShadow: `0 0 24px ${step.glow}` } : undefined}
               >
-                {/* Connector Laser Stream to Next Node (Desktop only) */}
-                {idx < DAG_MOCKUP_STEPS.length - 1 && (
-                  <div className="hidden md:block absolute -right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-[2px] z-20 pointer-events-none">
-                    <div
-                      className={`w-full h-full transition-colors duration-300 ${
-                        idx < activeStep
-                          ? 'bg-emerald-400 shadow-[0_0_8px_#10B981]'
-                          : idx === activeStep
-                          ? 'bg-gradient-to-r from-[#8B5CF6] to-emerald-400 animate-pulse'
-                          : 'bg-white/[0.08]'
-                      }`}
-                    />
-                  </div>
+                <span className="text-zinc-500 tabular-nums">[STEP 0{log.step}]</span>
+                <span className="font-bold uppercase tracking-wider text-[10px]" style={{ color: log.accent }}>
+                  {log.tag}
+                </span>
+                <span className="text-zinc-500">→</span>
+                <span className="flex-1">
+                  {isDone ? log.doneText : isCurrent ? log.activeText : `[QUEUED] Waiting for upstream token...`}
+                </span>
+                {isCurrent && (
+                  <span className="text-emerald-400 animate-pulse font-bold text-[10px]">[EXECUTING]</span>
                 )}
-
-                {/* Node Header */}
-                <div className="flex items-center justify-between mb-2.5">
-                  <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full border font-bold ${
-                    isCurrent ? step.badge : isDone ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-white/[0.04] text-zinc-500 border-white/[0.06]'
-                  }`}>
-                    STEP {step.num} // {step.category}
-                  </span>
-
-                  <div className="flex items-center gap-1.5">
-                    {isCurrent && (
-                      <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: step.accent }} />
-                    )}
-                    {isDone && (
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    )}
-                    {isQueued && (
-                      <CircleDot className="w-3 h-3 text-zinc-600" />
-                    )}
-                  </div>
-                </div>
-
-                {/* Node Title & Description */}
-                <div className="space-y-1">
-                  <div className={`text-xs font-bold font-mono transition-colors ${
-                    isCurrent ? 'text-white' : isDone ? 'text-zinc-200' : 'text-zinc-400'
-                  }`}>
-                    {step.title}
-                  </div>
-                  <div className="text-[11px] text-zinc-400 leading-relaxed font-sans">
-                    {step.desc}
-                  </div>
-                </div>
-
-                {/* Live State Micro-Bar */}
-                <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-zinc-500">STATE:</span>
-                  <span className={`font-bold tabular-nums ${
-                    isCurrent ? 'text-white animate-pulse' : isDone ? 'text-emerald-400' : 'text-zinc-500'
-                  }`}>
-                    {isCurrent ? step.stateActive : isDone ? step.stateDone : step.stateQueued}
-                  </span>
-                </div>
-
-                {/* Timing Marker */}
-                <div className="text-[9px] font-mono text-zinc-500 flex justify-between mt-1">
-                  <span>Target: {step.target}</span>
-                  <span className="tabular-nums">{step.timeOffset}</span>
-                </div>
+                {isDone && (
+                  <span className="text-emerald-400 font-bold text-[10px]">[OK]</span>
+                )}
               </div>
             );
           })}
         </div>
+      </div>
 
-        {/* Live Execution Log Console (Terminal Drawer) */}
-        <div className="p-3.5 rounded-xl border border-white/[0.08] bg-[#05020C] font-mono text-[11px] space-y-1.5 shadow-inner">
-          <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.06] text-zinc-500 text-[10px]">
-            <div className="flex items-center gap-1.5">
-              <Terminal className="w-3.5 h-3.5 text-[#C084FC]" />
-              <span className="text-zinc-300 font-bold uppercase tracking-wider">LIVE EXECUTION TRACE</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-emerald-400 font-bold">ALL INVARIANTS SATISFIED</span>
-              <span className="text-zinc-600">•</span>
-              <span className="text-zinc-400">LATENCY: 582ms TOTAL</span>
-            </div>
-          </div>
-
-          <div className="space-y-1 pt-1 font-mono">
-            {DAG_MOCKUP_STEPS.map((step, idx) => {
-              const isCurrent = idx === activeStep;
-              const isDone = idx < activeStep;
-
-              return (
-                <div
-                  key={step.num}
-                  className={`flex items-start gap-2 py-0.5 px-2 rounded transition-colors ${
-                    isCurrent
-                      ? 'bg-[#180F33] text-white font-semibold'
-                      : isDone
-                      ? 'text-emerald-400/90'
-                      : 'text-zinc-600'
-                  }`}
-                >
-                  <span className="text-zinc-500 tabular-nums">[{step.timeOffset}]</span>
-                  <span className="font-bold uppercase tracking-wider text-[10px]" style={{ color: step.accent }}>
-                    {step.category}
-                  </span>
-                  <span className="text-zinc-500">→</span>
-                  <span className="flex-1">
-                    {isDone ? step.logDone : isCurrent ? step.logActive : `[QUEUED] ${step.title}`}
-                  </span>
-                  {isCurrent && (
-                    <span className="text-emerald-400 animate-pulse font-bold text-[10px]">[EXECUTING]</span>
-                  )}
-                  {isDone && (
-                    <span className="text-emerald-400 font-bold text-[10px]">[OK]</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+      {/* Bottom Action Strip */}
+      <div className="px-4 sm:px-6 py-3 border-t border-white/[0.06] bg-[#06030F] flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-zinc-400">
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+            <span>Full Bi-directional Bezier Wire Routing</span>
+          </span>
+          <span className="hidden sm:inline text-zinc-600">•</span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6]" />
+            <span>Real-time Port Snap Connection</span>
+          </span>
+          <span className="hidden sm:inline text-zinc-600">•</span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
+            <span>Exportable to Standby Python CLI</span>
+          </span>
         </div>
 
-        {/* Bottom Action Strip */}
-        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/[0.06]">
-          <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-zinc-400">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
-              <span>Zero-Equivocation Slashing Guarantee</span>
-            </span>
-            <span className="hidden sm:inline text-zinc-600">•</span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6]" />
-              <span>&lt; 800ms Failover Latency</span>
-            </span>
-            <span className="hidden sm:inline text-zinc-600">•</span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
-              <span>Topological DAG Sorter</span>
-            </span>
-          </div>
-
-          <button
-            onClick={() => onLaunchApp('canvas')}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-mono rounded-lg border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-md shadow-[#8B5CF6]/20 cursor-pointer hover:scale-[1.02]"
-          >
-            <Workflow className="w-3.5 h-3.5" />
-            <span>Open Full Interactive Canvas</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        <button
+          onClick={() => onLaunchApp('canvas')}
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 text-xs font-mono rounded-lg border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-md shadow-[#8B5CF6]/20 cursor-pointer hover:scale-[1.02]"
+        >
+          <Workflow className="w-3.5 h-3.5" />
+          <span>Open Full Studio Canvas</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );
@@ -1116,7 +1088,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Interactive Visual Board with Animated Running Nodes Mockup */}
-          <DagAnimationMockupBoard onLaunchApp={onLaunchApp} />
+          <RealCanvasMockupBoard onLaunchApp={onLaunchApp} />
         </div>
       </LazySection>
 

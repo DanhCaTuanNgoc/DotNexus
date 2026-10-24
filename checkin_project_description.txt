@@ -1,0 +1,81 @@
+================================================================================
+DOTNEXUS — PROJECT DESCRIPTION (DORAHACKS CHECK-IN SUBMISSION)
+================================================================================
+
+[1. BASIC INFORMATION]
+Project Name: DotNexus
+Track: Node Operations & Tooling
+Target Network: Portaldot Network V3.0 (Substrate WASM + EVM Dual-VM)
+Live Demo URL: https://dotnexus-hackerhouse.vercel.app
+GitHub Repository: https://github.com/DanhCaTuanNgoc/DotNexus
+
+
+[2. ONE-SENTENCE SUMMARY]
+DotNexus is the visual control plane and automated security operations engine built specifically for Portaldot Network V3.0, solving the critical Dual-VM (Substrate WASM + EVM) observability blind spot, preventing validator equivocation slashing, and automating NPoS yield rebalancing.
+
+
+[3. THE PROBLEM WE SOLVE]
+Portaldot Network V3.0 introduces high-performance EVM execution alongside native Substrate WASM consensus. However, running production nodes on this dual architecture introduces three critical operational challenges:
+
+1. The Dual-VM Blind Spot: Existing explorers (such as Polkadot-js) only inspect the Substrate consensus layer and are completely blind to the underlying EVM (Frontier / Pallet-Revive) state. Node operators have no unified visibility into block lockstep parity, EVM storage sync delays, or cross-VM mempool imbalances.
+2. Slashing & Equivocation Risk: Setting up standby backup nodes without atomic distributed fencing creates severe double-signing risks. A split-second network partition can cause both primary and secondary nodes to sign identical BABE block slots, resulting in devastating 100% staking slashes.
+3. Decimal Inconsistencies & Staking Inefficiency: Substrate native POT uses 14 base decimals (Planck), whereas EVM contracts default to 18 decimals (Wei). This 10^4 scale discrepancy leads to severe accounting errors, while manual NPoS staking fails to dynamically optimize validator APY and compound rewards.
+
+
+[4. THE SOLUTION & CORE FEATURES]
+DotNexus delivers an enterprise-grade industrial control center tailored for Portaldot node operators, validators, and institutional stakers:
+
+1. Dual-VM Telemetry & Causal Lag Index (CLI):
+   Real-time parallel telemetry continuously comparing Substrate WASM (:9944) and EVM JSON-RPC (:8545). Evaluates cross-VM block delta, latency skew, and mempool ratios to compute the Causal Lag Index (0-100 score) with 3-tier root-cause classification (P2P stall vs. DB mapping lock vs. gas saturation).
+
+2. Automated Slashing Guard & Dead Man's Switch:
+   Strict distributed lease invariants (Primary Self-Fence Timeout < Lease TTL < Standby Takeover Delay). Implements on-chain mutex fencing via smart contract to ensure only one validator holds signing authority at any given block slot.
+
+3. Dynamic Decimal Normalization Policy:
+   Automated cross-VM arithmetic converter reconciling 10^14 Planck with 10^18 Wei base units to ensure 100% balance consistency across Substrate and Solidity layers.
+
+4. NPoS Staking Optimizer & Auto-Compounding Vault:
+   Algorithmic selection of optimal 16 validators using deterministic Phragmén simulation. Automates yield rebalancing and compounding to maximize staking yield while mitigating validator slash exposure.
+
+5. RPC Shield & Threat Defense:
+   Integrated reverse-proxy shield enforcing 256KB payload ceilings, JSON-RPC batch size limits, rate limiting, and automated IP quarantine against storage DoS attacks.
+
+6. Blueprint Grid Industrial UI:
+   High-density, low-latency control center built on React 19, Tailwind CSS, and Three.js 3D Cyber Mesh, engineered with sharp brutalist blueprints and zero generic AI slop.
+
+
+[5. TESTNET V3 DEPLOYMENT EVIDENCE]
+Both core contracts have been deployed and verified on Portaldot Network V3.0 Official Testnet:
+
+* Network Details:
+  - Substrate RPC: wss://test-node-v3.portaldot.dev
+  - EVM JSON-RPC: https://test-evm-rpc-v3.portaldot.dev
+  - EVM Chain ID: 420420777
+  - SS58 Format: 42
+  - Native Decimals: 14 (POT)
+
+* Core Contract 1: SlashGuardLeaseRegistry.sol
+  - Contract Address: 0xba114d21CC41a30880CcfA53673B743316387355
+  - Deployment Tx: 0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f
+  - Block Height: #147264 (Status: 0x1 Success)
+  - Purpose: Distributed on-chain mutex registry preventing dual-instance validator equivocation.
+
+* Core Contract 2: DotNexusStakingVault.sol
+  - Contract Address: 0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A
+  - Deployment Tx: 0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb
+  - Block Height: #147358 (Status: 0x1 Success)
+  - Purpose: Non-custodial auto-compounding vault with dynamic cross-VM validator rebalancing.
+
+
+[6. CURRENT PROGRESS (MILESTONE 1 / CHECK-IN)]
+- 100% of core backend telemetry and security algorithms implemented in Python 3.11.
+- Full test suite passing: 173/173 unit tests (100% OK in tests/test_engine.py).
+- On-chain contracts successfully compiled, deployed, and state-verified on Testnet V3.
+- Full production frontend deployed and live on Vercel with zero TypeScript build errors.
+
+
+[7. NEXT STEPS TOWARD FINAL SUBMISSION]
+- Integrate the visual Dual-VM Realtime Block Lockstep Stream (5-block conduit) into DualEngineView.
+- Record high-resolution 3-minute video walkthrough demonstrating live Testnet V3 interaction.
+- Complete pitch deck presentation for Live Demo Day.
+================================================================================

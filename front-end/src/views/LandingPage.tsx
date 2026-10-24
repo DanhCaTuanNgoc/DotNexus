@@ -625,7 +625,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/30 hover:scale-[1.02] cursor-pointer"
             >
               <Zap className="w-4 h-4 fill-white" />
-              <span>Launch Live Control Center</span>
+              <span>Launch Live Console</span>
             </button>
 
             <a

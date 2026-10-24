@@ -262,7 +262,7 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
                     : 'text-zinc-400 hover:text-zinc-200 border border-transparent hover:border-[#4C2889] hover:bg-[#1A0E38]'
                 }`}
               >
-                {tab === 'DAG' ? 'DAG Runbook' : tab}
+                {tab === 'DAG' ? 'Canvas' : tab}
               </button>
             ))}
           </div>

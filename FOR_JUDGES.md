@@ -8,7 +8,7 @@
 
 ## ⚡ 60-Second Verification Guide (For Judges)
 
-### 1. Run Comprehensive Engine Test Suite (10/10 Tests Passed)
+### 1. Run Comprehensive Engine Test Suite (173/173 Tests Passed)
 Validate all core functions, including Dual-VM telemetry, `session.setKeys` rotation, anti-equivocation mutex locking, NPoS APY compounding boost, and heavy `eth_getLogs` attack neutralization:
 ```bash
 python -m unittest tests/test_engine.py
@@ -61,7 +61,7 @@ Open browser at `http://localhost:5173`.
 
 | Pillar | Functional Requirement | Implementation & File Reference | Verification Method |
 |---|---|---|---|
-| **1. Dual-Engine 2.0 Control Plane** | Live Substrate WS (:9944) & EVM (:8545) block parity, 1-Click Active Remediation Dock, 4-Track Ecosystem Pulse Radar, Causal Lag Index (CLI), Mainnet V3 Storage Deposit Auditor | `engine/dual_tracker.py`<br/>`front-end/src/views/DualEngineView.tsx` | Run `python -m engine.cli dual-vm` or test `test_02_dual_tracker_telemetry` |
+| **1. Dual-Engine Control Plane** | Live Substrate WS (:9944) & EVM (:8545) block parity, DualBlockConduit optical lockstep stream, 1-Click Active SRE Remediation Dock, Causal Lag Index (CLI), Mainnet V3 Storage Deposit Auditor | `engine/dual_tracker.py`<br/>`front-end/src/views/DualEngineView.tsx` | Run `python -m engine.cli dual-vm` or test `test_02_dual_tracker_telemetry` |
 | **2. Slashing Guard** | `author_rotateKeys`, anti-equivocation file-lock, heartbeat standby failover | `engine/slash_guard.py`<br/>`front-end/src/views/SecurityGuardView.tsx` | Run `python -m engine.cli rotate-keys` or test `test_03`, `test_04`, `test_05` |
 | **3. NPoS Optimizer** | Multifactor validator scoring, oversubscribed filter, dynamic re-nomination (+1.16% APY boost) | `engine/npos_optimizer.py`<br/>`front-end/src/views/StakingYieldView.tsx` | Run `python -m engine.cli npos --top16` or test `test_06`, `test_07` |
 | **4. RPC Shield** | Deep query parser (block range > 2000), dynamic rate-limiting (429), P2P topology radar | `engine/rpc_shield.py`<br/>`front-end/src/views/TopologyRadarView.tsx` | Run `python -m engine.cli shield-test` or test `test_08`, `test_09` |

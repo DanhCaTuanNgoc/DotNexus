@@ -34,6 +34,8 @@ interface InteractiveCanvasProps {
   isExecuting?: boolean;
   activeEdgeId?: string | null;
   completedEdgeIds?: string[];
+  readOnly?: boolean;
+  hideToolbar?: boolean;
 }
 
 export const InteractiveCanvas = React.memo(function InteractiveCanvas({
@@ -55,6 +57,8 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   isExecuting = false,
   activeEdgeId = null,
   completedEdgeIds = [],
+  readOnly = false,
+  hideToolbar = false,
 }: InteractiveCanvasProps) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const [viewport, setViewport] = useState<CanvasViewport>(
@@ -185,6 +189,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   // Ultra-smooth Node Drag Handlers
   const startNodeDrag = useCallback(
     (event: PointerEvent<HTMLDivElement>, nodeId: string) => {
+      if (readOnly) return;
       if (event.button !== 0 || (event.target as HTMLElement).closest('[data-flow-handle]')) {
         return;
       }
@@ -259,6 +264,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   const panRafRef = useRef<number | null>(null);
 
   const startPan = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    if (readOnly) return;
     if (event.button !== 0 && event.button !== 1) return;
     const curVp = viewportRef.current || { x: 30, y: 30 };
     panRef.current = {
@@ -337,6 +343,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   // Wheel handler: Ctrl + Wheel to Zoom towards pointer; Normal Wheel to Pan board
   const zoomBoard = useCallback(
     (event: globalThis.WheelEvent) => {
+      if (readOnly) return;
       const rect = boardRef.current?.getBoundingClientRect();
       if (!rect) return;
 
@@ -400,7 +407,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   // Wire Connection Handlers
   const startConnection = useCallback(
     (event: PointerEvent<HTMLButtonElement>, nodeId: string, sourceHandle: FlowHandleId) => {
-      if (!flowConnectMode) return;
+      if (readOnly || !flowConnectMode) return;
       event.preventDefault();
       event.stopPropagation();
       const sourceNode = nodesById.get(nodeId);
@@ -487,11 +494,13 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
 
   // Template Drag & Drop
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    if (readOnly) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
   };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    if (readOnly) return;
     e.preventDefault();
     const templateData = e.dataTransfer.getData('application/dotnexus-node-template');
     if (!templateData) return;
@@ -531,8 +540,9 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   return (
     <div
       ref={boardRef}
-      className={`flow-board ${isPanning ? 'is-panning' : ''}`}
+      className={`flow-board ${isPanning ? 'is-panning' : ''} ${readOnly ? 'is-readonly' : ''}`}
       onPointerDown={(event) => {
+        if (readOnly) return;
         // Do NOT cancel selection or start panning when clicking on the action dock or buttons
         if ((event.target as HTMLElement).closest('[role="toolbar"], .canvas-action-dock, button')) {
           return;
@@ -795,6 +805,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
       </div>
 
       {/* Floating Action Dock (Floated at bottom center of visual board) */}
+      {!hideToolbar && !readOnly && (
       <div 
         className="canvas-action-dock absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1.5 border border-[#3B2564] bg-[#0E071F]/95 backdrop-blur-md shadow-2xl shadow-black/80 select-none"
         role="toolbar"
@@ -889,6 +900,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
           <span>Clear board</span>
         </button>
       </div>
+      )}
     </div>
   );
 });

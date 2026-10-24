@@ -221,6 +221,15 @@ body {
   cursor: grabbing;
 }
 
+.flow-board.is-readonly {
+  cursor: default;
+}
+
+.flow-board.is-readonly .flow-board__node,
+.flow-board.is-readonly .flow-board__node:active {
+  cursor: default;
+}
+
 .flow-board__world {
   position: absolute;
   top: 0;

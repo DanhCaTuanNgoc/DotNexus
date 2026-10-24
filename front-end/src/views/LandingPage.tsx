@@ -209,19 +209,32 @@ const TECH_STACK_ITEMS: TechStackItem[] = [
  * Uses the canonical 'runbook-slash-guard' preset (Heartbeat Daemon -> Anti-Equivocation Lock -> Standby Failover).
  */
 const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> = ({ onLaunchApp }) => {
-  // Use canonical 'runbook-slash-guard' from DEFAULT_RUNBOOKS (simple 3-node linear topology)
+  // Canonical 3-node linear topology framed strictly for the mockup preview
   const initialWorkflow = useMemo(() => {
     const raw = DEFAULT_RUNBOOKS.find((rb) => rb.id === 'runbook-slash-guard') || DEFAULT_RUNBOOKS[0];
     const wf = convertRunbookToWorkflow(raw);
-    // Align node positions nicely for horizontal preview
+    // Align node positions nicely centered for static horizontal mockup display
     const adjustedNodes = wf.nodes.map((node, idx) => ({
       ...node,
       position: {
-        x: 60 + idx * 320,
-        y: 80,
+        x: 40 + idx * 310,
+        y: 50,
+      },
+      data: {
+        ...node.data,
+        status: 'idle' as const,
       },
     }));
     return { ...wf, nodes: adjustedNodes };
+  }, []);
+
+  const getResponsiveViewport = useCallback((): CanvasViewport => {
+    if (typeof window !== 'undefined' && window.innerWidth < 640) {
+      return { x: 10, y: 40, zoom: 0.42 };
+    } else if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      return { x: 20, y: 40, zoom: 0.65 };
+    }
+    return { x: 35, y: 40, zoom: 0.82 };
   }, []);
 
   const [nodes, setNodes] = useState<CanvasNode[]>(initialWorkflow.nodes);
@@ -231,8 +244,15 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
   const [activeEdgeId, setActiveEdgeId] = useState<string | null>(null);
   const [completedEdgeIds, setCompletedEdgeIds] = useState<string[]>([]);
   const [execStep, setExecStep] = useState<number>(0);
-  const [cycleCount, setCycleCount] = useState<number>(1);
-  const [viewport, setViewport] = useState<CanvasViewport>({ x: 25, y: 25, zoom: 0.88 });
+  const [cycleCount, setCycleCount] = useState<number>(0);
+  const [viewport, setViewport] = useState<CanvasViewport>(getResponsiveViewport);
+
+  // Sync viewport on screen resize to keep the 3 mockup nodes cleanly framed
+  useEffect(() => {
+    const handleResize = () => setViewport(getResponsiveViewport());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [getResponsiveViewport]);
 
   // Real-time DAG execution simulation loop
   const runSimulation = useCallback(async () => {
@@ -293,40 +313,16 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
     setCycleCount((c) => c + 1);
   }, [isExecuting]);
 
-  // Support dragging nodes inside the mockup
-  const handleMoveNodes = useCallback((nodeIds: string[], delta: { x: number; y: number }) => {
-    const moving = new Set(nodeIds);
-    setNodes((curr) =>
-      curr.map((n) => {
-        if (!moving.has(n.id)) return n;
-        return {
-          ...n,
-          position: {
-            x: Math.round((n.position?.x ?? 0) + delta.x),
-            y: Math.round((n.position?.y ?? 0) + delta.y),
-          },
-        };
-      })
-    );
-  }, []);
-
   const handleReset = useCallback(() => {
-    setNodes(initialWorkflow.nodes);
+    setNodes(initialWorkflow.nodes.map((n) => ({ ...n, data: { ...n.data, status: 'idle' } })));
     setEdges(initialWorkflow.edges);
     setActiveEdgeId(null);
     setCompletedEdgeIds([]);
     setSelectedNodeId(null);
-    setViewport({ x: 25, y: 25, zoom: 0.88 });
-    runSimulation();
-  }, [initialWorkflow, runSimulation]);
-
-  // Auto-play once on initial mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      runSimulation();
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    setIsExecuting(false);
+    setExecStep(0);
+    setViewport(getResponsiveViewport());
+  }, [initialWorkflow, getResponsiveViewport]);
 
   const traceLogs = [
     {
@@ -380,7 +376,13 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
 
         <div className="flex items-center gap-2 font-mono text-xs">
           <div className="flex items-center px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
-            <span>{isExecuting ? `SIMULATING STEP 0${execStep}/03` : `CYCLE #${cycleCount} • READY`}</span>
+            <span>
+              {isExecuting
+                ? `SIMULATING STEP 0${execStep}/03`
+                : cycleCount > 0
+                ? `CYCLE #${cycleCount} • COMPLETE`
+                : 'CANVAS MOCKUP • READY'}
+            </span>
           </div>
 
           <button
@@ -406,31 +408,27 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
         </div>
       </div>
 
-      {/* Actual InteractiveCanvas Component from CanvasBoard */}
-      <div className="relative h-[360px] sm:h-[400px] w-full bg-[#06030D] overflow-hidden">
+      {/* Mockup InteractiveCanvas Component Framed Strictly for 3 Nodes */}
+      <div className="relative h-[300px] sm:h-[330px] w-full bg-[#06030D] overflow-hidden select-none">
         <InteractiveCanvas
           nodes={nodes}
           edges={edges}
           selectedNodeId={selectedNodeId}
           violatedNodeIds={[]}
-          onMoveNodes={handleMoveNodes}
+          onMoveNodes={() => {}}
           onConnect={() => {}}
-          onEdgesChange={setEdges}
+          onEdgesChange={() => {}}
           onSelectNode={setSelectedNodeId}
           onDropTemplate={() => {}}
           initialViewport={viewport}
           onViewportChange={setViewport}
-          flowConnectMode={true}
+          flowConnectMode={false}
+          readOnly={true}
+          hideToolbar={true}
           isExecuting={isExecuting}
           activeEdgeId={activeEdgeId}
           completedEdgeIds={completedEdgeIds}
         />
-
-        {/* Interactive Floating Hint Pill */}
-        <div className="absolute bottom-3 left-3 z-30 pointer-events-none px-2.5 py-1 rounded-lg bg-[#0E081F]/90 border border-white/[0.08] text-[10px] font-mono text-zinc-400 backdrop-blur-sm flex items-center gap-2 shadow-lg">
-          <span className="text-[#00FF9D] font-bold">[TIP]</span>
-          <span>Interactive Canvas: Pan (drag background) • Move nodes • Click to inspect</span>
-        </div>
       </div>
 
       {/* Live Terminal Log Drawer Beneath the Canvas */}

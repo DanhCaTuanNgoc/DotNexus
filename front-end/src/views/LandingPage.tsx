@@ -565,13 +565,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       )}
 
-      {/* Hero Section Framed with Blueprint Central Rails */}
-      <BlueprintSection
-        borderBottom={true}
-        borderTop={false}
-        background="bg-[#06040A]"
-        containerClassName="min-h-[100vh] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6 overflow-hidden z-10"
-      >
+      {/* Hero Section — Full Viewport Width (100vw) for Three.js Dual-VM Cyber Mesh */}
+      <section className="relative w-full min-h-[100vh] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6 overflow-hidden z-10 border-b border-white/[0.08] bg-[#06040A]">
         {/* 3D Background: Three.js Dual-VM Cyber Mesh */}
         <ThreeCanvas />
 
@@ -669,7 +664,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
         </div>
-      </BlueprintSection>
+      </section>
 
       {/* SECTION DIVIDER 1: Hatched Technical Spacer Strip */}
       <SectionDivider
@@ -679,13 +674,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         sublabel="RUNTIME_TOPOLOGY"
       />
 
-      {/* Section 2: Infinite Techstack Protocol Marquee Carousel */}
-      <BlueprintSection
-        borderBottom={true}
-        borderTop={false}
-        background="bg-[#07040E]/80"
-        containerClassName="py-7 overflow-hidden z-10"
-      >
+      {/* Section 2: Infinite Techstack Protocol Marquee Carousel — Full Bleed 100vw */}
+      <section className="relative w-full py-7 overflow-hidden border-b border-white/[0.08] bg-[#07040E]/80 backdrop-blur-sm z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 mb-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
             <span className="text-[#8B5CF6] font-bold">//</span>
@@ -723,7 +713,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             ))}
           </div>
         </div>
-      </BlueprintSection>
+      </section>
 
       {/* SECTION DIVIDER 2: Glow Beam Spacer Strip */}
       <SectionDivider

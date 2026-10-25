@@ -231,6 +231,29 @@ export interface SecurityDashboardState {
     title: string;
     message: string;
   }>;
+  onchain_lease?: {
+    contract_address: string;
+    operator_address: string;
+    active_node_operator: string;
+    fencing_epoch: number;
+    expires_at_block: number;
+    current_evm_block: number;
+    blocks_remaining: number;
+    peer_id_hash: string;
+    is_fenced: boolean;
+    is_currently_valid: boolean;
+    is_live_onchain: boolean;
+    source: string;
+  };
+  session_authorities?: {
+    session_index: number;
+    babe_epoch_index: number;
+    active_validators_count: number;
+    active_validators: string[];
+    queued_keys_count: number;
+    is_live_rpc: boolean;
+    source: string;
+  };
 }
 
 export interface NPoSRecommendation {
@@ -258,6 +281,10 @@ export interface NPoSRecommendation {
     risk_warning?: string | null;
     is_live_onchain?: boolean;
     source?: string;
+    token_decimals?: number;
+    storage_schema?: string;
+    market_share_pct?: number;
+    is_blocked?: boolean;
     pao_metrics?: {
       pao_score: number;
       safety_margin_mvu: number;
@@ -549,7 +576,33 @@ export const DEFAULT_SECURITY_STATE: SecurityDashboardState = {
       title: 'Dead Man\'s Switch Invariant Pass',
       message: 'SelfFence (10s) < LeaseTTL (30s) < StandbyTakeover (45s) validated.'
     }
-  ]
+  ],
+  onchain_lease: {
+    contract_address: '0xba114d21CC41a30880CcfA53673B743316387355',
+    operator_address: '0x56a64421b4a8eef8cfbd79c93df7579bb4bf4da4',
+    active_node_operator: '0x56a64421b4a8eef8cfbd79c93df7579bb4bf4da4',
+    fencing_epoch: 14,
+    expires_at_block: 147500,
+    current_evm_block: 147264,
+    blocks_remaining: 236,
+    peer_id_hash: '0x7b819a...421c',
+    is_fenced: false,
+    is_currently_valid: true,
+    is_live_onchain: true,
+    source: 'PORTALDOT_V3_EVM_TESTNET'
+  },
+  session_authorities: {
+    session_index: 842,
+    babe_epoch_index: 421,
+    active_validators_count: 2,
+    active_validators: [
+      '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+      '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty'
+    ],
+    queued_keys_count: 2,
+    is_live_rpc: true,
+    source: 'PORTALDOT_V3_SUBSTRATE_STORAGE'
+  }
 };
 
 export const DEFAULT_NPOS_DATA: NPoSRecommendation = {

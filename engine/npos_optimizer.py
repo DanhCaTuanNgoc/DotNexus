@@ -57,14 +57,35 @@ class NPoSOptimizer:
         self.last_scan_time: float = 0
         self.nonce_manager = AsyncNonceManager()
 
+    def get_token_decimals(self, client: Optional[Any] = None) -> int:
+        """Dynamically resolves token decimals from chain metadata to prevent hardcoded 10^12 vs 10^14 errors"""
+        if client is not None:
+            try:
+                props = client.get_chain_properties()
+                if isinstance(props, dict) and "tokenDecimals" in props:
+                    val = props["tokenDecimals"]
+                    if isinstance(val, list) and len(val) > 0:
+                        return int(val[0])
+                    return int(val)
+            except Exception:
+                pass
+        try:
+            from engine.dual_tracker import DUAL_TRACKER
+            if hasattr(DUAL_TRACKER, "decimals") and DUAL_TRACKER.decimals:
+                return int(DUAL_TRACKER.decimals)
+        except Exception:
+            pass
+        return CONFIG.default_token_decimals
+
     def _fetch_live_validators_from_chain(self, client: Any, chain_head: str) -> List[Dict[str, Any]]:
         """
         Queries live validator set from Substrate runtime storage maps:
         1. Reads active era from Staking.ActiveEra (or fallback to Staking.CurrentEra).
         2. Reads active validator stashes from Session.Validators.
-        3. For each stash:
+        3. Reads network total stake from Staking.ErasTotalStake(active_era).
+        4. For each stash:
            - Queries Staking.Validators(stash) to extract commission (Perbill converted to %) and blocked flag.
-           - Reads nominator count and stake amounts via Dual-Schema reader (ErasStakersOverview / ErasStakersClipped).
+           - Reads nominator count and stake amounts via Triple-Schema reader (ErasStakersOverview / ErasStakers / ErasStakersClipped).
            - Reads Staking.ErasRewardPoints(era) to calculate relative era performance points.
         """
         active_era = 0
@@ -91,6 +112,17 @@ class NPoSOptimizer:
         if not stashes:
             return []
 
+        # Read ErasTotalStake to compute market share
+        decimals = self.get_token_decimals(client)
+        decimals_divisor = float(10 ** decimals)
+        total_network_stake = 0.0
+        try:
+            total_stake_query = client.query("Staking", "ErasTotalStake", [active_era], block_hash=chain_head)
+            if total_stake_query and total_stake_query.value is not None:
+                total_network_stake = float(total_stake_query.value) / decimals_divisor
+        except Exception:
+            pass
+
         # Read EraRewardPoints for the active era to calculate points/uptime
         reward_points_map: Dict[str, int] = {}
         try:
@@ -102,29 +134,33 @@ class NPoSOptimizer:
         except Exception:
             pass
 
-        decimals_divisor = float(10 ** CONFIG.default_token_decimals)
         live_validators: List[Dict[str, Any]] = []
 
         for stash_str in stashes:
             # 1. Query Commission & Preferences
             comm_pct = 2.0
+            is_blocked = False
             try:
                 val_prefs = client.query("Staking", "Validators", [stash_str], block_hash=chain_head)
                 if val_prefs and val_prefs.value:
-                    # In Substrate, commission is stored as Perbill (parts per billion, 10^9)
                     raw_comm = val_prefs.value.get("commission", 0)
                     if isinstance(raw_comm, (int, float)):
-                        comm_pct = round(raw_comm / 10_000_000.0, 2)  # 10^9 perbill -> % (divide by 10^7)
+                        comm_pct = round(raw_comm / 10_000_000.0, 2)
+                    is_blocked = bool(val_prefs.value.get("blocked", False))
             except Exception:
                 pass
 
-            # 2. Query Stakers via Dual-Schema Reader
+            # 2. Query Stakers via Triple-Schema Reader
             staker_data = self.read_validator_stakers_dual_schema(client, chain_head, active_era, stash_str)
             raw_total = staker_data.get("total", 0)
             raw_own = staker_data.get("own", 0)
             total_stake = float(raw_total) / decimals_divisor if raw_total > 0 else 1_000_000.0
             own_stake = float(raw_own) / decimals_divisor if raw_own > 0 else 200_000.0
             nominator_count = int(staker_data.get("nominator_count", 0))
+            schema_used = staker_data.get("schema", "UNKNOWN")
+
+            # Calculate market share
+            market_share_pct = round((total_stake / total_network_stake * 100), 2) if total_network_stake > 0 else 0.0
 
             points = int(reward_points_map.get(stash_str, 18000))
 
@@ -132,14 +168,18 @@ class NPoSOptimizer:
                 "stash_address": stash_str,
                 "identity": f"PortaldotV3-Validator-{stash_str[:6]}...{stash_str[-4:]}",
                 "commission_pct": max(0.0, min(100.0, comm_pct)),
+                "is_blocked": is_blocked,
                 "uptime_pct": 99.9,
                 "total_stake_pot": round(total_stake, 2),
                 "own_stake_pot": round(own_stake, 2),
+                "market_share_pct": market_share_pct,
                 "nominator_count": nominator_count,
                 "max_nominators": 256,
                 "slash_count": 0,
                 "estimated_apy": max(5.0, round(16.0 - (comm_pct * 0.1), 2)),
                 "era_points": points,
+                "token_decimals": decimals,
+                "storage_schema": schema_used,
                 "is_live_onchain": True,
                 "source": "PORTALDOT_V3_LIVE"
             })
@@ -636,14 +676,16 @@ class NPoSOptimizer:
 
     def read_validator_stakers_dual_schema(self, client: Any, block_hash: str, era: int, validator_stash: str) -> Dict[str, Any]:
         """
-        Dual-Schema Storage Reader:
+        Triple-Schema Storage Reader:
         Pins fixed block_hash to prevent stale state.
-        Tries Staking.ErasStakersOverview (new Paged Rewards standard), falls back to Staking.ErasStakersClipped.
+        1. Tries Staking.ErasStakersOverview (new Paged Rewards standard in Polkadot 1.0+ / Portaldot V3).
+        2. Tries Staking.ErasStakers (direct full exposure on standard Substrate NPoS).
+        3. Falls back to Staking.ErasStakersClipped (legacy clipped exposure).
         """
         if client is None:
             return {"schema": "SIMULATED", "total": 1250000.0, "own": 250000.0, "nominator_count": 142}
 
-        # 1. Try ErasStakersOverview
+        # 1. Try ErasStakersOverview (Paged Rewards V2)
         try:
             overview = client.query(
                 module="Staking",
@@ -661,7 +703,27 @@ class NPoSOptimizer:
         except Exception:
             pass
 
-        # 2. Fallback to ErasStakersClipped
+        # 2. Try ErasStakers (Full On-Chain Exposure Map)
+        try:
+            stakers = client.query(
+                module="Staking",
+                storage_function="ErasStakers",
+                params=[era, validator_stash],
+                block_hash=block_hash
+            )
+            if stakers and stakers.value and isinstance(stakers.value, dict):
+                others_list = stakers.value.get("others", [])
+                return {
+                    "schema": "ERAS_STAKERS_FULL",
+                    "total": stakers.value.get("total", 0),
+                    "own": stakers.value.get("own", 0),
+                    "nominator_count": len(others_list) if isinstance(others_list, list) else 0,
+                    "others": others_list[:16] if isinstance(others_list, list) else []
+                }
+        except Exception:
+            pass
+
+        # 3. Fallback to ErasStakersClipped
         try:
             clipped = client.query(
                 module="Staking",
@@ -670,15 +732,17 @@ class NPoSOptimizer:
                 block_hash=block_hash
             )
             val = clipped.value if clipped else {}
-            return {
-                "schema": "CLIPPED_LEGACY_V1",
-                "total": val.get("total", 0),
-                "own": val.get("own", 0),
-                "nominator_count": len(val.get("others", []))
-            }
+            if val and isinstance(val, dict):
+                return {
+                    "schema": "CLIPPED_LEGACY_V1",
+                    "total": val.get("total", 0),
+                    "own": val.get("own", 0),
+                    "nominator_count": len(val.get("others", []))
+                }
         except Exception as e:
-            logger.debug(f"Dual-schema storage read failed: {e}")
-            return {"schema": "READ_ERROR", "total": 0, "own": 0, "nominator_count": 0}
+            logger.debug(f"Triple-schema storage read failed: {e}")
+
+        return {"schema": "READ_ERROR", "total": 0, "own": 0, "nominator_count": 0}
 
     def verify_pre_flight_nomination(
         self,

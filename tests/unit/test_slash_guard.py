@@ -229,6 +229,35 @@ class TestSlashGuardUnit(unittest.TestCase):
         self.assertTrue(res["acquired"])
         self.assertEqual(res["holder"], "validator-standby")
 
+    def test_onchain_lease_query_returns_expected_fields(self):
+        """Verifies get_onchain_lease_state returns normalized contract fields and address"""
+        lease = self.slash_guard.get_onchain_lease_state()
+        self.assertIn("contract_address", lease)
+        self.assertIn("fencing_epoch", lease)
+        self.assertIn("expires_at_block", lease)
+        self.assertIn("is_fenced", lease)
+        self.assertIn("is_currently_valid", lease)
+        self.assertIn("source", lease)
+        self.assertTrue(lease["contract_address"].startswith("0x"))
+
+    def test_live_session_authorities_query_structure(self):
+        """Verifies query_live_session_authorities returns session index, epoch index and validators"""
+        auth = self.slash_guard.query_live_session_authorities()
+        self.assertIn("session_index", auth)
+        self.assertIn("babe_epoch_index", auth)
+        self.assertIn("active_validators_count", auth)
+        self.assertIn("active_validators", auth)
+        self.assertIsInstance(auth["active_validators"], list)
+        self.assertIn("source", auth)
+
+    def test_security_dashboard_includes_normalized_feeds(self):
+        """Verifies get_security_dashboard embeds onchain lease and session authorities"""
+        dash = self.slash_guard.get_security_dashboard()
+        self.assertIn("onchain_lease", dash)
+        self.assertIn("session_authorities", dash)
+        self.assertIn("contract_address", dash["onchain_lease"])
+        self.assertIn("active_validators", dash["session_authorities"])
+
 
 if __name__ == "__main__":
     unittest.main()

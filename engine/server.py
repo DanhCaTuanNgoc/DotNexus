@@ -219,6 +219,21 @@ def get_slash_guard():
     return jsonify({"success": True, "data": data})
 
 
+@app.route("/api/slash-guard/onchain-lease", methods=["GET"])
+def get_onchain_lease():
+    """Direct query of live on-chain lease state from SlashGuardLeaseRegistry.sol on Testnet V3"""
+    operator = request.args.get("operator")
+    data = SLASH_GUARD.get_onchain_lease_state(operator_address=operator)
+    return jsonify({"success": True, "data": data})
+
+
+@app.route("/api/slash-guard/session-authorities", methods=["GET"])
+def get_session_authorities():
+    """Queries live active BABE epoch session keys and validators from Substrate runtime"""
+    data = SLASH_GUARD.query_live_session_authorities()
+    return jsonify({"success": True, "data": data})
+
+
 @app.route("/api/slash-guard/rotate-keys", methods=["POST"])
 def rotate_keys():
     """Triggers planned session key rotation (author_rotateKeys with Metadata V14 unpack)"""

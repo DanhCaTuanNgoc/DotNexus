@@ -647,6 +647,11 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                         SIMULATION
                       </span>
                     )}
+                    {val.storage_schema && (
+                      <span className="text-[8px] text-[#C084FC] border border-[#8B5CF6]/40 px-1 py-0 bg-[#8B5CF6]/10 font-mono font-bold">
+                        {val.storage_schema}
+                      </span>
+                    )}
                     {val.slash_count === 0 && (
                       <span className="text-[9px] text-[#00FF9D] border border-[#00FF9D]/30 px-1 py-0 bg-[#00FF9D]/5 shrink-0">
                         CLEAN

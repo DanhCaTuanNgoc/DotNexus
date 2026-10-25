@@ -229,6 +229,43 @@ class TestNPoSOptimizerUnit(unittest.TestCase):
         vals = self.npos_optimizer._fetch_live_validators_from_chain(mock_client, "0xhead")
         self.assertEqual(vals[0]["commission_pct"], 2.5)
 
+    def test_triple_schema_stakers_exposure_overview(self):
+        """Verifies triple-schema reader decodes ErasStakersOverview Paged Rewards V2 format"""
+        mock_client = MockLiveSubstrateClient(active_era=50)
+        res = self.npos_optimizer.read_validator_stakers_dual_schema(
+            mock_client, "0xhead", 50, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        )
+        self.assertEqual(res["schema"], "PAGED_REWARDS_V2")
+        self.assertEqual(res["nominator_count"], 99)
+        self.assertGreater(res["total"], 0)
+
+    def test_triple_schema_stakers_exposure_full_eras_stakers(self):
+        """Verifies triple-schema reader decodes ErasStakers full exposure map"""
+        class MockErasStakersClient:
+            def query(self, module, storage_function, params=None, block_hash=None):
+                if module == "Staking" and storage_function == "ErasStakers":
+                    return type("MockResult", (), {"value": {
+                        "total": 5000000 * (10 ** 14),
+                        "own": 1000000 * (10 ** 14),
+                        "others": [{"who": "5Nominator1", "value": 4000000 * (10 ** 14)}]
+                    }})()
+                return None
+
+        res = self.npos_optimizer.read_validator_stakers_dual_schema(
+            MockErasStakersClient(), "0xhead", 50, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        )
+        self.assertEqual(res["schema"], "ERAS_STAKERS_FULL")
+        self.assertEqual(res["nominator_count"], 1)
+
+    def test_dynamic_decimals_resolution(self):
+        """Verifies dynamic resolution of tokenDecimals from chain metadata (no hardcoding)"""
+        class MockPropertiesClient:
+            def get_chain_properties(self):
+                return {"tokenDecimals": 14, "tokenSymbol": "POT"}
+
+        decimals = self.npos_optimizer.get_token_decimals(MockPropertiesClient())
+        self.assertEqual(decimals, 14)
+
 
 if __name__ == "__main__":
     unittest.main()

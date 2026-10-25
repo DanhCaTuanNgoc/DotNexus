@@ -324,6 +324,14 @@ export interface ShieldStatus {
   total_throttled: number;
   average_overhead_ms?: number;
   active_banned_ips_count: number;
+  average_reputation_score?: number;
+  quarantined_ips?: Array<{
+    ip: string;
+    score: number;
+    tier: number;
+    reason: string;
+    expires_in_seconds: number;
+  }>;
   max_block_range_setting: number;
   max_batch_size_setting?: number;
   rate_limit_per_minute_setting: number;
@@ -1060,6 +1068,23 @@ export const DEFAULT_SHIELD_STATUS: ShieldStatus = {
   total_throttled: 24,
   average_overhead_ms: 0.22,
   active_banned_ips_count: 3,
+  average_reputation_score: 96.4,
+  quarantined_ips: [
+    {
+      ip: '194.26.29.11',
+      score: 40.0,
+      tier: 2,
+      reason: 'eth_getLogs 500k span explosion (> 2000 blocks limit)',
+      expires_in_seconds: 45
+    },
+    {
+      ip: '185.190.140.44',
+      score: 10.0,
+      tier: 4,
+      reason: 'Recursive JSON-RPC batch bomb detected (nesting depth > 4)',
+      expires_in_seconds: 31536000
+    }
+  ],
   max_block_range_setting: 2000,
   max_batch_size_setting: 20,
   rate_limit_per_minute_setting: 60,

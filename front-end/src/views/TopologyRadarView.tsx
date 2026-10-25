@@ -22,7 +22,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
   const [simulationResult, setSimulationResult] = useState<any | null>(null);
   const [selectedPeer, setSelectedPeer] = useState<any | null>(null);
 
-  const handleSimulateAttack = async (type: 'HEAVY_GETLOGS' | 'RATE_LIMIT_BURST' | 'BATCH_OVERLOAD') => {
+  const handleSimulateAttack = async (type: 'HEAVY_GETLOGS' | 'RATE_LIMIT_BURST' | 'BATCH_OVERLOAD' | 'RECURSIVE_BATCH_BOMB' | 'STATE_BLOAT_TX' | 'REENTRANCY_CALDATA') => {
     setSimulating(true);
     try {
       const res = await api.simulateShieldAttack(type as any);
@@ -292,7 +292,60 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
             <Filter className="w-3.5 h-3.5 shrink-0" />
             <span>TEST BATCH OVERLOAD (&gt; 20 CALLS)</span>
           </button>
+
+          <button
+            onClick={() => handleSimulateAttack('RECURSIVE_BATCH_BOMB')}
+            disabled={simulating}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 sm:py-1.5 text-xs bg-[#1A0A1F] hover:bg-[#34143D] border border-fuchsia-500/40 text-fuchsia-300 font-bold cursor-pointer transition-colors"
+          >
+            <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-fuchsia-400" />
+            <span>TEST RECURSIVE BOMB (DEPTH &gt; 4)</span>
+          </button>
+
+          <button
+            onClick={() => handleSimulateAttack('STATE_BLOAT_TX')}
+            disabled={simulating}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 sm:py-1.5 text-xs bg-[#10141A] hover:bg-[#1C2633] border border-cyan-500/40 text-cyan-300 font-bold cursor-pointer transition-colors"
+          >
+            <Server className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
+            <span>TEST STATE-BLOAT TX (&gt; 128KB)</span>
+          </button>
         </div>
+
+        {/* Progressive Quarantine & IP Reputation Panel */}
+        {data.quarantined_ips && data.quarantined_ips.length > 0 && (
+          <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-2 text-xs">
+            <div className="flex items-center justify-between border-b border-[#140D24] pb-1.5">
+              <span className="text-[#C084FC] font-bold flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-[#C084FC]" />
+                ACTIVE PROGRESSIVE QUARANTINE JAIL (MULTI-TIER DEFENSE)
+              </span>
+              <span className="text-[10px] text-zinc-400">
+                Avg Network Reputation: <strong className="text-[#00FF9D]">{data.average_reputation_score ?? 100.0} / 100</strong>
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {data.quarantined_ips.map((q, idx) => (
+                <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-2 bg-[#0A0615] border border-[#1C142E] gap-1 text-[11px]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-mono font-bold">{q.ip}</span>
+                    <span className={`px-1.5 py-0.5 text-[9px] font-bold uppercase border ${
+                      q.tier === 4 ? 'bg-rose-950/60 text-rose-300 border-rose-800' :
+                      q.tier === 3 ? 'bg-purple-950/60 text-purple-300 border-purple-800' :
+                      'bg-amber-950/60 text-amber-300 border-amber-800'
+                    }`}>
+                      TIER {q.tier} [{q.tier === 4 ? 'PERMANENT' : q.tier === 3 ? '1 HOUR' : '60 SEC'}]
+                    </span>
+                    <span className="text-zinc-500 text-[10px]">Score: {q.score}</span>
+                  </div>
+                  <div className="text-zinc-400 truncate max-w-md">
+                    {q.reason} ({q.expires_in_seconds > 86400 ? 'Permanent Blacklist' : `${q.expires_in_seconds}s remaining`})
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {simulationResult && (
           <div className="p-3 bg-[#06040A] border border-[#1C142E] text-xs text-zinc-300 space-y-1.5 mt-2 animate-in fade-in duration-150">

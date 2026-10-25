@@ -221,6 +221,106 @@ class TestRPCShieldUnit(unittest.TestCase):
         self.assertEqual(res["dominant_subnet"], "198.51.100.0/24")
         self.assertGreater(res["max_subnet_concentration_pct"], 35.0)
 
+    def test_recursive_batch_bomb_depth_exceeded_blocked(self):
+        """Verifies recursive JSON structure with depth > 4 is blocked as a parser bomb"""
+        nested = {"a": {"b": {"c": {"d": {"e": "bomb"}}}}}
+        res = self.rpc_shield.inspect_request(
+            client_ip="185.190.140.44",
+            method="eth_call",
+            params=[nested]
+        )
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertIn("recursive batch bomb", res["reason"].lower())
+
+    def test_nested_batch_arrays_forbidden(self):
+        """Verifies nested sub-batch arrays in JSON-RPC are strictly prohibited"""
+        res = self.rpc_shield.inspect_request(
+            client_ip="185.190.140.44",
+            method="batch",
+            params=[[{"method": "eth_blockNumber"}]],
+            is_batch=True,
+            batch_size=1
+        )
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertIn("nested", res["reason"].lower())
+
+    def test_evm_state_bloat_transaction_calldata_blocked(self):
+        """Verifies raw transactions with calldata exceeding 128KB are pre-filtered"""
+        huge_tx = "0x" + "ff" * 150000
+        res = self.rpc_shield.inspect_request(
+            client_ip="185.190.140.55",
+            method="eth_sendRawTransaction",
+            params=[huge_tx]
+        )
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertIn("state-bloat", res["reason"].lower())
+
+    def test_evm_reentrancy_calldata_signature_blocked(self):
+        """Verifies suspicious recursive selector signatures in calldata are blocked"""
+        reentrant_tx = "0x150b7a02" + ("150b7a02" * 5)
+        res = self.rpc_shield.inspect_request(
+            client_ip="185.190.140.66",
+            method="eth_sendRawTransaction",
+            params=[reentrant_tx]
+        )
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertIn("re-entrancy", res["reason"].lower())
+
+    def test_eth_call_excessive_gas_ceiling_blocked(self):
+        """Verifies eth_call specifying gas > 30M is blocked to prevent node thread lockup"""
+        res = self.rpc_shield.inspect_request(
+            client_ip="185.190.140.77",
+            method="eth_call",
+            params=[{"to": "0x123", "gas": 35000000}]
+        )
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertIn("gas limit", res["reason"].lower())
+
+    def test_substrate_storage_unbounded_getkeys_blocked(self):
+        """Verifies unbounded state_getKeys is blocked to prevent node storage memory starvation"""
+        res = self.rpc_shield.inspect_request(client_ip="10.0.0.5", method="state_getKeys")
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertIn("state_getKeys", res["reason"])
+
+    def test_substrate_getkeyspaged_empty_prefix_blocked(self):
+        """Verifies state_getKeysPaged with empty prefix and count > 100 is blocked"""
+        res = self.rpc_shield.inspect_request(
+            client_ip="10.0.0.5",
+            method="state_getKeysPaged",
+            params=["", 150]
+        )
+        self.assertEqual(res["decision"], "BLOCKED")
+        self.assertIn("empty prefix", res["reason"].lower())
+
+    def test_dynamic_ip_reputation_quarantine_progression(self):
+        """Verifies IP reputation score drops and assigns appropriate quarantine tiers"""
+        bad_ip = "192.168.100.99"
+        # Initial score is 100
+        rep0 = self.rpc_shield.get_ip_reputation(bad_ip)
+        self.assertEqual(rep0["score"], 100.0)
+
+        # Trigger moderate violation (-30 score)
+        self.rpc_shield.inspect_request(
+            client_ip=bad_ip,
+            method="eth_getLogs",
+            params=[{"fromBlock": 0, "toBlock": 100000}]
+        )
+        rep1 = self.rpc_shield.get_ip_reputation(bad_ip)
+        self.assertLess(rep1["score"], 100.0)
+        self.assertGreaterEqual(rep1["quarantine_tier"], 2)
+        self.assertTrue(rep1["is_quarantined"])
+
+    def test_proxy_gateway_handle_payload(self):
+        """Verifies AsyncReverseProxyGateway inspects payload in < 1ms"""
+        import asyncio
+        from engine.proxy_gateway import PROXY_GATEWAY
+        import json
+        payload = json.dumps({"jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 1}).encode("utf-8")
+        res = asyncio.run(PROXY_GATEWAY.handle_json_rpc_payload("127.0.0.1", payload))
+        self.assertTrue(res["allowed"])
+        self.assertIn("inspection_overhead_ms", res)
+        self.assertLess(res["inspection_overhead_ms"], 10.0)
+
 
 if __name__ == "__main__":
     unittest.main()

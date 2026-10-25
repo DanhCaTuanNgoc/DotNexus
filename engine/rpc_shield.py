@@ -28,6 +28,17 @@ class RPCShield:
         self.ip_request_history: Dict[str, list[float]] = defaultdict(list)
         self.blocked_ips: Dict[str, float] = {}  # ip -> unblock_timestamp
 
+        # IP Reputation & Progressive Quarantine Tracking
+        self.ip_reputation: Dict[str, Dict[str, Any]] = defaultdict(lambda: {
+            "score": 100.0,
+            "violations_count": 0,
+            "quarantine_tier": 0,
+            "quarantine_expires_at": 0.0,
+            "last_penalty_reason": "CLEAN",
+            "clean_request_count": 0,
+            "last_recovery_time": time.time()
+        })
+
         # Security metrics
         self.total_inspected = 0
         self.total_allowed = 0
@@ -114,6 +125,97 @@ class RPCShield:
                 return self.cached_latest_evm_block
         return self.cached_latest_evm_block
 
+    def check_json_recursion_depth(self, data: Any, current_depth: int = 1, max_depth: int = 4) -> int:
+        """
+        Iterative and recursive depth guard against JSON-RPC parser bombs (e.g. [[[[...]]]]).
+        """
+        if current_depth > max_depth:
+            return current_depth
+
+        if isinstance(data, dict):
+            max_d = current_depth
+            for v in data.values():
+                d = self.check_json_recursion_depth(v, current_depth + 1, max_depth)
+                if d > max_d:
+                    max_d = d
+                if max_d > max_depth:
+                    return max_d
+            return max_d
+        elif isinstance(data, (list, tuple)):
+            max_d = current_depth
+            for item in data:
+                d = self.check_json_recursion_depth(item, current_depth + 1, max_depth)
+                if d > max_d:
+                    max_d = d
+                if max_d > max_depth:
+                    return max_d
+            return max_d
+        return current_depth
+
+    def apply_reputation_penalty(self, client_ip: str, penalty_points: float, reason: str, tier: int, duration_seconds: float = 60.0):
+        """
+        Applies progressive penalty to client IP and assigns quarantine tier:
+        - Tier 1: Throttled (HTTP 429)
+        - Tier 2: 60s Quarantine (HTTP 403)
+        - Tier 3: 3600s Extended Quarantine (HTTP 403)
+        - Tier 4: Permanent Blacklist (HTTP 403)
+        """
+        now = time.time()
+        rep = self.ip_reputation[client_ip]
+        rep["score"] = max(0.0, round(rep["score"] - penalty_points, 1))
+        rep["violations_count"] += 1
+        rep["clean_request_count"] = 0
+        rep["last_penalty_reason"] = reason
+
+        if tier > rep["quarantine_tier"]:
+            rep["quarantine_tier"] = tier
+
+        if tier == 4:
+            rep["quarantine_expires_at"] = now + 315360000.0  # Permanent ban
+            self.blocked_ips[client_ip] = rep["quarantine_expires_at"]
+        elif tier >= 2:
+            expires = now + duration_seconds
+            rep["quarantine_expires_at"] = max(rep["quarantine_expires_at"], expires)
+            self.blocked_ips[client_ip] = rep["quarantine_expires_at"]
+
+    def recover_ip_reputation(self, client_ip: str):
+        """Gradually recovers reputation score for well-behaved clients over time"""
+        now = time.time()
+        rep = self.ip_reputation[client_ip]
+        if rep["quarantine_tier"] >= 2 and now < rep["quarantine_expires_at"]:
+            return
+
+        if now - rep["last_recovery_time"] >= 60.0:
+            if rep["clean_request_count"] >= 5 and rep["score"] < 100.0:
+                rep["score"] = min(100.0, round(rep["score"] + 5.0, 1))
+                if rep["score"] >= 80.0 and rep["quarantine_tier"] == 1:
+                    rep["quarantine_tier"] = 0
+            rep["last_recovery_time"] = now
+
+    def get_ip_reputation(self, client_ip: str) -> Dict[str, Any]:
+        """Returns the reputation and quarantine status of an IP"""
+        rep = dict(self.ip_reputation[client_ip])
+        now = time.time()
+        is_quarantined = rep["quarantine_tier"] >= 2 and now < rep["quarantine_expires_at"]
+        rep["is_quarantined"] = is_quarantined
+        rep["quarantine_remaining_seconds"] = max(0, int(rep["quarantine_expires_at"] - now)) if is_quarantined else 0
+        return rep
+
+    def get_quarantined_ips(self) -> List[Dict[str, Any]]:
+        """Returns all currently quarantined IPs and their tiers"""
+        now = time.time()
+        res = []
+        for ip, rep in self.ip_reputation.items():
+            if rep["quarantine_tier"] >= 2 and now < rep["quarantine_expires_at"]:
+                res.append({
+                    "ip": ip,
+                    "score": rep["score"],
+                    "tier": rep["quarantine_tier"],
+                    "reason": rep["last_penalty_reason"],
+                    "expires_in_seconds": int(rep["quarantine_expires_at"] - now)
+                })
+        return res
+
     def inspect_request(
         self,
         client_ip: str,
@@ -125,11 +227,11 @@ class RPCShield:
     ) -> Dict[str, Any]:
         """
         Deep packet inspection for RPC requests:
-        1. Checks Socket Size Ceiling (256KB) against JSON-Bomb
-        2. Enforces JSON-RPC Batch size limits (<= 20)
-        3. Checks if IP is currently banned
-        4. Detects dangerous/heavy queries (safe eth_getLogs span, state_getPairs, sensitive namespaces)
-        5. Enforces IP rate-limiting (60 req/min)
+        1. Checks Socket Size Ceiling (256KB) & Recursive JSON Bombs (nesting depth > 4)
+        2. Enforces JSON-RPC Batch size limits (<= 20) & rejects nested sub-batches
+        3. Pre-filters EVM Re-entrancy & State-Bloat Transactions
+        4. Enforces Substrate Storage Query Ceilings (state_getKeys, state_getKeysPaged empty prefix)
+        5. Progressive IP Quarantine & Dynamic Reputation Tracking
         6. Measures inspection overhead (perf_counter)
         """
         t0 = time.perf_counter()
@@ -139,23 +241,45 @@ class RPCShield:
         # 1. Socket Protection: Check raw payload bytes (JSON-Bomb Defense)
         if raw_payload_bytes is not None and raw_payload_bytes > self.client_max_size:
             self.total_blocked += 1
+            self.apply_reputation_penalty(client_ip, 50.0, "Socket payload exceeds 256KB ceiling", tier=3, duration_seconds=3600.0)
             return self._log_shield_event(
                 client_ip, method, "BLOCKED", 413,
                 f"Payload size {raw_payload_bytes} bytes exceeds hard limit of {self.client_max_size} bytes (256KB)."
             )
 
-        # 2. Batch Request Limit Defense
-        if is_batch and batch_size > self.max_batch_size:
-            self.total_blocked += 1
-            return self._log_shield_event(
-                client_ip, method, "BLOCKED", 400,
-                f"Batch size {batch_size} exceeds maximum safe limit of {self.max_batch_size} calls. JSON-RPC code -32600."
-            )
+        # 2. Recursive JSON Bomb Detection (Nesting Depth Ceiling <= 4)
+        if params is not None:
+            depth = self.check_json_recursion_depth(params, max_depth=4)
+            if depth > 4:
+                self.total_blocked += 1
+                self.apply_reputation_penalty(client_ip, 90.0, "Recursive JSON-RPC batch bomb detected", tier=4)
+                return self._log_shield_event(
+                    client_ip, method, "BLOCKED", 400,
+                    "JSON-RPC recursive batch bomb detected (nesting depth > 4). Parser stack protection triggered."
+                )
 
-        # 3. Check if IP is under active ban
+        # 3. Batch Request Limit & Nested Sub-Batch Defense
+        if is_batch:
+            if batch_size > self.max_batch_size:
+                self.total_blocked += 1
+                self.apply_reputation_penalty(client_ip, 25.0, f"Batch size {batch_size} exceeds limit 20", tier=2, duration_seconds=60.0)
+                return self._log_shield_event(
+                    client_ip, method, "BLOCKED", 400,
+                    f"Batch size {batch_size} exceeds maximum safe limit of {self.max_batch_size} calls. JSON-RPC code -32600."
+                )
+            if isinstance(params, list) and any(isinstance(item, (list, tuple)) for item in params):
+                self.total_blocked += 1
+                self.apply_reputation_penalty(client_ip, 90.0, "Nested batch arrays forbidden", tier=4)
+                return self._log_shield_event(
+                    client_ip, method, "BLOCKED", 400,
+                    "Nested sub-batch arrays are strictly forbidden (Anti-Batch Bomb)."
+                )
+
+        # 4. Check if IP is under active quarantine ban
         if client_ip in self.blocked_ips:
             if now < self.blocked_ips[client_ip]:
                 self.total_blocked += 1
+                tier = self.ip_reputation[client_ip].get("quarantine_tier", 2)
                 return self._log_shield_event(
                     client_ip, method, "BLOCKED", 403,
                     f"IP banned until {int(self.blocked_ips[client_ip] - now)}s remaining"
@@ -163,7 +287,50 @@ class RPCShield:
             else:
                 del self.blocked_ips[client_ip]
 
-        # 4. Deep Inspection: Heavy / Archival / Sensitive Methods
+        # 5. EVM Pre-Filter: Re-entrancy & State-Bloat Transaction Defense
+        if method == "eth_sendRawTransaction" and isinstance(params, list) and len(params) > 0 and isinstance(params[0], str):
+            raw_hex = params[0]
+            # State-Bloat Check: calldata > 128KB (256KB hex chars)
+            if len(raw_hex) > 262144:
+                self.total_blocked += 1
+                self.apply_reputation_penalty(client_ip, 50.0, "State-bloat raw transaction payload exceeds 128KB", tier=3, duration_seconds=3600.0)
+                return self._log_shield_event(
+                    client_ip, method, "BLOCKED", 400,
+                    "State-bloat raw transaction payload exceeds safe pre-filter threshold (128KB calldata limit)."
+                )
+            # Re-entrancy Selector Pattern Check
+            clean_hex = raw_hex[2:] if raw_hex.startswith("0x") else raw_hex
+            if len(clean_hex) >= 8:
+                leading_selector = clean_hex[:8].lower()
+                reentrancy_hooks = ["150b7a02", "b8e922c0", "89047913", "bc7f6770"]
+                if leading_selector in reentrancy_hooks or clean_hex.count(leading_selector) > 4:
+                    self.total_blocked += 1
+                    self.apply_reputation_penalty(client_ip, 40.0, "Suspicious EVM re-entrancy calldata signature", tier=2, duration_seconds=120.0)
+                    return self._log_shield_event(
+                        client_ip, method, "BLOCKED", 400,
+                        "Suspicious EVM re-entrancy recursive calldata signature detected in transaction."
+                    )
+
+        if method in ["eth_call", "eth_estimateGas"] and isinstance(params, list) and len(params) > 0 and isinstance(params[0], dict):
+            tx_call = params[0]
+            gas_param = tx_call.get("gas")
+            if gas_param is not None:
+                gas_val = int(gas_param, 16) if isinstance(gas_param, str) and gas_param.startswith("0x") else int(gas_param) if isinstance(gas_param, (int, str)) and str(gas_param).isdigit() else 0
+                if gas_val > 30000000:
+                    self.total_blocked += 1
+                    return self._log_shield_event(
+                        client_ip, method, "BLOCKED", 400,
+                        f"eth_call gas limit ({gas_val}) exceeds maximum block gas ceiling (30,000,000)."
+                    )
+            data_param = tx_call.get("data", "")
+            if isinstance(data_param, str) and len(data_param) > 131072:
+                self.total_blocked += 1
+                return self._log_shield_event(
+                    client_ip, method, "BLOCKED", 400,
+                    "eth_call data size exceeds maximum safe pre-filter limit (64KB)."
+                )
+
+        # 6. Deep Inspection: Heavy / Archival / Storage Methods
         # Scenario A: eth_getLogs span explosion
         if method == "eth_getLogs" and isinstance(params, list) and len(params) > 0:
             filter_obj = params[0]
@@ -178,23 +345,33 @@ class RPCShield:
 
                     if span > self.max_block_range:
                         self.total_blocked += 1
-                        self.blocked_ips[client_ip] = now + 60.0
+                        self.apply_reputation_penalty(client_ip, 30.0, f"eth_getLogs span {span} > {self.max_block_range}", tier=2, duration_seconds=60.0)
                         return self._log_shield_event(
                             client_ip, method, "BLOCKED", 400,
                             f"Query span {span} blocks exceeds max safe limit of {self.max_block_range}. IP banned for 60s."
                         )
 
-        # Scenario B: Substrate Storage exhaustive read (state_getPairs)
+        # Scenario B: Substrate Storage exhaustive read (state_getPairs & unbounded state_getKeys)
         if method == "state_getPairs":
             self.total_blocked += 1
+            self.apply_reputation_penalty(client_ip, 40.0, "state_getPairs exhaustion attack", tier=3, duration_seconds=3600.0)
             return self._log_shield_event(
                 client_ip, method, "BLOCKED", 403,
                 "Substrate method 'state_getPairs' is blocked to prevent node storage OOM starvation."
             )
 
-        # Scenario C: Substrate state_getKeysPaged query ceiling
+        if method == "state_getKeys":
+            self.total_blocked += 1
+            self.apply_reputation_penalty(client_ip, 40.0, "state_getKeys unbounded query", tier=3, duration_seconds=3600.0)
+            return self._log_shield_event(
+                client_ip, method, "BLOCKED", 403,
+                "Substrate method 'state_getKeys' unbounded query blocked to prevent node storage OOM starvation."
+            )
+
+        # Scenario C: Substrate state_getKeysPaged query ceiling & empty prefix protection
         if method == "state_getKeysPaged" and isinstance(params, list) and len(params) >= 2:
             try:
+                prefix = str(params[0]) if len(params) > 0 else ""
                 count = int(params[1])
                 if count > CONFIG.rpc_max_keys_paged:
                     self.total_blocked += 1
@@ -202,12 +379,19 @@ class RPCShield:
                         client_ip, method, "BLOCKED", 400,
                         f"state_getKeysPaged count ({count}) exceeds maximum safe limit of {CONFIG.rpc_max_keys_paged}."
                     )
+                if prefix in ["", "0x"] and count > 100:
+                    self.total_blocked += 1
+                    return self._log_shield_event(
+                        client_ip, method, "BLOCKED", 400,
+                        "state_getKeysPaged empty prefix query exceeding 100 keys blocked to prevent runtime database OOM dump."
+                    )
             except (ValueError, TypeError):
                 pass
 
         # Scenario D: Forbidden sensitive and author namespaces from external IP
         if method.startswith("author_") and method != "author_submitExtrinsic":
             self.total_blocked += 1
+            self.apply_reputation_penalty(client_ip, 40.0, f"Forbidden author method {method}", tier=3, duration_seconds=3600.0)
             return self._log_shield_event(
                 client_ip, method, "BLOCKED", 403,
                 f"RPC method '{method}' is restricted: Author namespace writing is prohibited from public endpoints."
@@ -215,25 +399,30 @@ class RPCShield:
 
         if method.startswith("debug_") or method.startswith("admin_") or method == "system_addReservedPeer":
             self.total_blocked += 1
+            self.apply_reputation_penalty(client_ip, 40.0, f"Forbidden debug/admin method {method}", tier=3, duration_seconds=3600.0)
             return self._log_shield_event(
                 client_ip, method, "BLOCKED", 403,
                 f"RPC method '{method}' is restricted on production validator nodes."
             )
 
-        # 5. Dynamic IP Rate-Limiting (Sliding Window 60s)
+        # 7. Dynamic IP Rate-Limiting (Sliding Window 60s)
         recent_requests = [t for t in self.ip_request_history[client_ip] if now - t < 60.0]
         self.ip_request_history[client_ip] = recent_requests
 
         if len(recent_requests) >= self.rate_limit_per_min:
             self.total_throttled += 1
+            self.apply_reputation_penalty(client_ip, 15.0, "Rate limit exceeded (60 req/min)", tier=1)
             return self._log_shield_event(
                 client_ip, method, "THROTTLED", 429,
                 f"Rate limit exceeded: {len(recent_requests)} req/min (Limit: {self.rate_limit_per_min})"
             )
 
-        # Record valid request
+        # Record valid request & update reputation clean count
         self.ip_request_history[client_ip].append(now)
         self.total_allowed += 1
+        rep = self.ip_reputation[client_ip]
+        rep["clean_request_count"] += 1
+        self.recover_ip_reputation(client_ip)
 
         overhead_ms = (time.perf_counter() - t0) * 1000.0
         self.total_overhead_ms += overhead_ms
@@ -298,6 +487,35 @@ class RPCShield:
                 batch_size=50
             )
             return {"attack_type": attack_type, "result": res}
+        elif attack_type == "RECURSIVE_BATCH_BOMB":
+            # Simulate nested batch array / deep recursive parser bomb
+            nested_bomb = [[[[{"jsonrpc": "2.0", "method": "eth_blockNumber"}]]]]
+            res = self.inspect_request(
+                client_ip="185.190.140.44",
+                method="batch",
+                params=nested_bomb,
+                is_batch=True,
+                batch_size=1
+            )
+            return {"attack_type": attack_type, "simulated_payload": "5-level nested array bomb", "result": res}
+        elif attack_type == "STATE_BLOAT_TX":
+            # Simulate massive 150KB calldata raw transaction
+            huge_calldata = "0x" + "a1" * 150000
+            res = self.inspect_request(
+                client_ip="185.190.140.55",
+                method="eth_sendRawTransaction",
+                params=[huge_calldata]
+            )
+            return {"attack_type": attack_type, "simulated_payload": "150KB calldata payload", "result": res}
+        elif attack_type == "REENTRANCY_CALDATA":
+            # Simulate recursive ERC777/ERC721 hook repetition
+            reentrant_payload = "0x150b7a02" + ("150b7a02" * 5)
+            res = self.inspect_request(
+                client_ip="185.190.140.66",
+                method="eth_sendRawTransaction",
+                params=[reentrant_payload]
+            )
+            return {"attack_type": attack_type, "simulated_payload": "Recursive onERC721Received selector spam", "result": res}
         elif attack_type == "STATE_GETPAIRS_EXHAUSTION":
             res = self.inspect_request(client_ip="103.251.167.5", method="state_getPairs")
             return {"attack_type": attack_type, "result": res}
@@ -414,6 +632,9 @@ class RPCShield:
         except Exception:
             pass
 
+        scores = [r["score"] for r in self.ip_reputation.values()] if self.ip_reputation else [100.0]
+        avg_score = round(sum(scores) / len(scores), 1) if scores else 100.0
+
         return {
             "total_inspected": self.total_inspected,
             "total_allowed": self.total_allowed,
@@ -421,6 +642,8 @@ class RPCShield:
             "total_throttled": self.total_throttled,
             "average_overhead_ms": round(avg_overhead, 3),
             "active_banned_ips_count": len(self.blocked_ips),
+            "average_reputation_score": avg_score,
+            "quarantined_ips": self.get_quarantined_ips(),
             "max_block_range_setting": self.max_block_range,
             "max_batch_size_setting": self.max_batch_size,
             "rate_limit_per_minute_setting": self.rate_limit_per_min,

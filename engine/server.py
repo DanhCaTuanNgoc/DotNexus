@@ -18,6 +18,7 @@ from engine.rpc_shield import RPC_SHIELD
 from engine.dag_engine import DAG_ENGINE
 from engine.worker_daemon import WORKER_DAEMON
 from engine.staking_keeper import STAKING_KEEPER
+from engine.proxy_gateway import PROXY_GATEWAY
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("DotNexus.Server")
@@ -379,6 +380,28 @@ def simulate_attack():
     attack_type = body.get("type", "HEAVY_GETLOGS")
     sim = RPC_SHIELD.simulate_attack_test(attack_type=attack_type)
     return jsonify({"success": True, "data": sim})
+
+
+@app.route("/api/rpc-shield/quarantined-ips", methods=["GET"])
+def get_quarantined_ips():
+    """Returns list of all currently quarantined IPs with progressive penalty tiers"""
+    quarantined = RPC_SHIELD.get_quarantined_ips()
+    return jsonify({"success": True, "count": len(quarantined), "data": quarantined})
+
+
+@app.route("/api/rpc-shield/ip-reputation", methods=["GET"])
+def get_ip_reputation():
+    """Returns dynamic reputation score and history for a client IP"""
+    ip = request.args.get("ip", request.remote_addr or "127.0.0.1")
+    rep = RPC_SHIELD.get_ip_reputation(ip)
+    return jsonify({"success": True, "data": rep})
+
+
+@app.route("/api/rpc-shield/gateway-telemetry", methods=["GET"])
+def get_gateway_telemetry():
+    """Returns telemetry of the inline Reverse Proxy Gateway and forwarding stats"""
+    data = PROXY_GATEWAY.get_gateway_telemetry()
+    return jsonify({"success": True, "data": data})
 
 
 @app.route("/api/canvas/runbooks", methods=["GET"])

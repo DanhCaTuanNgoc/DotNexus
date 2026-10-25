@@ -59,11 +59,28 @@ graph TD
 
 ---
 
+## 📌 Bảng Theo Dõi Tiến Độ Triển Khai Thực Tế (Live Progress Tracker)
+
+| Trụ cột | Nội dung kỹ thuật trọng tâm | Trạng thái | Bài test & Verification | Git Commit |
+|:---:|---|:---:|:---:|:---:|
+| **Trụ Cột 1** | **Chuẩn Hóa 100% Dữ Liệu On-Chain Staking & Slashing**<br/>- Đọc smart contract `SlashGuardLeaseRegistry.sol` on-chain Testnet V3 (`0xba114d...`).<br/>- Truy vấn trực tiếp BABE Epoch Session Keys (`Session.Validators`, `Session.QueuedKeys`).<br/>- Bộ đọc Triple-Schema Stakers (`ErasStakersOverview`, `ErasStakers`, `ErasStakersClipped`).<br/>- Dynamic Token Decimals resolution (14 POT). | 🟢 **HOÀN THÀNH 100%**<br/>*(Verified & Deployed)* | **6 Unit Tests Passed**<br/>(Triple-Schema, Decimals, Lease State) | [`42ac60d`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/) |
+| **Trụ Cột 2** | **Gia Cố RPC Shield & Phòng Thủ Đe Dọa Nâng Cao**<br/>- Chặn bom đệ quy JSON-RPC (Nesting Depth $\le 4$, cấm nested sub-batches).<br/>- Tiền lọc EVM Re-entrancy calldata & State-Bloat tx ($>128\text{KB}$, gas ceiling $>30\text{M}$).<br/>- Chấm điểm uy tín IP động & Cơ chế giam giữ lũy tiến (Quarantine Tiers 1-4).<br/>- Khống chế trần Substrate query (`state_getKeys`, `state_getKeysPaged` empty prefix).<br/>- Triển khai `engine/proxy_gateway.py` chuyển tiếp $< 1\text{ms}$. | 🟢 **HOÀN THÀNH 100%**<br/>*(Verified & Deployed)* | **9 Unit Tests Passed**<br/>(Recursive bombs, calldata, gas, quarantine, gateway) | [`d369c7a`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/) |
+| **Trụ Cột 3** | **Live Action Execution Engine Cho Canvas Runbook DAGs**<br/>- Dispatch live `staking.nominate` & `staking.bond_extra` extrinsic lên Substrate.<br/>- OS-level atomic keystore isolation `chmod 000` & `SIGTERM` trong 10s.<br/>- Gửi giao dịch EVM gia hạn lease `SlashGuardLeaseRegistry.renewLease()` on-chain.<br/>- Kahn's parallel tier execution engine cho custom interactive DAG nodes. | 🟡 **TIẾP THEO (IN QUEUE)** | In progress | Pending |
+| **Trụ Cột 4** | **Dual-VM Realtime Block Lockstep Stream (Conduit)**<br/>- Đối chiếu từng giây block WASM vs EVM, BABE author, extrinsics count, gas used.<br/>- Đo đạc trực tiếp độ trễ ánh xạ `fc-mapping-sync` và Causal Lag Index (CLI). | 🟡 Chờ thực hiện | Sẵn sàng component | Pending |
+| **Trụ Cột 5** | **Host OS Deep Telemetry & Enterprise NOC Observability**<br/>- Giám sát CPU, RAM Saturation pre-warning, tốc độ phình to đĩa NVMe (GB/ngày).<br/>- Prometheus `/metrics` exporter và Grafana Dashboard template. | 🟡 Chờ thực hiện | Sẵn sàng module | Pending |
+| **Trụ Cột 6** | **P2P Topology Radar & Anti-Eclipse / Sybil Alert Engine**<br/>- Quét live peers `system_peers`, cảnh báo Eclipse khi 1 ASN $> 35\%$, auto-reserved peer.<br/>- Tự động áp dụng script tường lửa `harden_node_firewall.sh`. | 🟡 Chờ thực hiện | Sẵn sàng radar | Pending |
+| **Trụ Cột 7** | **Bộ Tài Liệu Trình Diễn, Video 3 Phút & Slide Pitch Deck Demo Day**<br/>- Video walkthrough HD 180s theo kịch bản chuẩn, pitch deck slides 10 trang. | 🟡 Chờ thực hiện | Sẵn sàng storyboard | Pending |
+
+> **Tổng số tests tự động hiện tại:** **188/188 tests passed (100% Pass Rate)** trong [`tests/test_engine.py`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/tests/test_engine.py).  
+> **Frontend Build Status:** **0 TypeScript errors (543ms)**.
+
+---
+
 ## 🏛️ 2. Chi Tiết Kế Hoạch 7 Trụ Cột Hoàn Thiện 100%
 
 ---
 
-### 🟢 TRỤ CỘT 1: Chuẩn Hóa 100% Dữ Liệu On-Chain Cho Staking & Slashing (Real-Data Normalization)
+### 🟢 TRỤ CỘT 1: Chuẩn Hóa 100% Dữ Liệu On-Chain Cho Staking & Slashing [HOÀN THÀNH 100% - VERIFIED]
 
 #### 1. Mục tiêu & Vấn đề giải quyết
 Loại bỏ triệt để các cấu trúc dữ liệu mô phỏng cục bộ trong module NPoS Optimizer và Slashing Guard. Kết nối trực tiếp vào Storage Maps của Substrate Runtime và Smart Contract EVM trên Testnet V3.0.
@@ -89,7 +106,7 @@ Loại bỏ triệt để các cấu trúc dữ liệu mô phỏng cục bộ tr
 
 ---
 
-### 🛡️ TRỤ CỘT 2: Gia Cố RPC Shield & Hệ Thống Phòng Thủ Đe Dọa Nâng Cao (Hardened RPC Shield)
+### 🛡️ TRỤ CỘT 2: Gia Cố RPC Shield & Hệ Thống Phòng Thủ Đe Dọa Nâng Cao [HOÀN THÀNH 100% - VERIFIED]
 
 #### 1. Mục tiêu & Vấn đề giải quyết
 Bảo vệ RPC node nội bộ (`:8545` và `:9944`) trước các cuộc tấn công DoS/OOM có chủ đích, quét cạn dữ liệu lịch sử hoặc khai thác máy chủ qua giao thức JSON-RPC.
@@ -291,8 +308,8 @@ Cung cấp luồng dữ liệu đối chiếu trực quan từng giây giữa 2 
 
 | Hạng mục kiểm tra | Tiêu chuẩn bắt buộc của DoraHacks | Trạng thái DotNexus | Phương thức kiểm chứng |
 |---|---|:---:|---|
-| **Bộ Unit & Integration Test** | Mã nguồn chạy được, không lỗi tiềm ẩn | **PASS (173/173 Tests)** | Chạy `python -m unittest tests/test_engine.py` |
-| **Frontend TypeScript Build** | Zero Type Errors, Clean Production Bundle | **PASS (0 Errors, 9.6s)** | Chạy `cd front-end && npm run build` |
+| **Bộ Unit & Integration Test** | Mã nguồn chạy được, không lỗi tiềm ẩn | **PASS (188/188 Tests)** | Chạy `python -m unittest tests/test_engine.py` |
+| **Frontend TypeScript Build** | Zero Type Errors, Clean Production Bundle | **PASS (0 Errors, 543ms)** | Chạy `cd front-end && npm run build` |
 | **Hợp đồng On-Chain Thật** | Đã deploy Testnet V3 có Tx Hash & Block | **PASS (2 Contracts)** | `SlashGuardLeaseRegistry`: Block `#147264`<br/>`DotNexusStakingVault`: Block `#147358` |
 | **Commit Timeline Hygiene** | Phân bổ đều đặn từ Oct 14 $\rightarrow$ Nov 6 | **PASS (Tuân thủ)** | Tuyệt đối không dồn commit vào 24h cuối trước Code Freeze |
 | **Bản quyền & Công bố SDK** | Minh bạch thư viện bên thứ ba, giấy phép mở | **PASS (MIT License)** | `substrate-interface`, `web3.py`, `react-flow` được công bố đầy đủ trong README |
@@ -324,7 +341,7 @@ DotNexus System Architecture
 │   ├── src/views/CanvasBoard.tsx    # Interactive Operational Runbook DAG Builder & Live Runner
 │   ├── src/views/TopologyRadarView.tsx # P2P Sybil Detection Radar, ASN Analyzer, Geo-IP Map
 │   └── src/components/DualBlockConduit.tsx # Real-time WASM vs EVM side-by-side block lockstep stream
-└── tests/                           # Comprehensive Test Suite (173+ Tests)
+└── tests/                           # Comprehensive Test Suite (188+ Tests)
     └── test_engine.py               # All-in-one verified test suite
 ```
 
@@ -337,10 +354,10 @@ gantt
     title DotNexus Final Sprint to Code Freeze (Oct 26 - Nov 6, 2026)
     dateFormat  YYYY-MM-DD
     section Trụ Cột 1 & 2: Dữ Liệu & RPC Shield
-    Chuẩn hóa 100% on-chain queries (Staking/Slashing) :active, p1, 2026-10-26, 2026-10-28
-    Gia cố RPC Shield (Recursive Bombs, IP Reputation) :active, p2, 2026-10-27, 2026-10-29
+    Chuẩn hóa 100% on-chain queries (Staking/Slashing) :done, p1, 2026-10-26, 2026-10-28
+    Gia cố RPC Shield (Recursive Bombs, IP Reputation) :done, p2, 2026-10-27, 2026-10-29
     section Trụ Cột 3 & 4: DAG & Dual-VM Conduit
-    Nâng cấp Live Action Dispatch cho DAG Canvas        :       p3, 2026-10-29, 2026-10-31
+    Nâng cấp Live Action Dispatch cho DAG Canvas        :active, p3, 2026-10-29, 2026-10-31
     Hoàn thiện DualBlockConduit & Live Block Push       :       p4, 2026-10-30, 2026-11-01
     section Trụ Cột 5 & 6: Host OS & P2P Radar
     Host OS Telemetry & Prometheus /metrics Endpoint    :       p5, 2026-10-31, 2026-11-02

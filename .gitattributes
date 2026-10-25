@@ -1,0 +1,20 @@
+# GitHub Linguist Overrides
+# Ignore AI agent skills, tooling scripts, and generated rendered examples from repo language stats
+.agents/** linguist-vendored
+.agents/** linguist-documentation
+.archify/** linguist-vendored
+.archify/** linguist-documentation
+
+# Ignore frontend build distribution artifacts
+front-end/dist/** linguist-vendored
+front-end/dist/** linguist-generated
+
+# Sub-hackathon legacy templates / modeler
+portaldot-hackathon-2026-PortalModeler-Tuanngoc/** linguist-vendored
+
+# Ensure core blockchain & smart contract languages are prioritized
+*.sol linguist-detectable=true
+*.py linguist-detectable=true
+*.ts linguist-detectable=true
+*.tsx linguist-detectable=true
+*.rs linguist-detectable=true

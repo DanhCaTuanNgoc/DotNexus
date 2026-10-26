@@ -72,7 +72,8 @@ graph TD
 | **Trụ Cột 7** | **Bộ Tài Liệu Trình Diễn, Video 3 Phút & Slide Pitch Deck Demo Day**<br/>- Video walkthrough HD 180s theo kịch bản chuẩn, pitch deck slides 10 trang. | 🟡 Chờ thực hiện | Sẵn sàng storyboard | Pending |
 
 > **Tổng số tests tự động hiện tại:** **188/188 tests passed (100% Pass Rate)** trong [`tests/test_engine.py`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/tests/test_engine.py).  
-> **Frontend Build Status:** **0 TypeScript errors (543ms)**.
+> **Frontend Build Status:** **0 TypeScript errors (543ms)**.  
+> 📌 **Hạng Mục Hậu Kiểm Sau Khi Hoàn Thành 7 Trụ Cột (Post-Pillars Milestone):** Soạn thảo **Tài liệu Ranh giới Kỹ thuật & Giới hạn Vận hành (System Boundaries & Operational Limits)** công bố minh bạch thông số tải, độ trễ proxy, quyền hạn OS và giả định mô phỏng để đạt điểm uy tín tuyệt đối trước Ban giám khảo.
 
 ---
 
@@ -315,6 +316,13 @@ Cung cấp luồng dữ liệu đối chiếu trực quan từng giây giữa 2 
 | **Bản quyền & Công bố SDK** | Minh bạch thư viện bên thứ ba, giấy phép mở | **PASS (MIT License)** | `substrate-interface`, `web3.py`, `react-flow` được công bố đầy đủ trong README |
 | **Trải nghiệm Giám khảo 60s** | Hướng dẫn khởi chạy nhanh dưới 1 phút | **PASS (Hoàn chỉnh)** | Xem hướng dẫn tại [`FOR_JUDGES.md`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/FOR_JUDGES.md) |
 
+### 🛡️ Hạng Mục Hậu Kiểm Sau 7 Trụ Cột: Tài Liệu Ranh Giới Kỹ Thuật (System Boundaries & Operational Limits)
+> **Kế hoạch thực hiện:** Soạn thảo ngay sau khi hoàn thành xong 7 trụ cột kỹ thuật và trước giờ Code Freeze. Tương tự như mục "Boundaries" của Forklift, phần này giúp DotNexus thể hiện sự trung thực trí tuệ (Intellectual Honesty) và độ chuyên nghiệp cao trước hội đồng giám khảo:
+1. **Ranh giới Độ trễ RPC Shield:** Độ trễ kiểm tra filter $< 1\text{ms}$ khi tải bình thường ($\le 1,000\text{ req/s}$); ngưỡng suy hao CPU khi chịu tải cực đại ($> 10,000\text{ req/s}$) và khuyến nghị cụm proxy phân tán.
+2. **Quyền hạn OS Fencing:** Cơ chế `chmod 000` và cách ly Keystore yêu cầu quyền truy cập file hệ thống tương ứng của user chạy tiến trình DotNexus daemon.
+3. **Mô phỏng Sequential Phragmén Client-Side:** Xác định rõ Phragmén trên client là xấp xỉ tối ưu cục bộ theo snapshot của Era hiện tại, mang tính hỗ trợ ra quyết định ủy quyền cho Nominator chứ không thay thế hoàn toàn logic multi-phase on-chain của Substrate runtime.
+4. **Dung sai Lệch pha Dual-VM:** Causal Lag Index (CLI) được thiết kế cho mạng chạy bình thường ($\Delta B \le 2$); khi mạng V3 fork sâu bản thân Substrate sẽ kích hoạt cơ chế đồng bộ lại toàn bộ state.
+
 ---
 
 ## 🗺️ 4. Ma Trận Kiến Trúc File & API Endpoints
@@ -363,8 +371,9 @@ gantt
     Host OS Telemetry & Prometheus /metrics Endpoint    :       p5, 2026-10-31, 2026-11-02
     P2P Live Peer Scraping & Sybil/Eclipse Alert Radar  :       p6, 2026-11-02, 2026-11-03
     section Trụ Cột 7 & QA: Nghiệm Thu & Đóng Băng
-    Chaos Fire Drill & Bộ Test E2E 175+ Tests Passed    :       p7, 2026-11-03, 2026-11-04
+    Chaos Fire Drill & Bộ Test E2E 188+ Tests Passed    :       p7, 2026-11-03, 2026-11-04
     Quay Video Demo 3 Phút & Thiết Kế Pitch Deck Slides :       p8, 2026-11-04, 2026-11-05
+    Tài liệu Ranh giới Kỹ thuật (Boundaries Section)    :       p8b, 2026-11-05, 2026-11-05
     FINAL CODE FREEZE (04:00 UTC) & Nộp Bài DoraHacks   :crit,  p9, 2026-11-05, 2026-11-06
 ```
 
@@ -373,7 +382,7 @@ gantt
 ## 🏆 6. Chiến Lược Giành Điểm Tuyệt Đối Từ Ban Giám Khảo
 
 1. **Vượt Trội về Kỹ Thuật (Technical Feasibility - 30%):**
-   * Chứng minh bằng việc chạy trực tiếp bộ test `173/173 tests passed` ngay trước mặt ban giám khảo.
+   * Chứng minh bằng việc chạy trực tiếp bộ test `188/188 tests passed` ngay trước mặt ban giám khảo.
    * Giao diện thật đã deploy trên Vercel: [https://dotnexus-hackerhouse.vercel.app/](https://dotnexus-hackerhouse.vercel.app/).
    * Hợp đồng thông minh đã deploy trên Portaldot Testnet V3 với block explorer thật.
 2. **Tính Sáng Tạo & Đột Phá (Innovation - 30%):**

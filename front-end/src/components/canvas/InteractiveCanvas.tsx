@@ -35,6 +35,7 @@ interface InteractiveCanvasProps {
   activeEdgeId?: string | null;
   completedEdgeIds?: string[];
   readOnly?: boolean;
+  allowNodeDragInReadOnly?: boolean;
   hideToolbar?: boolean;
 }
 
@@ -58,6 +59,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   activeEdgeId = null,
   completedEdgeIds = [],
   readOnly = false,
+  allowNodeDragInReadOnly = false,
   hideToolbar = false,
 }: InteractiveCanvasProps) {
   const boardRef = useRef<HTMLDivElement | null>(null);
@@ -189,7 +191,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   // Ultra-smooth Node Drag Handlers
   const startNodeDrag = useCallback(
     (event: PointerEvent<HTMLDivElement>, nodeId: string) => {
-      if (readOnly) return;
+      if (readOnly && !allowNodeDragInReadOnly) return;
       if (event.button !== 0 || (event.target as HTMLElement).closest('[data-flow-handle]')) {
         return;
       }
@@ -206,7 +208,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
         event.currentTarget.setPointerCapture(event.pointerId);
       } catch (_) {}
     },
-    [onSelectNode]
+    [readOnly, allowNodeDragInReadOnly, onSelectNode]
   );
 
   const moveNodeDrag = useCallback(
@@ -540,7 +542,7 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
   return (
     <div
       ref={boardRef}
-      className={`flow-board ${isPanning ? 'is-panning' : ''} ${readOnly ? 'is-readonly' : ''}`}
+      className={`flow-board ${isPanning ? 'is-panning' : ''} ${readOnly && !allowNodeDragInReadOnly ? 'is-readonly' : ''} ${readOnly && allowNodeDragInReadOnly ? 'is-readonly-drag-nodes' : ''}`}
       onPointerDown={(event) => {
         if (readOnly) return;
         // Do NOT cancel selection or start panning when clicking on the action dock or buttons

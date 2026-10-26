@@ -122,9 +122,6 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
             <h2 className="text-xs sm:text-sm font-bold font-mono text-white tracking-widest uppercase">
               AUTOMATION WORKFLOW CANVASES
             </h2>
-            <span className="text-[9px] font-mono px-1.5 py-0.2 bg-[#0E091B] text-[#C084FC] border border-[#2E1F4A]">
-              DAG ENGINE
-            </span>
           </div>
           <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
             Deterministic directed acyclic graph (DAG) pipelines for autonomous validator operations and failover routines.

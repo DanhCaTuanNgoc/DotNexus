@@ -236,6 +236,20 @@ body {
   cursor: default;
 }
 
+.flow-board.is-readonly-drag-nodes {
+  cursor: default;
+  touch-action: pan-y;
+}
+
+.flow-board.is-readonly-drag-nodes .flow-board__node {
+  cursor: grab;
+  touch-action: none;
+}
+
+.flow-board.is-readonly-drag-nodes .flow-board__node:active {
+  cursor: grabbing;
+}
+
 .flow-board__world {
   position: absolute;
   top: 0;

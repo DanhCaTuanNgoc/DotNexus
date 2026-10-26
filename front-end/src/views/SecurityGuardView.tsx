@@ -79,9 +79,6 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
             <h2 className="text-xs sm:text-sm font-bold font-mono text-white tracking-widest uppercase">
               ANTI-EQUIVOCATION GUARD &amp; FAILOVER CONTROLLER
             </h2>
-            <span className="text-[9px] font-mono px-1.5 py-0.2 bg-[#0E091B] text-[#C084FC] border border-[#2E1F4A]">
-              MUTEX LEASE
-            </span>
           </div>
           <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
             Distributed session key rotation with hardware atomic lease fencing to prevent double-signing.

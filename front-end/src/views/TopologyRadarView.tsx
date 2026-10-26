@@ -47,9 +47,6 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
             <h2 className="text-xs sm:text-sm font-bold font-mono text-white tracking-widest uppercase">
               RPC REVERSE PROXY &amp; ACTIVE P2P GLOBAL TOPOLOGY
             </h2>
-            <span className="text-[9px] font-mono px-1.5 py-0.2 bg-[#0E091B] text-[#C084FC] border border-[#2E1F4A]">
-              SECURITY SHIELD
-            </span>
           </div>
           <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
             Hardened reverse proxy with sub-millisecond AST sanitization and real-time libp2p global topology mesh.

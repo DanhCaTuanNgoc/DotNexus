@@ -171,13 +171,35 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
     return { ...wf, nodes: adjustedNodes };
   }, []);
 
-  const getResponsiveViewport = useCallback((): CanvasViewport => {
-    if (typeof window !== 'undefined' && window.innerWidth < 640) {
-      return { x: 10, y: 40, zoom: 0.42 };
-    } else if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      return { x: 20, y: 40, zoom: 0.65 };
+  const boardContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Calculate viewport dynamically so the 3 nodes sit dead in the center of the visual board
+  const getCenteredViewport = useCallback((): CanvasViewport => {
+    const el = boardContainerRef.current;
+    const width = el?.clientWidth || (typeof window !== 'undefined' ? Math.min(window.innerWidth - 32, 1152) : 1152);
+    const height = el?.clientHeight || (typeof window !== 'undefined' && window.innerWidth < 640 ? 300 : 330);
+
+    let zoom = 0.84;
+    if (width < 500) {
+      zoom = Math.max(0.35, Math.min(0.46, (width - 24) / 870));
+    } else if (width < 768) {
+      zoom = 0.54;
+    } else if (width < 1024) {
+      zoom = 0.68;
+    } else if (width < 1280) {
+      zoom = 0.84;
+    } else {
+      zoom = 0.88;
     }
-    return { x: 35, y: 40, zoom: 0.82 };
+
+    // Canonical 3-node linear span: 40px to 910px (width 870px), Y: 50px to 205px (height 155px)
+    const worldCenterX = 475;
+    const worldCenterY = 127.5;
+
+    const vpX = Math.round(width / 2 - worldCenterX * zoom);
+    const vpY = Math.round(height / 2 - worldCenterY * zoom);
+
+    return { x: vpX, y: vpY, zoom };
   }, []);
 
   const [nodes, setNodes] = useState<CanvasNode[]>(initialWorkflow.nodes);
@@ -188,14 +210,53 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
   const [completedEdgeIds, setCompletedEdgeIds] = useState<string[]>([]);
   const [execStep, setExecStep] = useState<number>(0);
   const [cycleCount, setCycleCount] = useState<number>(0);
-  const [viewport, setViewport] = useState<CanvasViewport>(getResponsiveViewport);
+  const [viewport, setViewport] = useState<CanvasViewport>(getCenteredViewport);
 
-  // Sync viewport on screen resize to keep the 3 mockup nodes cleanly framed
+  // Sync and center viewport dynamically across all screen sizes and container resizes
   useEffect(() => {
-    const handleResize = () => setViewport(getResponsiveViewport());
+    setViewport(getCenteredViewport());
+
+    const handleResize = () => setViewport(getCenteredViewport());
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [getResponsiveViewport]);
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && boardContainerRef.current) {
+      ro = new ResizeObserver(() => {
+        setViewport(getCenteredViewport());
+      });
+      ro.observe(boardContainerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      ro?.disconnect();
+    };
+  }, [getCenteredViewport]);
+
+  // Ultra-smooth node movement handler without UI jitter
+  const handleMoveNodes = useCallback(
+    (nodeIds: string[], delta: { x: number; y: number } | null | undefined) => {
+      if (!delta || !Number.isFinite(delta.x) || !Number.isFinite(delta.y)) return;
+      if (delta.x === 0 && delta.y === 0) return;
+      const moving = new Set(nodeIds);
+      setNodes((current) =>
+        current.map((node) => {
+          if (!moving.has(node.id)) return node;
+          const currentX = Number.isFinite(node.position?.x) ? node.position.x : 0;
+          const currentY = Number.isFinite(node.position?.y) ? node.position.y : 0;
+          return {
+            ...node,
+            position: {
+              // Sub-pixel continuous coordinates ensure zero 1px oscillation/jitter
+              x: Math.max(10, Math.min(1600, currentX + delta.x)),
+              y: Math.max(10, Math.min(220, currentY + delta.y)),
+            },
+          };
+        })
+      );
+    },
+    []
+  );
 
   // Real-time DAG execution simulation loop
   const runSimulation = useCallback(async () => {
@@ -264,8 +325,8 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
     setSelectedNodeId(null);
     setIsExecuting(false);
     setExecStep(0);
-    setViewport(getResponsiveViewport());
-  }, [initialWorkflow, getResponsiveViewport]);
+    setViewport(getCenteredViewport());
+  }, [initialWorkflow, getCenteredViewport]);
 
   const traceLogs = [
     {
@@ -313,6 +374,9 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
             <span className="hidden md:inline-block text-[10px] px-1.5 py-0.5 rounded-none bg-[#8B5CF6]/20 text-[#C084FC] border border-[#8B5CF6]/30 uppercase font-mono">
               3 NODES • 2 WIRES
             </span>
+            <span className="hidden lg:inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-none bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 uppercase font-mono font-bold">
+              DRAGGABLE
+            </span>
           </div>
         </div>
 
@@ -351,13 +415,13 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
       </div>
 
       {/* Mockup InteractiveCanvas Component Framed Strictly for 3 Nodes */}
-      <div className="relative h-[300px] sm:h-[330px] w-full bg-[#06030D] overflow-hidden select-none">
+      <div ref={boardContainerRef} className="relative h-[300px] sm:h-[330px] w-full bg-[#06030D] overflow-hidden select-none">
         <InteractiveCanvas
           nodes={nodes}
           edges={edges}
           selectedNodeId={selectedNodeId}
           violatedNodeIds={[]}
-          onMoveNodes={() => {}}
+          onMoveNodes={handleMoveNodes}
           onConnect={() => {}}
           onEdgesChange={() => {}}
           onSelectNode={setSelectedNodeId}
@@ -366,6 +430,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
           onViewportChange={setViewport}
           flowConnectMode={false}
           readOnly={true}
+          allowNodeDragInReadOnly={true}
           hideToolbar={true}
           isExecuting={isExecuting}
           activeEdgeId={activeEdgeId}
@@ -468,7 +533,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <div className="absolute pointer-events-none rounded-full glow-orb-cyan w-[500px] h-[500px] top-60 -right-60 z-0 opacity-30 animate-pulse-glow" style={{ animationDelay: '4s' }} />
 
       {/* Top Navbar — Zeabur Frosted Glass with Live Cluster Heartbeat */}
-      <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/[0.08] bg-[#080512]/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between shadow-2xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/[0.08] bg-[#080512]/80 backdrop-blur-md px-4 sm:px-30 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-3">
           <img
             src={dotnexusIcon}
@@ -478,15 +543,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-base tracking-wider text-white font-mono">DOTNEXUS</span>
-              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-none border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[#C084FC] font-semibold">
-                Portaldot V3.0
-              </span>
             </div>
           </div>
         </div>
 
         {/* Live Cluster Heartbeat Chip (Zeabur Style) */}
-        <div className="hidden lg:flex items-center gap-3 px-3 py-1 rounded-none border border-white/[0.08] bg-[#0E081F]/90 text-[11px] font-mono shadow-inner">
+        {/* <div className="hidden lg:flex items-center gap-3 px-3 py-1 rounded-none border border-white/[0.08] bg-[#0E081F]/90 text-[11px] font-mono shadow-inner">
           <div className="flex items-center gap-1.5 text-zinc-400">
             <span className="text-[#E6007A] text-[10px] font-bold">WASM:</span>
             <span className="text-zinc-100 font-bold tabular-nums">#{dualData?.substrate?.best_block ? dualData.substrate.best_block.toLocaleString() : '161,594'}</span>
@@ -500,17 +562,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex items-center gap-1.5">
             <span className="text-[#00FF9D] font-bold text-[10px] tracking-wider uppercase">0 DELTA (SYNCED)</span>
           </div>
-        </div>
+        </div> */}
 
         {/* Center Nav Links (Desktop) */}
-        <div className="hidden md:flex items-center gap-6 text-xs font-mono text-zinc-400">
+        {/* <div className="hidden md:flex items-center gap-6 text-xs font-mono text-zinc-400">
           <a href="#pillars" className="hover:text-[#C084FC] transition-colors flex items-center gap-1">
             <span>The 4 Pillars</span>
           </a>
           <a href="#dag-canvas" className="hover:text-[#C084FC] transition-colors">Visual DAG Engine</a>
           <a href="#comparison" className="hover:text-[#C084FC] transition-colors">Why DotNexus</a>
           <a href="#roadmap" className="hover:text-[#C084FC] transition-colors">Roadmap</a>
-        </div>
+        </div> */}
 
         {/* Right CTA & Mobile Toggle */}
         <div className="flex items-center gap-2 sm:gap-3">
@@ -533,7 +595,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </nav>
 
       {/* Mobile Nav Dropdown Sheet */}
-      {isMobileMenuOpen && (
+      {/* {isMobileMenuOpen && (
         <div className="fixed top-16 left-0 right-0 z-40 bg-[#0A0515]/98 border-b border-white/[0.08] p-4 flex flex-col space-y-3 font-mono text-xs md:hidden shadow-2xl backdrop-blur-md">
           <a
             href="#pillars"
@@ -568,7 +630,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <span>Hackathon Delivery Timeline</span>
           </a>
         </div>
-      )}
+      )} */}
 
       {/* Hero Section — Full Viewport Width (100vw) for Three.js Dual-VM Cyber Mesh */}
       <section className="relative w-full min-h-[100vh] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6 overflow-hidden z-10 border-b border-white/[0.08] bg-[#06040A]">

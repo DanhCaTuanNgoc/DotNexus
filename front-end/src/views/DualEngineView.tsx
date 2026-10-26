@@ -44,12 +44,14 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
   const [isAuditing, setIsAuditing] = useState(false);
 
   // Dual-VM Realtime Block Lockstep Stream
-  const [recentBlocks, setRecentBlocks] = useState<DualBlockConduitItem[]>([]);
+  const [recentBlocks, setRecentBlocks] = useState<DualBlockConduitItem[]>(() => api.getCachedRecentBlocks());
   const [isConduitLoading, setIsConduitLoading] = useState(false);
 
-  const fetchRecentBlocks = useCallback(async () => {
+  const fetchRecentBlocks = useCallback(async (isInitial = false) => {
     try {
-      setIsConduitLoading(true);
+      if (isInitial && (!recentBlocks || recentBlocks.length === 0)) {
+        setIsConduitLoading(true);
+      }
       const res = await api.getRecentDualBlocks(5);
       if (res && res.success && res.data && res.data.length > 0) {
         setRecentBlocks(res.data);
@@ -59,11 +61,15 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
     } finally {
       setIsConduitLoading(false);
     }
+  }, [recentBlocks]);
+
+  useEffect(() => {
+    fetchRecentBlocks(true);
   }, []);
 
   useEffect(() => {
-    fetchRecentBlocks();
-  }, [fetchRecentBlocks, data.substrate.best_block, data.evm.block_number]);
+    fetchRecentBlocks(false);
+  }, [data.substrate.best_block, data.evm.block_number]);
 
   const handleRemediate = async (action: string) => {
     setIsRemediating(true);

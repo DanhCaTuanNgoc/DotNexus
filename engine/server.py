@@ -103,6 +103,8 @@ def get_prometheus_metrics():
 def get_global_status():
     """Global cluster overview, system stats, 3-tier diagnosis, and indicators"""
     try:
+        if not app.config.get("TESTING") and not DUAL_TRACKER._poller_running:
+            DUAL_TRACKER.start_background_poller(interval=2.5)
         dual = DUAL_TRACKER.get_dual_state()
         sec = SLASH_GUARD.get_security_dashboard()
         shield = RPC_SHIELD.get_shield_status()
@@ -163,6 +165,8 @@ def get_global_status():
 @app.route("/api/dual-tracker", methods=["GET"])
 def get_dual_tracker():
     """Dual-Engine telemetry, block heights, 3-tier diagnosis, and decimal normalization"""
+    if not app.config.get("TESTING") and not DUAL_TRACKER._poller_running:
+        DUAL_TRACKER.start_background_poller(interval=2.5)
     data = DUAL_TRACKER.get_dual_state()
     return jsonify({"success": True, "data": data})
 
@@ -172,6 +176,8 @@ def get_dual_tracker():
 def get_recent_dual_blocks():
     """Returns the list of recent blocks correlating Substrate WASM and Frontier EVM"""
     try:
+        if not app.config.get("TESTING") and not DUAL_TRACKER._poller_running:
+            DUAL_TRACKER.start_background_poller(interval=2.5)
         limit = min(int(request.args.get("limit", 5)), 10)
         blocks = DUAL_TRACKER.get_recent_dual_blocks(limit=limit)
         return jsonify({"success": True, "data": blocks, "timestamp": time.time()})
@@ -483,6 +489,8 @@ def run_server():
         logger.info(f"EVM State:       [{evm_status}] - Block #{evm_block}")
     except Exception as e:
         logger.warning(f"Initial probe exception: {e}")
+    logger.info("Starting background real-time testnet telemetry poller...")
+    DUAL_TRACKER.start_background_poller(interval=2.5)
     logger.info(f"Starting Gateway API listener on {CONFIG.engine_host}:{CONFIG.engine_port}...")
     logger.info("=" * 60)
     app.run(host=CONFIG.engine_host, port=CONFIG.engine_port, debug=False, use_reloader=False, threaded=True)

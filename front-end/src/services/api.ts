@@ -399,8 +399,8 @@ export const DEFAULT_DUAL_TELEMETRY: DualTelemetryState = {
     is_connected: true,
     is_live_chain: true,
     endpoint: 'wss://test-node-v3.portaldot.dev',
-    best_block: 161594,
-    finalized_block: 161592,
+    best_block: 205160,
+    finalized_block: 205158,
     finality_lag: 2,
     latency_ms: 18.4,
     pending_extrinsics: 3,
@@ -412,7 +412,7 @@ export const DEFAULT_DUAL_TELEMETRY: DualTelemetryState = {
     is_connected: true,
     is_live_chain: true,
     endpoint: 'https://test-evm-rpc-v3.portaldot.dev',
-    block_number: 161594,
+    block_number: 205160,
     chain_id: 420420777,
     gas_price_gwei: 18.5,
     base_fee_gwei: 18.0,
@@ -1186,8 +1186,8 @@ export const DEFAULT_SHIELD_STATUS: ShieldStatus = {
 
 export const DEFAULT_RECENT_BLOCKS: DualBlockConduitItem[] = [
   {
-    block_number_wasm: 161594,
-    block_number_evm: 161594,
+    block_number_wasm: 205160,
+    block_number_evm: 205160,
     hash_wasm: '0x1c7d3066e78a208ae74c341f750aa6dd1446388a2f15b1554ae6f183e958c213',
     hash_evm: '0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f',
     babe_author: 'Alice (Primary)',
@@ -1201,8 +1201,8 @@ export const DEFAULT_RECENT_BLOCKS: DualBlockConduitItem[] = [
     timestamp: Date.now() - 6000
   },
   {
-    block_number_wasm: 161593,
-    block_number_evm: 161593,
+    block_number_wasm: 205159,
+    block_number_evm: 205159,
     hash_wasm: '0x2a8e45b1289cf0123456789abcdef0123456789abcdef0123456789abcdef012',
     hash_evm: '0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb',
     babe_author: 'Bob (Core #1)',
@@ -1216,8 +1216,8 @@ export const DEFAULT_RECENT_BLOCKS: DualBlockConduitItem[] = [
     timestamp: Date.now() - 12000
   },
   {
-    block_number_wasm: 161592,
-    block_number_evm: 161592,
+    block_number_wasm: 205158,
+    block_number_evm: 205158,
     hash_wasm: '0x3b9f56c2390de123456789abcdef0123456789abcdef0123456789abcdef013',
     hash_evm: '0x4374e222db35c5f200213131e7565edf2d8dd006ed92e225e9e02bd9d172c9dc',
     babe_author: 'Charlie (Zero-SLA)',
@@ -1237,7 +1237,7 @@ export const DEFAULT_LOGS: LogItem[] = [
     source: 'DUAL_TRACKER',
     level: 'SUCCESS',
     time: Math.floor(Date.now() / 1000) - 2,
-    text: 'Dual-VM state verified: Substrate WASM #161,594 <-> EVM #161,594 in 100% lockstep parity.'
+    text: 'Dual-VM state verified: Substrate WASM #205,160 <-> EVM #205,160 in 100% lockstep parity.'
   },
   {
     source: 'SLASH_GUARD',
@@ -1266,6 +1266,7 @@ let dynamicNPoSState: NPoSRecommendation = JSON.parse(JSON.stringify(DEFAULT_NPO
 let dynamicShieldStatus: ShieldStatus = JSON.parse(JSON.stringify(DEFAULT_SHIELD_STATUS));
 let dynamicLogs: LogItem[] = [...DEFAULT_LOGS];
 let dynamicRecentBlocks: DualBlockConduitItem[] = [...DEFAULT_RECENT_BLOCKS];
+let cachedRecentBlocks: DualBlockConduitItem[] = [...DEFAULT_RECENT_BLOCKS];
 
 let lastBlockAdvanceTime = Date.now();
 
@@ -1311,7 +1312,7 @@ async function fetchWithFallback<T>(
   url: string,
   options?: RequestInit,
   fallbackGenerator?: () => T,
-  timeoutMs: number = 2200
+  timeoutMs: number = 6000
 ): Promise<{ success: boolean; data: T }> {
   try {
     const controller = new AbortController();
@@ -1353,30 +1354,53 @@ export const api = {
     return fetchWithFallback(
       `${BASE_URL}/status`,
       undefined,
-      () => ({ status: 'ONLINE', mode: 'SIMULATION_FALLBACK', network: 'Portaldot V3.0' })
+      () => ({ status: 'ONLINE', mode: 'SIMULATION_FALLBACK', network: 'Portaldot V3.0' }),
+      6000
     );
   },
 
+  getCachedRecentBlocks: (): DualBlockConduitItem[] => {
+    return cachedRecentBlocks;
+  },
+
+  setCachedRecentBlocks: (blocks: DualBlockConduitItem[]) => {
+    if (blocks && blocks.length > 0) {
+      cachedRecentBlocks = blocks;
+      dynamicRecentBlocks = blocks;
+    }
+  },
+
   getDualTracker: async (): Promise<{ success: boolean; data: DualTelemetryState }> => {
-    return fetchWithFallback(
+    const res = await fetchWithFallback<DualTelemetryState>(
       `${BASE_URL}/dual-tracker`,
       undefined,
       () => {
         gentlyAdvanceBlockSimulation();
         return JSON.parse(JSON.stringify(dynamicDualState));
-      }
+      },
+      6000
     );
+    if (res.success && res.data) {
+      dynamicDualState = res.data;
+    }
+    return res;
   },
 
   getRecentDualBlocks: async (limit: number = 5): Promise<{ success: boolean; data: DualBlockConduitItem[] }> => {
-    return fetchWithFallback(
+    const res = await fetchWithFallback<DualBlockConduitItem[]>(
       `${BASE_URL}/telemetry/dual/recent-blocks?limit=${limit}`,
       undefined,
       () => {
         gentlyAdvanceBlockSimulation();
         return dynamicRecentBlocks.slice(0, limit);
-      }
+      },
+      6000
     );
+    if (res.success && res.data && res.data.length > 0) {
+      cachedRecentBlocks = res.data;
+      dynamicRecentBlocks = res.data;
+    }
+    return res;
   },
 
   remediateDualEngine: async (action: string, details?: any): Promise<{ success: boolean; data: any }> => {

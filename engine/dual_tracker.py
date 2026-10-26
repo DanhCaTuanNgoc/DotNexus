@@ -8,6 +8,7 @@ import time
 import socket
 import logging
 import hashlib
+import threading
 from urllib.parse import urlparse
 from typing import Dict, Any, Optional, List
 from engine.config import CONFIG
@@ -65,11 +66,11 @@ class DualEngineTracker:
         self._probe_cooldown_seconds: float = 10.0
 
         # Simulation fallback state (in case local node is offline)
-        self._mock_substrate_block = 161450
-        self._mock_finalized_block = 161448
-        self._mock_evm_block = 161450
+        self._mock_substrate_block = 205100
+        self._mock_finalized_block = 205098
+        self._mock_evm_block = 205100
         self._mock_peers_count = 14
-        self._mock_highest_block = 161450
+        self._mock_highest_block = 205100
         self._mock_last_tick = time.time()
 
         # Active SRE & Remediation State
@@ -79,8 +80,48 @@ class DualEngineTracker:
         # Dual-VM Realtime Block Lockstep Stream Caches
         self._recent_blocks_cache: List[Dict[str, Any]] = []
         self._recent_blocks_cache_time: float = 0.0
-        self._recent_blocks_cache_ttl: float = 2.5
+        self._recent_blocks_cache_ttl: float = 3.0
         self._historical_blocks_cache: Dict[int, Dict[str, Any]] = {}
+
+        # Telemetry State Cache (sub-millisecond instant responses)
+        self._dual_state_cache: Optional[Dict[str, Any]] = None
+        self._dual_state_cache_time: float = 0.0
+        self._dual_state_cache_ttl: float = 3.0
+        self._cache_lock = threading.Lock()
+
+        # Background Poller State
+        self._poller_thread: Optional[threading.Thread] = None
+        self._poller_running: bool = False
+
+
+    def start_background_poller(self, interval: float = 2.5) -> None:
+        """Starts background daemon poller to keep dual state and recent blocks hot in cache."""
+        with self._cache_lock:
+            if self._poller_running:
+                return
+            self._poller_running = True
+            self._poller_thread = threading.Thread(
+                target=self._background_poller_loop,
+                args=(interval,),
+                daemon=True,
+                name="DotNexusDualPoller"
+            )
+            self._poller_thread.start()
+            logger.info("DualEngineTracker background poller daemon started.")
+
+    def stop_background_poller(self) -> None:
+        """Stops background daemon poller."""
+        self._poller_running = False
+
+    def _background_poller_loop(self, interval: float) -> None:
+        time.sleep(0.5)
+        while self._poller_running:
+            try:
+                self._compute_dual_state()
+                self._refresh_recent_dual_blocks(limit=5)
+            except Exception as e:
+                logger.debug(f"Background poller tick error: {e}")
+            time.sleep(interval)
 
     def _init_substrate(self) -> bool:
         if self.substrate_client is not None:
@@ -540,10 +581,10 @@ class DualEngineTracker:
                 "disk_write_count": 0
             }
 
-    def get_dual_state(self) -> Dict[str, Any]:
+    def _compute_dual_state(self) -> Dict[str, Any]:
         """
         Calculates synchronicity delta, mempool distribution, 3-tier root-cause diagnosis,
-        and decimal mapping normalization.
+        and decimal mapping normalization from live nodes or simulation.
         """
         sub_telemetry = self.get_substrate_telemetry()
         evm_telemetry = self.get_evm_telemetry()
@@ -594,7 +635,7 @@ class DualEngineTracker:
         # RPC Circuit Breaker status evaluation
         cb_status = "TRIPPED" if (self.circuit_breaker_enabled and delta > CONFIG.max_desync_block_delta) else ("ARMED" if self.circuit_breaker_enabled else "BYPASSED")
 
-        return {
+        state_result = {
             "timestamp": time.time(),
             "substrate": sub_telemetry,
             "evm": evm_telemetry,
@@ -655,6 +696,23 @@ class DualEngineTracker:
                 }
             }
         }
+        self._dual_state_cache = state_result
+        self._dual_state_cache_time = time.time()
+        return state_result
+
+    def get_dual_state(self, force_refresh: bool = False) -> Dict[str, Any]:
+        """
+        Calculates synchronicity delta, mempool distribution, 3-tier root-cause diagnosis,
+        and decimal mapping normalization.
+        Uses thread-safe cached telemetry with Stale-While-Revalidate for sub-millisecond response time.
+        """
+        if not force_refresh and self._dual_state_cache is not None:
+            return self._dual_state_cache
+
+        with self._cache_lock:
+            if not force_refresh and self._dual_state_cache is not None:
+                return self._dual_state_cache
+            return self._compute_dual_state()
 
     def toggle_circuit_breaker(self, enabled: Optional[bool] = None) -> Dict[str, Any]:
         """Toggles or sets the active RPC Circuit Breaker protective gating mode"""
@@ -687,6 +745,8 @@ class DualEngineTracker:
             self.web3_client = None
             self._last_substrate_probe_time = 0.0
             self._last_evm_probe_time = 0.0
+            self._dual_state_cache = None
+            self._recent_blocks_cache = []
             sub = self.get_substrate_telemetry()
             evm = self.get_evm_telemetry()
             res["message"] = f"fc-mapping-sync worker task resynchronized. WASM: #{sub['best_block']}, EVM: #{evm['block_number']}"
@@ -769,19 +829,14 @@ class DualEngineTracker:
         }
 
 
-    def get_recent_dual_blocks(self, limit: int = 5) -> List[Dict[str, Any]]:
+    def _refresh_recent_dual_blocks(self, limit: int = 5) -> List[Dict[str, Any]]:
         """
         Retrieves real-time correlated block feed between Substrate WASM and Frontier EVM.
         Calculates fc-mapping-sync latency, block delta, and cross-VM status.
-        Uses historical LRU block cache and 2.5s TTL stream cache for optimal performance.
+        Uses historical LRU block cache and 3.0s TTL stream cache for optimal performance.
         """
         limit = max(1, min(limit, 10))
         now = time.time()
-
-        # Check short-term stream cache
-        if self._recent_blocks_cache and (now - self._recent_blocks_cache_time < self._recent_blocks_cache_ttl):
-            if len(self._recent_blocks_cache) >= limit:
-                return self._recent_blocks_cache[:limit]
 
         authors_list = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie"]
 
@@ -919,6 +974,21 @@ class DualEngineTracker:
         self._recent_blocks_cache = fallback_items
         self._recent_blocks_cache_time = now
         return fallback_items
+
+    def get_recent_dual_blocks(self, limit: int = 5, force_refresh: bool = False) -> List[Dict[str, Any]]:
+        """
+        Retrieves real-time correlated block feed between Substrate WASM and Frontier EVM.
+        Uses historical LRU block cache and Stale-While-Revalidate for sub-millisecond response.
+        """
+        limit = max(1, min(limit, 10))
+
+        if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
+            return self._recent_blocks_cache[:limit]
+
+        with self._cache_lock:
+            if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
+                return self._recent_blocks_cache[:limit]
+            return self._refresh_recent_dual_blocks(limit=limit)
 
 
 # Global Tracker Instance

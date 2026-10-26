@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeftRight, RefreshCw, Copy, Check, ShieldCheck, AlertTriangle, Layers, Zap } from 'lucide-react';
 import { DualBlockConduitItem } from '../services/api';
-import { CornerCrosshair } from './blueprint';
 
 interface DualBlockConduitProps {
   items: DualBlockConduitItem[];
@@ -36,7 +35,7 @@ export const DualBlockConduit: React.FC<DualBlockConduitProps> = ({
       case 'LOCKSTEP':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold font-mono uppercase bg-emerald-950/40 text-[#00FF9D] border border-emerald-800/60 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D] animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D]" />
             <span>100% LOCKSTEP</span>
           </span>
         );
@@ -44,7 +43,7 @@ export const DualBlockConduit: React.FC<DualBlockConduitProps> = ({
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold font-mono uppercase bg-amber-950/40 text-amber-400 border border-amber-800/60 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-            <span>{delta}-BLK PROPAGATION LAG</span>
+            <span>{delta}-BLK LAG</span>
           </span>
         );
       case 'SLOW_INDEXING':
@@ -67,19 +66,13 @@ export const DualBlockConduit: React.FC<DualBlockConduitProps> = ({
 
   return (
     <div className={`relative border border-white/[0.08] bg-[#07040E] rounded-none shadow-2xl font-mono overflow-hidden ${className}`}>
-      {/* 4 Vector Corner Crosshairs */}
-      <CornerCrosshair position="top-left" color="text-[#8B5CF6]" />
-      <CornerCrosshair position="top-right" color="text-[#8B5CF6]" />
-      <CornerCrosshair position="bottom-left" color="text-[#8B5CF6]" />
-      <CornerCrosshair position="bottom-right" color="text-[#8B5CF6]" />
-
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 border-b border-white/[0.08] bg-[#0A0615]/95">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-[#8B5CF6]" />
             <h3 className="text-xs sm:text-sm font-bold text-white tracking-wider uppercase flex items-center gap-2">
-              <span>LIVE DUAL-VM RECENT BLOCKS CONDUIT</span>
+              <span>LIVE DUAL-VM PARITY STREAM</span>
               <span className="text-[10px] text-[#C084FC] font-semibold bg-[#8B5CF6]/15 px-1.5 py-0.5 border border-[#8B5CF6]/30">
                 5 BLOCKS PARITY STREAM
               </span>

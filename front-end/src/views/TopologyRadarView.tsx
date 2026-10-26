@@ -49,7 +49,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
             </h2>
           </div>
           <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-            Hardened reverse proxy with sub-millisecond AST sanitization and real-time libp2p global topology mesh.
+            Hardened reverse proxy with sub-millisecond JSON-RPC payload sanitization and real-time libp2p topology mesh.
           </p>
         </div>
 
@@ -175,7 +175,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
               </span>
             </div>
             <span className="text-[10px] text-zinc-500 font-mono">
-              EQUIRECTANGULAR WGS84 &bull; LIVE P2P GOSSIP
+              GLOBAL P2P DISTRIBUTION &bull; LIBP2P MESH
             </span>
           </div>
 

@@ -278,35 +278,6 @@ export const CyberWorldMap: React.FC<CyberWorldMapProps> = ({
         })}
       </svg>
 
-      {/* Floating Micro HUD Tooltip */}
-      {hoveredPeer && (
-        <div className="absolute top-2 left-2 z-30 pointer-events-none font-mono text-[10px] bg-[#0E091B]/95 text-zinc-300 border border-[#2E1F4A] px-2.5 py-1.5 shadow-2xl space-y-0.5 backdrop-blur-sm">
-          <div className="text-white font-bold flex items-center gap-1.5">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                hoveredPeer.is_malicious
-                  ? 'bg-[#EF4444]'
-                  : hoveredPeer.role.includes('Authority')
-                  ? 'bg-[#00FF9D]'
-                  : 'bg-[#8B5CF6]'
-              }`}
-            />
-            <span>{hoveredPeer.location}</span>
-          </div>
-          <div className="text-zinc-400">
-            ROLE: <span className="text-zinc-200">{hoveredPeer.role}</span>
-          </div>
-          <div className="text-zinc-400">
-            LATENCY: <span className="text-[#00FF9D] font-bold">{hoveredPeer.latency_ms}ms</span> | PROTOCOL: <span className="text-[#C084FC]">{hoveredPeer.protocol}</span>
-          </div>
-          {hoveredPeer.is_malicious && hoveredPeer.anomaly && (
-            <div className="text-[#EF4444] pt-0.5 border-t border-[#EF4444]/30 mt-1 font-semibold">
-              ALERT: {hoveredPeer.anomaly}
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Bottom Coordinates & Engine HUD */}
       <div className="absolute bottom-1.5 right-2 font-mono text-[9px] text-zinc-500 tracking-wider flex items-center gap-3">
         <span>PROJECTION: EQUIRECTANGULAR (D3-GEO &bull; NATURAL EARTH)</span>

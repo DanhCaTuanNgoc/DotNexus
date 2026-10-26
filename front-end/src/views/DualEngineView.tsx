@@ -192,7 +192,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
           }`}
         >
           <AlertTriangle className={`w-3.5 h-3.5 ${diag.severity !== 'OK' ? 'text-amber-400' : 'text-[#C084FC]'}`} />
-          <span>Causal Diagnostics</span>
+          <span>Sync Diagnostics</span>
           {diag.severity !== 'OK' && (
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping ml-0.5" />
           )}
@@ -261,7 +261,16 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                 </div>
                 <div>
                   <div className="text-zinc-500">ENDPOINT</div>
-                  <div className="text-zinc-400 truncate" title={substrate.endpoint}>{substrate.endpoint}</div>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-zinc-400 truncate" title={substrate.endpoint}>{substrate.endpoint}</span>
+                    <button
+                      onClick={() => handleCopy(wasmCurlCmd, 'wasm')}
+                      className="text-zinc-400 hover:text-white shrink-0 p-0.5 cursor-pointer"
+                      title="Copy wscat command"
+                    >
+                      {copiedCmd === 'wasm' ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5" />}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -311,7 +320,16 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                 </div>
                 <div>
                   <div className="text-zinc-500">ENDPOINT</div>
-                  <div className="text-zinc-400 truncate" title={evm.endpoint}>{evm.endpoint}</div>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-zinc-400 truncate" title={evm.endpoint}>{evm.endpoint}</span>
+                    <button
+                      onClick={() => handleCopy(evmCurlCmd, 'evm')}
+                      className="text-zinc-400 hover:text-white shrink-0 p-0.5 cursor-pointer"
+                      title="Copy eth_blockNumber curl"
+                    >
+                      {copiedCmd === 'evm' ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5" />}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -427,61 +445,6 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               </div>
             )}
           </div>
-
-          {/* Collapsible Verifiable Developer RPC Queries */}
-          <div className="border border-white/[0.08] bg-[#07040E]">
-            <button
-              onClick={() => setShowRpcCommands(!showRpcCommands)}
-              className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-mono text-zinc-400 hover:text-white transition-colors cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                <Terminal className="w-3.5 h-3.5 text-[#8B5CF6]" />
-                <span className="font-bold text-zinc-300 uppercase tracking-wider">
-                  DEVELOPER RPC VERIFICATION PROOFS
-                </span>
-                <span className="text-[10px] text-zinc-500 hidden sm:inline">
-                  (Direct curl commands for testing)
-                </span>
-              </div>
-              {showRpcCommands ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            </button>
-
-            {showRpcCommands && (
-              <div className="p-3 border-t border-white/[0.06] grid grid-cols-1 md:grid-cols-2 gap-2.5 text-[11px]">
-                <div className="p-2.5 bg-[#05030A] border border-white/[0.06] space-y-1.5">
-                  <div className="flex items-center justify-between text-zinc-400 text-[10px]">
-                    <span className="font-bold">EVM eth_blockNumber (:8545)</span>
-                    <button
-                      onClick={() => handleCopy(evmCurlCmd, 'evm')}
-                      className="flex items-center gap-1 text-[#8B5CF6] hover:text-[#C084FC] cursor-pointer"
-                    >
-                      {copiedCmd === 'evm' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                      <span>{copiedCmd === 'evm' ? 'COPIED' : 'COPY'}</span>
-                    </button>
-                  </div>
-                  <div className="p-2 bg-[#0A0714] border border-white/[0.04] text-zinc-300 text-[10px] font-mono break-all select-all">
-                    {evmCurlCmd}
-                  </div>
-                </div>
-
-                <div className="p-2.5 bg-[#05030A] border border-white/[0.06] space-y-1.5">
-                  <div className="flex items-center justify-between text-zinc-400 text-[10px]">
-                    <span className="font-bold">Substrate chain_getHeader (:9944)</span>
-                    <button
-                      onClick={() => handleCopy(wasmCurlCmd, 'wasm')}
-                      className="flex items-center gap-1 text-[#E6007A] hover:text-pink-400 cursor-pointer"
-                    >
-                      {copiedCmd === 'wasm' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                      <span>{copiedCmd === 'wasm' ? 'COPIED' : 'COPY'}</span>
-                    </button>
-                  </div>
-                  <div className="p-2 bg-[#0A0714] border border-white/[0.04] text-zinc-300 text-[10px] font-mono break-all select-all">
-                    {wasmCurlCmd}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       )}
 
@@ -495,7 +458,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-[#C084FC]" />
                   <span className="text-xs font-bold text-white tracking-wider uppercase">
-                    CROSS-VM CAUSAL LAG INDEX (CLI)
+                    DUAL-VM SYNC HEALTH INDEX
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -586,7 +549,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               <div className="flex items-center gap-2">
                 <Radio className="w-3.5 h-3.5 text-[#8B5CF6]" />
                 <span className="text-xs font-bold text-white tracking-wider uppercase">
-                  3-TIER ROOT-CAUSE ISOLATION MATRIX
+                  TIERED SYNC DIAGNOSTICS
                 </span>
               </div>
               <span className="text-[10px] text-zinc-400">
@@ -776,7 +739,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
           <div className="p-4 bg-[#080512] border border-white/[0.08] space-y-3">
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
               <span className="text-xs font-bold text-white tracking-wider uppercase">
-                MEMPOOL SEGREGATION: WASM EXTRINSICS VS EVM TRANSACTIONS
+                MEMPOOL DISTRIBUTION: WASM EXTRINSICS VS EVM TRANSACTIONS
               </span>
               <span className="text-zinc-400 text-xs">Total: {mempool.total_pending} txs</span>
             </div>
@@ -848,60 +811,6 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               <span className="text-zinc-500 text-[10px]">
                 Protected against JS Number.MAX_SAFE_INTEGER overflow
               </span>
-            </div>
-          </div>
-
-          {/* Storage Deposit Auditor for Contracts */}
-          <div className="p-4 bg-[#080512] border border-white/[0.08] space-y-3">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-              <div className="flex items-center gap-2">
-                <Database className="w-3.5 h-3.5 text-[#8B5CF6]" />
-                <span className="text-xs font-bold text-white tracking-wider uppercase">
-                  PALLET-REVIVE STORAGE DEPOSIT CALCULATOR
-                </span>
-              </div>
-              <span className="text-[10px] text-zinc-400">Bytecode rate: 0.08 POT/byte</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-2">
-                <div className="text-[10px] text-zinc-400 font-bold uppercase">Select Smart Contract</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setSelectedAuditContract('SlashGuardLeaseRegistry')}
-                    className={`p-2 border text-left cursor-pointer transition-colors ${
-                      selectedAuditContract === 'SlashGuardLeaseRegistry'
-                        ? 'bg-[#150F26] border-[#8B5CF6] text-white font-bold'
-                        : 'bg-[#090614] border-white/[0.06] text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <div className="text-[11px] font-bold">LeaseRegistry</div>
-                    <div className="text-[9.5px] text-zinc-500">Slashing Mutex</div>
-                  </button>
-
-                  <button
-                    onClick={() => setSelectedAuditContract('DotNexusStakingVault')}
-                    className={`p-2 border text-left cursor-pointer transition-colors ${
-                      selectedAuditContract === 'DotNexusStakingVault'
-                        ? 'bg-[#150F26] border-[#8B5CF6] text-white font-bold'
-                        : 'bg-[#090614] border-white/[0.06] text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <div className="text-[11px] font-bold">StakingVault</div>
-                    <div className="text-[9.5px] text-zinc-500">NPoS SLA Vault</div>
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1">
-                <div className="text-[10px] text-zinc-400 font-bold uppercase">Estimated Storage Deposit</div>
-                <div className="text-xl font-extrabold text-white tabular-nums">
-                  {auditResult ? `${auditResult.estimated_storage_deposit_pot} POT` : '458.00 POT'}
-                </div>
-                <div className="text-[10px] text-zinc-500">
-                  Bytecode: {auditResult?.bytecode_size_bytes ?? 5725} bytes · {isAuditing ? 'Calculating...' : 'Storage deposit calculated'}
-                </div>
-              </div>
             </div>
           </div>
         </div>

@@ -894,19 +894,12 @@ if __name__ == "__main__":
             )}
             <span>
               {hasCritical
-                ? 'EQUIVOCATION HAZARD'
+                ? 'TOPOLOGY HAZARD: EQUIVOCATION'
                 : hasWarning
                 ? 'TOPOLOGY WARNING'
-                : 'TOPOLOGY VERIFIED (0 Slashing Hazards)'}
+                : 'TOPOLOGY VALIDATOR: NOMINAL (0 HAZARDS)'}
             </span>
-            {hasCritical && (
-              <button
-                onClick={handleAutoFix}
-                className="underline hover:text-white font-bold ml-1 text-amber-300 cursor-pointer"
-              >
-                Auto-Fix ➔
-              </button>
-            )}
+            
           </div>
         </div>
 

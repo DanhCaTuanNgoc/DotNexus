@@ -229,25 +229,14 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           <div className="flex items-center gap-2">
             <TrendingUp className="w-3.5 h-3.5 text-[#8B5CF6]" />
             <span className="text-xs font-bold text-white tracking-wider">
-              AUTO-COMPOUNDED YIELD TRAJECTORY VS NOMINAL APY
+              AUTO-COMPOUNDED NPOS YIELD TRAJECTORY
             </span>
           </div>
 
-          {/* Time Selector Buttons */}
-          <div className="flex items-center gap-1 bg-[#06040A] p-0.5 border border-[#1C142E] text-[10px]">
-            {[1, 3, 6, 12].map((m) => (
-              <button
-                key={`mo-${m}`}
-                onClick={() => setSelectedDurationMonths(m)}
-                className={`px-2 py-0.5 transition-colors cursor-pointer ${
-                  selectedDurationMonths === m
-                    ? 'bg-[#1C142E] text-white font-bold'
-                    : 'text-zinc-500 hover:text-zinc-300'
-                }`}
-              >
-                [{m}M]
-              </button>
-            ))}
+          {/* Standard Projection Tag */}
+          <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#06040A] border border-[#1C142E] text-[10px] text-zinc-400">
+            <span className="text-zinc-500">PERIOD:</span>
+            <span className="text-zinc-200 font-bold">12-MONTH COMPOUNDED RUN-RATE</span>
           </div>
         </div>
 
@@ -293,11 +282,11 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-3.5 h-3.5 text-[#00FF9D]" />
             <span className="text-xs font-bold text-white tracking-wider">
-              PRE-FLIGHT RE-NOMINATION SAFETY GATES
+              PRE-NOMINATION SAFETY INVARIANTS
             </span>
           </div>
           <span className="text-[10px] text-[#00FF9D] bg-[#00FF9D]/10 px-2 py-0.5 border border-[#00FF9D]/30 font-bold">
-            [ALL 3 PRE-FLIGHT CHECKS PASSED]
+            [3/3 INVARIANTS SATISFIED]
           </span>
         </div>
 
@@ -305,7 +294,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           {/* Gate 1: Election Window */}
           <div className="p-3 bg-[#06040A] border border-[#1C142E] hover:border-[#2E1F4A] transition-colors space-y-1">
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-zinc-500 font-bold">GATE 1: ELECTION WINDOW</span>
+              <span className="text-zinc-500 font-bold">CHECK 1: ELECTION WINDOW</span>
               <span className="text-[#00FF9D] font-bold flex items-center gap-1">
                 <Check className="w-3 h-3" /> [CLEAR]
               </span>
@@ -319,7 +308,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           {/* Gate 2: Fee Erosion Threshold */}
           <div className="p-3 bg-[#06040A] border border-[#1C142E] hover:border-[#2E1F4A] transition-colors space-y-1">
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-zinc-500 font-bold">GATE 2: FEE EROSION</span>
+              <span className="text-zinc-500 font-bold">CHECK 2: FEE VS REWARD RATIO</span>
               <span className="text-[#00FF9D] font-bold flex items-center gap-1">
                 <Check className="w-3 h-3" /> [&gt; 3x FEE]
               </span>
@@ -333,7 +322,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           {/* Gate 3: Async Nonce Manager */}
           <div className="p-3 bg-[#06040A] border border-[#1C142E] hover:border-[#2E1F4A] transition-colors space-y-1">
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-zinc-500 font-bold">GATE 3: NONCE MANAGER</span>
+              <span className="text-zinc-500 font-bold">CHECK 3: ASYNC NONCE MANAGER</span>
               <span className="text-[#00FF9D] font-bold flex items-center gap-1">
                 <Check className="w-3 h-3" /> [SYNCED]
               </span>
@@ -513,7 +502,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-[#8B5CF6]" />
             <span className="text-xs font-bold text-white tracking-widest uppercase">
-              PAO-PHRAGMÉN CANDIDATE LEDGER
+              SEQUENTIAL PHRAGMÉN VALIDATOR SET
             </span>
             <span className="text-[10px] text-zinc-500 hidden sm:inline">
               // Sequential Optimization Set
@@ -541,7 +530,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                     : 'text-emerald-400/80 hover:text-emerald-300'
                 }`}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 LIVE ON-CHAIN ({data.validators.filter(v => v.is_live_onchain).length})
               </button>
               <button
@@ -636,7 +625,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                     </span>
                     {val.is_live_onchain ? (
                       <span className="text-[9px] text-emerald-400 border border-emerald-500/40 px-1 py-0 bg-emerald-500/10 font-bold flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                         PORTALDOT V3 LIVE
                       </span>
                     ) : (

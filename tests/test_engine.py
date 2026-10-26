@@ -10,6 +10,7 @@ Aggregates and executes all modularized unit and integration test suites:
 - tests.integration.test_dag_engine: Runbook execution & visual DAG state transitions
 - tests.integration.test_worker_daemon: Kahn's tiers, cycle detection, token bucket limiter
 - tests.integration.test_server_api: REST API Gateway, Prometheus exporter & security
+- tests.integration.test_dual_engine_dataflow: DualEngineView schema contracts, lockstep parity & SWR cache
 """
 
 import unittest
@@ -26,6 +27,7 @@ from tests.unit.test_staking_keeper import TestStakingKeeperUnit
 from tests.integration.test_dag_engine import TestDAGEngineIntegration
 from tests.integration.test_worker_daemon import TestWorkerDaemonIntegration
 from tests.integration.test_server_api import TestServerAPIIntegration
+from tests.integration.test_dual_engine_dataflow import TestDualEngineDataFlowIntegration
 
 
 def load_tests(loader, tests, pattern):
@@ -40,6 +42,7 @@ def load_tests(loader, tests, pattern):
     suite.addTests(loader.loadTestsFromTestCase(TestDAGEngineIntegration))
     suite.addTests(loader.loadTestsFromTestCase(TestWorkerDaemonIntegration))
     suite.addTests(loader.loadTestsFromTestCase(TestServerAPIIntegration))
+    suite.addTests(loader.loadTestsFromTestCase(TestDualEngineDataFlowIntegration))
     return suite
 
 

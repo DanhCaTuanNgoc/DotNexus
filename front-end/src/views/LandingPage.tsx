@@ -17,8 +17,6 @@ import {
   Globe,
   Gauge,
   CornerDownRight,
-  Menu,
-  X,
   Check,
   CircleDot,
   Clock,
@@ -518,8 +516,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   nposData,
   shieldData
 }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   return (
     <div className="relative min-h-screen bg-[#080512] text-[#E2E8F0] selection:bg-[#8B5CF6] selection:text-white overflow-x-hidden font-mono tracking-tight">
       {/* Background Cybernetic Grid & Ambient Lighting Orbs (Softer Zeabur Contrast) */}
@@ -583,54 +579,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <span>Launch Console</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
-
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-zinc-400 hover:text-white hover:bg-[#1E113E] rounded-none border border-white/[0.08]"
-            title="Toggle Menu"
-          >
-            {isMobileMenuOpen ? <X className="w-4 h-4 text-[#C084FC]" /> : <Menu className="w-4 h-4" />}
-          </button>
         </div>
       </nav>
-
-      {/* Mobile Nav Dropdown Sheet */}
-      {/* {isMobileMenuOpen && (
-        <div className="fixed top-16 left-0 right-0 z-40 bg-[#0A0515]/98 border-b border-white/[0.08] p-4 flex flex-col space-y-3 font-mono text-xs md:hidden shadow-2xl backdrop-blur-md">
-          <a
-            href="#pillars"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors flex items-center gap-2 font-mono"
-          >
-            <ChevronRight className="w-3.5 h-3.5 text-[#8B5CF6]" />
-            <span>The 4 Pillars</span>
-          </a>
-          <a
-            href="#dag-canvas"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors flex items-center gap-2 font-mono"
-          >
-            <ChevronRight className="w-3.5 h-3.5 text-[#8B5CF6]" />
-            <span>Visual DAG Automation Canvas</span>
-          </a>
-          <a
-            href="#comparison"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors flex items-center gap-2 font-mono"
-          >
-            <ChevronRight className="w-3.5 h-3.5 text-[#8B5CF6]" />
-            <span>Why DotNexus Stands Apart</span>
-          </a>
-          <a
-            href="#roadmap"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-zinc-300 hover:text-[#C084FC] hover:bg-[#140C2B] rounded-none transition-colors flex items-center gap-2 font-mono"
-          >
-            <ChevronRight className="w-3.5 h-3.5 text-[#8B5CF6]" />
-            <span>Hackathon Delivery Timeline</span>
-          </a>
-        </div>
-      )} */}
 
       {/* Hero Section — Full Viewport Width (100vw) for Three.js Dual-VM Cyber Mesh */}
       <section className="relative w-full min-h-[100vh] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6 overflow-hidden z-10 border-b border-white/[0.08] bg-[#06040A]">

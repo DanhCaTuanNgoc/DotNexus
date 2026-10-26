@@ -20,6 +20,7 @@ interface CyberWorldMapProps {
   peers: PeerNode[];
   selectedPeer: PeerNode | null;
   onSelectPeer: (peer: PeerNode) => void;
+  className?: string;
 }
 
 // Coordinate resolution for known locations
@@ -52,7 +53,8 @@ const LOCAL_COORDS: [number, number] = [105.8542, 21.0285];
 export const CyberWorldMap: React.FC<CyberWorldMapProps> = ({
   peers,
   selectedPeer,
-  onSelectPeer
+  onSelectPeer,
+  className = '',
 }) => {
   const [hoveredPeer, setHoveredPeer] = useState<PeerNode | null>(null);
 
@@ -83,11 +85,11 @@ export const CyberWorldMap: React.FC<CyberWorldMapProps> = ({
   const localPos = projection(LOCAL_COORDS) || [500, 240];
 
   return (
-    <div className="relative w-full bg-[#06040A] border border-[#1C142E] overflow-hidden select-none">
-      {/* SVG Map Canvas */}
+    <div className={`relative w-full bg-[#06040A] border border-[#1C142E] overflow-hidden select-none ${className}`}>
+      {/* SVG Map Canvas: always fills 100% width of parent container */}
       <svg
         viewBox="0 0 960 480"
-        className="w-full h-auto block max-h-[380px]"
+        className="w-full h-auto block"
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>

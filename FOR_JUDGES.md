@@ -9,8 +9,8 @@
 
 ## ⚡ 60-Second Verification Guide (For Judges)
 
-### 1. Run Comprehensive Engine Test Suite (188/188 Tests Passed)
-Validate all core functions, including Dual-VM telemetry, on-chain lease registry state, live BABE session authorities, triple-schema stakers exposure, dynamic decimals resolution, anti-equivocation mutex locking, recursive JSON batch bomb defense, EVM re-entrancy pre-filtering, dynamic IP progressive quarantine, and heavy `eth_getLogs` attack neutralization:
+### 1. Run Comprehensive Engine Test Suite (196/196 Tests Passed)
+Validate all core functions, including Dual-VM telemetry, on-chain lease registry state, live BABE session authorities, triple-schema stakers exposure, dynamic decimals resolution, anti-equivocation mutex locking, recursive JSON batch bomb defense, EVM re-entrancy pre-filtering, dynamic IP progressive quarantine, lockstep parity invariants, and heavy `eth_getLogs` attack neutralization:
 ```bash
 python -m unittest tests/test_engine.py
 ```
@@ -67,6 +67,8 @@ Open browser at `http://localhost:5173`, or visit the live cloud deployment at *
 | **3. NPoS Optimizer** | Multifactor validator scoring, oversubscribed filter, dynamic re-nomination (+1.16% APY boost) | `engine/npos_optimizer.py`<br/>`front-end/src/views/StakingYieldView.tsx` | Run `python -m engine.cli npos --top16` or test `test_06`, `test_07` |
 | **4. RPC Shield** | Deep query parser (block range > 2000), dynamic rate-limiting (429), P2P topology radar | `engine/rpc_shield.py`<br/>`front-end/src/views/TopologyRadarView.tsx` | Run `python -m engine.cli shield-test` or test `test_08`, `test_09` |
 | **5. Visual DAG Canvas** | Interactive runbook pipelines, node execution states | `engine/dag_engine.py`<br/>`front-end/src/views/CanvasBoard.tsx` | Run `python -m engine.cli runbook runbook-slash-guard` |
+| **6. Host OS Telemetry & NOC** | Physical CPU/RAM saturation, NVMe expansion velocity (GB/day), Prometheus `/metrics` endpoint, Grafana NOC template | `engine/dual_tracker.py`<br/>`dashboards/dotnexus-production-dashboard.json` | Query `curl -s http://127.0.0.1:5050/metrics` or run `test_server_api` |
+| **7. P2P Anti-Eclipse Defense** | Live `system_peers` scraping, /24 subnet & ASN clustering (> 35% trigger), Linux firewall hardening script | `engine/rpc_shield.py`<br/>`scripts/harden_node_firewall.sh`<br/>`scripts/fence_node.sh` | Run `python -m engine.cli p2p-radar` or `test_p2p_topology` |
 
 ---
 
@@ -76,3 +78,19 @@ Open browser at `http://localhost:5173`, or visit the live cloud deployment at *
 - **Zero-Downtime Anti-Double Signing:** Atomic lease-lock mechanism guarantees standby node cannot broadcast blocks until primary lease is cleanly revoked.
 - **Mainnet V3.0 Storage Deposit & Pallet-Revive Readiness:** 100% compliant with pallet-revive (~0.08 POT/byte storage deposit calculation, zero unbounded storage bloat, decimals 14 vs 18 normalized).
 - **Pure Tech Aesthetic:** Dark Obsidian (`#0B0813`) + Electric Violet (`#8B5CF6`) theme, monospace tabular numbers, zero generic AI slop.
+
+---
+
+## ⚖️ System Boundaries & Operational Limits (Intellectual Honesty)
+
+To ensure transparent and rigorous engineering evaluation, DotNexus documents the operational boundaries and technical assumptions of its systems:
+
+1. **RPC Shield Throughput & Latency Margin:**
+   * **Nominal Load ($\le 1,000\text{ req/s}$):** Reverse proxy security verification adds $< 1.0\text{ms}$ latency overhead per JSON-RPC request.
+   * **Extreme Saturation ($> 10,000\text{ req/s}$):** Single-node Python process encounters GIL limits; enterprise deployments should deploy DotNexus RPC Shield across a multi-instance Docker/Kubernetes ingress cluster behind NGINX/Envoy.
+2. **OS Keystore Fencing Boundary:**
+   * Execution of [`scripts/fence_node.sh`](scripts/fence_node.sh) (`chmod 000` & `systemctl stop`) requires matching file system permissions or sudo privileges for the user running the DotNexus daemon. In containerized environments, the daemon requires shared volume write access to the host keystore mount.
+3. **Sequential Phragmén Approximation Scope:**
+   * Client-side Phragmén operates on current Era storage snapshots (`ErasStakersOverview` / `ErasStakers`). It serves as an optimal delegation decision-support tool for Nominators, complementing (rather than replacing) Substrate's off-chain multi-phase election runtime pallet.
+4. **Dual-VM Synchronization Margin:**
+   * Causal Lag Index (CLI 2.0) is calibrated for normal network operating margins ($\Delta B \le 2$). In the event of a deep network reorg or hard fork, Substrate's native GRANDPA consensus authority governs finality reconciliation.

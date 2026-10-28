@@ -12,6 +12,7 @@ import socket
 import secrets
 import hashlib
 import logging
+import subprocess
 from typing import Dict, Any, Optional
 from pathlib import Path
 from engine.config import CONFIG, LOCK_FILE, FAILOVER_STATE_FILE, LEASE_STORE_FILE, AUDIT_LOG_FILE
@@ -211,6 +212,15 @@ class SlashingGuard:
                 f"DEAD MAN'S SWITCH TRIGGERED: Lease lost for {round(elapsed, 1)}s "
                 f"(> {CONFIG.primary_self_fence_timeout}s timeout). Primary Keystore FENCED/ISOLATED!"
             )
+            # Execute OS-level keystore isolation script if present
+            fence_script = Path(__file__).resolve().parent.parent / "scripts" / "fence_node.sh"
+            if fence_script.exists() and os.name != "nt":
+                try:
+                    subprocess.run(["bash", str(fence_script), "fence"], timeout=5, check=False)
+                    logger.info(f"OS-level keystore fencing script executed: {fence_script}")
+                except Exception as ex:
+                    logger.warning(f"OS fence script execution bypassed: {ex}")
+
             self._record_event(
                 level="CRITICAL_SAFETY_FENCE",
                 title="Primary Self-Fencing Executed",

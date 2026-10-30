@@ -54,15 +54,25 @@ export const ZeroGapCard: React.FC<ZeroGapCardProps> = ({
     setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <div
       ref={cardRef}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setOpacity(1)}
       onMouseLeave={() => setOpacity(0)}
       className={`relative p-6 bg-[#090516]/80 hover:bg-white/[0.02] transition-colors duration-150 flex flex-col justify-between overflow-hidden group ${
-        onClick ? 'cursor-pointer' : ''
+        onClick ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-inset' : ''
       } ${className}`}
     >
       {/* Corner Technical Tick Marks (+) */}

@@ -17,13 +17,61 @@ interface TopologyRadarViewProps {
   onRefresh: () => void;
 }
 
+interface AttackDrill {
+  type: 'HEAVY_GETLOGS' | 'RATE_LIMIT_BURST' | 'BATCH_OVERLOAD' | 'RECURSIVE_BATCH_BOMB' | 'STATE_BLOAT_TX';
+  label: string;
+  tag: string;
+  icon: React.ComponentType<{ className?: string }>;
+  iconColor: string;
+}
+
+const ATTACK_DRILLS: AttackDrill[] = [
+  {
+    type: 'HEAVY_GETLOGS',
+    label: 'eth_getLogs Flood',
+    tag: '500k BLOCKS',
+    icon: ShieldAlert,
+    iconColor: 'text-rose-400',
+  },
+  {
+    type: 'RATE_LIMIT_BURST',
+    label: 'Rate Limit Burst',
+    tag: '> 60 REQ/MIN',
+    icon: Zap,
+    iconColor: 'text-[#C084FC]',
+  },
+  {
+    type: 'BATCH_OVERLOAD',
+    label: 'Batch Overload',
+    tag: '> 20 CALLS',
+    icon: Filter,
+    iconColor: 'text-amber-400',
+  },
+  {
+    type: 'RECURSIVE_BATCH_BOMB',
+    label: 'Recursive JSON Bomb',
+    tag: 'DEPTH > 4',
+    icon: ShieldAlert,
+    iconColor: 'text-fuchsia-400',
+  },
+  {
+    type: 'STATE_BLOAT_TX',
+    label: 'State-Bloat TX',
+    tag: '> 128 KB',
+    icon: Server,
+    iconColor: 'text-cyan-400',
+  },
+];
+
 export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRefresh }) => {
   const [simulating, setSimulating] = useState(false);
+  const [activeAttackType, setActiveAttackType] = useState<string | null>(null);
   const [simulationResult, setSimulationResult] = useState<any | null>(null);
   const [selectedPeer, setSelectedPeer] = useState<any | null>(null);
 
   const handleSimulateAttack = async (type: 'HEAVY_GETLOGS' | 'RATE_LIMIT_BURST' | 'BATCH_OVERLOAD' | 'RECURSIVE_BATCH_BOMB' | 'STATE_BLOAT_TX' | 'REENTRANCY_CALDATA') => {
     setSimulating(true);
+    setActiveAttackType(type);
     try {
       const res = await api.simulateShieldAttack(type as any);
       if (res.success) {
@@ -32,6 +80,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
       }
     } finally {
       setSimulating(false);
+      setActiveAttackType(null);
     }
   };
 
@@ -55,7 +104,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
 
         <div className="flex items-center gap-2 font-mono text-xs text-[#00FF9D] bg-[#00FF9D]/10 px-2.5 py-1 border border-[#00FF9D]/30 font-bold">
           <Zap className="w-3.5 h-3.5 text-[#00FF9D]" />
-          <span>PROXY OVERHEAD: {avgOverhead}ms (&lt; 1.0ms TARGET)</span>
+          <span>PROXY OVERHEAD: <span className="tabular-nums">{avgOverhead}</span>&nbsp;ms (&lt;&nbsp;<span className="tabular-nums">1.0</span>&nbsp;ms TARGET)</span>
         </div>
       </div>
 
@@ -263,50 +312,35 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
         </p>
 
         <div className="flex flex-col sm:flex-row flex-wrap gap-2.5">
-          <button
-            onClick={() => handleSimulateAttack('HEAVY_GETLOGS')}
-            disabled={simulating}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 sm:py-1.5 text-xs bg-[#14080D] hover:bg-[#EF4444] text-[#EF4444] hover:text-white font-bold border border-[#EF4444]/60 cursor-pointer transition-colors"
-          >
-            <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
-            <span>TEST HEAVY eth_getLogs (500k BLOCKS)</span>
-          </button>
+          {ATTACK_DRILLS.map((drill) => {
+            const Icon = drill.icon;
+            const isThisSimulating = simulating && activeAttackType === drill.type;
+            const isAnySimulating = simulating && !isThisSimulating;
 
-          <button
-            onClick={() => handleSimulateAttack('RATE_LIMIT_BURST')}
-            disabled={simulating}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 sm:py-1.5 text-xs bg-[#110C1E] hover:bg-[#1A102E] border border-[#2E1F4A] hover:border-[#8B5CF6] text-zinc-200 hover:text-white font-bold cursor-pointer transition-colors"
-          >
-            <Zap className="w-3.5 h-3.5 shrink-0 text-[#C084FC]" />
-            <span>TEST RATE LIMIT BURST (&gt; 60 REQ/MIN)</span>
-          </button>
-
-          <button
-            onClick={() => handleSimulateAttack('BATCH_OVERLOAD')}
-            disabled={simulating}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 sm:py-1.5 text-xs bg-[#140E06] hover:bg-[#261B13] border border-amber-500/40 text-amber-400 font-bold cursor-pointer transition-colors"
-          >
-            <Filter className="w-3.5 h-3.5 shrink-0" />
-            <span>TEST BATCH OVERLOAD (&gt; 20 CALLS)</span>
-          </button>
-
-          <button
-            onClick={() => handleSimulateAttack('RECURSIVE_BATCH_BOMB')}
-            disabled={simulating}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 sm:py-1.5 text-xs bg-[#1A0A1F] hover:bg-[#34143D] border border-fuchsia-500/40 text-fuchsia-300 font-bold cursor-pointer transition-colors"
-          >
-            <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-fuchsia-400" />
-            <span>TEST RECURSIVE BOMB (DEPTH &gt; 4)</span>
-          </button>
-
-          <button
-            onClick={() => handleSimulateAttack('STATE_BLOAT_TX')}
-            disabled={simulating}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 sm:py-1.5 text-xs bg-[#10141A] hover:bg-[#1C2633] border border-cyan-500/40 text-cyan-300 font-bold cursor-pointer transition-colors"
-          >
-            <Server className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
-            <span>TEST STATE-BLOAT TX (&gt; 128KB)</span>
-          </button>
+            return (
+              <button
+                key={drill.type}
+                onClick={() => handleSimulateAttack(drill.type)}
+                disabled={simulating}
+                aria-label={`Inject ${drill.label} simulated attack`}
+                className={`w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2.5 px-3 py-2 sm:py-1.5 text-xs font-mono font-medium rounded-none border touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08050F] transition-[background-color,border-color,color,box-shadow] duration-150 cursor-pointer ${
+                  isThisSimulating
+                    ? 'bg-[#1D1036] border-[#8B5CF6] text-white shadow-md shadow-[#8B5CF6]/30 animate-pulse'
+                    : isAnySimulating
+                    ? 'bg-[#0A0615] border-white/[0.04] text-zinc-600 opacity-50 cursor-not-allowed'
+                    : 'bg-[#0D081D] hover:bg-[#180F33] border-white/[0.08] hover:border-[#8B5CF6]/60 text-zinc-300 hover:text-white shadow-sm'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Icon className={`w-3.5 h-3.5 shrink-0 ${drill.iconColor}`} />
+                  <span className="font-semibold tracking-wide">{drill.label}</span>
+                </div>
+                <span className="text-[10px] text-zinc-500 font-mono tabular-nums px-1.5 py-0.2 bg-white/[0.03] border border-white/[0.06]">
+                  {drill.tag}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Progressive Quarantine & IP Reputation Panel */}

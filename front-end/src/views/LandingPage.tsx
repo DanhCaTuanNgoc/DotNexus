@@ -61,7 +61,7 @@ const LazySection: React.FC<LazySectionProps> = ({
   id,
   className = '',
   minHeight = 'min-h-[480px]',
-  fallbackText = 'INITIALIZING MODULE TELEMETRY...',
+  fallbackText = 'INITIALIZING MODULE TELEMETRY…',
   children,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -338,7 +338,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
       step: 2,
       tag: 'SECURITY',
       accent: '#8B5CF6',
-      activeText: 'Anti-Equivocation Mutex: Initiating atomic self-fence for primary key 0xba11...7355',
+      activeText: 'Anti-Equivocation Mutex: Initiating atomic self-fence for primary key 0xba11…7355',
       doneText: 'Anti-Equivocation Mutex: Primary authority lease revoked atomically. Invariant 10s < 12s < 15s satisfied (0% slashing loss)',
     },
     {
@@ -392,7 +392,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
           <button
             onClick={runSimulation}
             disabled={isExecuting}
-            className={`px-3 py-1 rounded-none text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-none text-[11px] font-bold flex items-center gap-1.5 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#05030C] transition-[background-color,transform,box-shadow] cursor-pointer ${
               isExecuting
                 ? 'bg-[#181028] border border-[#8B5CF6]/40 text-[#C084FC] animate-pulse cursor-wait'
                 : 'bg-[#8B5CF6] hover:bg-[#7C3AED] text-white shadow-md shadow-[#8B5CF6]/25 hover:scale-[1.02]'
@@ -404,7 +404,8 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
 
           <button
             onClick={handleReset}
-            className="p-1.5 rounded-none bg-[#110A24] hover:bg-[#180F33] border border-white/[0.08] text-zinc-300 hover:text-white transition-colors cursor-pointer"
+            aria-label="Reset topology to default"
+            className="p-1.5 rounded-none bg-[#110A24] hover:bg-[#180F33] border border-white/[0.08] text-zinc-300 hover:text-white touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] transition-colors cursor-pointer"
             title="Reset Topology to Default"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -446,7 +447,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
           <div className="flex items-center gap-2">
             <span className="text-emerald-400 font-bold">ZERO EQUIVOCATION INVARIANT SATISFIED</span>
             <span className="text-zinc-600">•</span>
-            <span className="text-zinc-400">FAILOVER LATENCY: &lt; 388ms</span>
+            <span className="text-zinc-400">FAILOVER LATENCY: &lt;&nbsp;<span className="tabular-nums">388</span>&nbsp;ms</span>
           </div>
         </div>
 
@@ -472,7 +473,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
                 </span>
                 <ChevronRight className="w-3 h-3 text-zinc-500 inline-block shrink-0 mt-0.5" />
                 <span className="flex-1">
-                  {isDone ? log.doneText : isCurrent ? log.activeText : `[QUEUED] Waiting for upstream token...`}
+                  {isDone ? log.doneText : isCurrent ? log.activeText : `[QUEUED] Waiting for upstream token…`}
                 </span>
                 {isCurrent && (
                   <span className="text-emerald-400 font-bold text-[10px]">[EXECUTING]</span>
@@ -498,7 +499,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
 
         <button
           onClick={() => onLaunchApp('canvas')}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 text-xs font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-md shadow-[#8B5CF6]/20 cursor-pointer hover:scale-[1.02]"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 text-xs font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#06030F] transition-[background-color,transform,box-shadow] shadow-md shadow-[#8B5CF6]/20 cursor-pointer hover:scale-[1.02]"
         >
           <Workflow className="w-3.5 h-3.5" />
           <span>Open Full Studio Canvas</span>
@@ -524,9 +525,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <div className="fixed inset-0 scanline-overlay opacity-15 pointer-events-none z-0" />
 
       {/* Dynamic Ambient Neon Glow Orbs - Refined & Softened to prevent visual fatigue */}
-      <div className="absolute pointer-events-none rounded-full glow-orb-violet w-[600px] h-[600px] -top-40 left-1/2 -translate-x-1/2 z-0 opacity-40 animate-pulse-glow" />
-      <div className="absolute pointer-events-none rounded-full glow-orb-magenta w-[500px] h-[500px] top-60 -left-60 z-0 opacity-30 animate-pulse-glow" style={{ animationDelay: '2s' }} />
-      <div className="absolute pointer-events-none rounded-full glow-orb-cyan w-[500px] h-[500px] top-60 -right-60 z-0 opacity-30 animate-pulse-glow" style={{ animationDelay: '4s' }} />
+      <div className="absolute pointer-events-none rounded-full glow-orb-violet w-[600px] h-[600px] -top-40 left-1/2 -translate-x-1/2 z-0 opacity-40 animate-pulse-glow motion-reduce:animate-none" />
+      <div className="absolute pointer-events-none rounded-full glow-orb-magenta w-[500px] h-[500px] top-60 -left-60 z-0 opacity-30 animate-pulse-glow motion-reduce:animate-none" style={{ animationDelay: '2s' }} />
+      <div className="absolute pointer-events-none rounded-full glow-orb-cyan w-[500px] h-[500px] top-60 -right-60 z-0 opacity-30 animate-pulse-glow motion-reduce:animate-none" style={{ animationDelay: '4s' }} />
 
       {/* Top Navbar — Zeabur Frosted Glass with Live Cluster Heartbeat */}
       <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/[0.08] bg-[#080512]/80 backdrop-blur-md px-4 sm:px-30 flex items-center justify-between shadow-2xl">
@@ -534,6 +535,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <img
             src={dotnexusIcon}
             alt="DotNexus"
+            width={44}
+            height={44}
             className="w-10 h-10 sm:w-11 sm:h-11 object-contain rounded-none border border-white/[0.08]"
           />
           <div>
@@ -574,7 +577,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => onLaunchApp()}
-            className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs font-mono rounded-none border border-[#8B5CF6]/80 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-lg shadow-[#8B5CF6]/25 hover:scale-[1.02] cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs font-mono rounded-none border border-[#8B5CF6]/80 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080512] transition-[background-color,transform,box-shadow] shadow-lg shadow-[#8B5CF6]/25 hover:scale-[1.02] cursor-pointer"
           >
             <span>Launch Console</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -609,6 +612,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <img
             src="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/e0e14572-12e1-4c08-b471-a21521844945.png"
             alt=""
+            width={1204}
+            height={340}
             className="pointer-events-none absolute top-[280px] sm:top-[340px] left-1/2 -translate-x-1/2 w-full max-w-[1204px] mix-blend-screen opacity-75 z-0"
             aria-hidden="true"
           />
@@ -622,7 +627,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Main Title */}
           <div className="space-y-4">
-            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1] font-sans">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1] font-sans text-balance">
               The Visual Control Plane &amp; <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] via-[#C084FC] to-[#38BDF8] drop-shadow-md">
                 Automated Security Operations Engine
@@ -634,7 +639,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2 pointer-events-auto">
             <button
               onClick={() => onLaunchApp('dual-vm')}
-              className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold transition-all shadow-xl shadow-[#8B5CF6]/30 hover:scale-[1.02] cursor-pointer"
+              className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-none border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#06040A] transition-[background-color,transform,box-shadow] shadow-xl shadow-[#8B5CF6]/30 hover:scale-[1.02] cursor-pointer"
             >
               <Zap className="w-4 h-4 fill-white" />
               <span>Launch Live Console</span>
@@ -644,13 +649,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               href="https://github.com/DanhCaTuanNgoc/DotNexus"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-none bg-[#110A24]/90 hover:bg-[#180F33] border border-white/[0.08] hover:border-[#8B5CF6] text-zinc-200 transition-all backdrop-blur-md cursor-pointer group"
+              aria-label="DotNexus GitHub Repository (opens in new tab)"
+              className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 text-sm font-mono rounded-none bg-[#110A24]/90 hover:bg-[#180F33] border border-white/[0.08] hover:border-[#8B5CF6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] text-zinc-200 transition-[background-color,border-color,color] backdrop-blur-md cursor-pointer group"
             >
               <svg className="w-4 h-4 fill-current text-zinc-300 group-hover:text-white transition-colors" viewBox="0 0 24 24" aria-hidden="true">
                 <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
               </svg>
               <span>GitHub Repository</span>
-              <ArrowRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+              <ArrowRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white group-hover:translate-x-0.5 transition-transform" />
             </a>
           </div>
 
@@ -735,11 +741,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 sm:w-36 z-20 bg-gradient-to-l from-[#07040E] to-transparent" />
 
           {/* Infinite Moving Row */}
-          <div className="animate-marquee-infinite flex items-center gap-3 select-none">
+          <div className="animate-marquee-infinite hover:[animation-play-state:paused] focus-within:[animation-play-state:paused] motion-reduce:animate-none flex items-center gap-3 select-none">
             {[...TECH_STACK_ITEMS, ...TECH_STACK_ITEMS].map((item, idx) => (
               <div
                 key={`${item.name}-${idx}`}
-                className="flex items-center gap-2.5 px-3.5 py-2 rounded-none border border-white/[0.08] bg-[#110A24]/90 hover:bg-[#180F33] hover:border-[#8B5CF6]/50 transition-all duration-200 group/chip cursor-default shadow-sm"
+                className="flex items-center gap-2.5 px-3.5 py-2 rounded-none border border-white/[0.08] bg-[#110A24]/90 hover:bg-[#180F33] hover:border-[#8B5CF6]/50 transition-colors duration-200 group/chip cursor-default shadow-sm"
               >
                 <span className="text-xs font-mono font-bold text-zinc-200 group-hover/chip:text-white whitespace-nowrap">
                   {item.name}
@@ -776,7 +782,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
             <div className="space-y-1">
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans text-balance">
                 The Four Mission-Critical Pillars
               </h2>
             </div>
@@ -830,7 +836,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       <div className="text-sm font-bold text-white tabular-nums">
                         #{dualData?.substrate?.best_block ? dualData.substrate.best_block.toLocaleString() : '161,594'}
                       </div>
-                      <div className="text-[10px] text-emerald-400">14.2ms Latency</div>
+                      <div className="text-[10px] text-emerald-400"><span className="tabular-nums">14.2</span>&nbsp;ms Latency</div>
                     </div>
 
                     <div className="space-y-1 sm:border-l sm:border-white/[0.08] sm:pl-3">
@@ -838,7 +844,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       <div className="text-sm font-bold text-[#818CF8] tabular-nums">
                         #{dualData?.evm?.block_number ? dualData.evm.block_number.toLocaleString() : '161,594'}
                       </div>
-                      <div className="text-[10px] text-emerald-400">18.7ms Latency</div>
+                      <div className="text-[10px] text-emerald-400"><span className="tabular-nums">18.7</span>&nbsp;ms Latency</div>
                     </div>
 
                     <div className="space-y-1 sm:border-l sm:border-white/[0.08] sm:pl-3">
@@ -846,7 +852,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       <div className="inline-flex items-center px-2 py-0.5 rounded-none bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[11px]">
                         <span>0 BLK (100% LOCKSTEP)</span>
                       </div>
-                      <div className="text-[10px] text-zinc-400">CLI Score: 12.5 / 100</div>
+                      <div className="text-[10px] text-zinc-400">CLI Score: <span className="tabular-nums">12.5</span> / <span className="tabular-nums">100</span></div>
                     </div>
                   </div>
 
@@ -907,14 +913,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   {/* Invariant Box */}
                   <div className="p-3 rounded-none bg-[#080512] border border-white/[0.06] font-mono text-[11px] space-y-1.5">
                     <div className="text-[10px] text-zinc-500 uppercase font-bold">TIMING INVARIANT</div>
-                    <div className="text-emerald-400 font-bold">10.0s &lt; 12.0s &lt; 15.0s</div>
+                    <div className="text-emerald-400 font-bold tabular-nums">10.0s &lt; 12.0s &lt; 15.0s</div>
                     <div className="text-[10px] text-zinc-400">Self-Fence &lt; Lease &lt; Standby</div>
                   </div>
 
                   <div className="text-[10px] font-mono text-zinc-400 space-y-1">
                     <div className="flex justify-between">
                       <span>Lease Arbiter:</span>
-                      <span className="text-[#C084FC]">0xba11...7355</span>
+                      <span className="text-[#C084FC]">0xba11…7355</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Double-Signing Loss:</span>
@@ -973,7 +979,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </div>
                     <div className="flex justify-between">
                       <span>Staking Vault:</span>
-                      <span className="text-[#C084FC]">0x97e5...610A</span>
+                      <span className="text-[#C084FC]">0x97e5…610A</span>
                     </div>
                   </div>
                 </div>
@@ -1016,11 +1022,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-none bg-[#080512] border border-white/[0.06] text-xs font-mono">
                     <div>
                       <span className="text-[10px] text-zinc-500 uppercase block">INSPECTION OVERHEAD</span>
-                      <span className="font-bold text-emerald-400">&lt; 0.25ms (Zero-Copy)</span>
+                      <span className="font-bold text-emerald-400 tabular-nums">&lt; 0.25&nbsp;ms (Zero-Copy)</span>
                     </div>
                     <div>
                       <span className="text-[10px] text-zinc-500 uppercase block">BLOCK SPAN LIMIT</span>
-                      <span className="font-bold text-white">&le; 2,000 Blocks</span>
+                      <span className="font-bold text-white tabular-nums">&le; 2,000 Blocks</span>
                     </div>
                     <div>
                       <span className="text-[10px] text-zinc-500 uppercase block">SYBIL ECLIPSE GUARD</span>
@@ -1030,7 +1036,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between text-xs font-mono text-[#38BDF8] font-bold pt-3 border-t border-white/[0.06] mt-4">
-                  <span>60 Req / Min / IP Rate Limited</span>
+                  <span><span className="tabular-nums">60</span> Req / Min / IP Rate Limited</span>
                   <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                     <span>Open RPC Shield</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -1060,12 +1066,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       >
         <LazySection 
           minHeight="min-h-[580px]"
-          fallbackText="INITIALIZING DAG AUTOMATION PIPELINE..."
+          fallbackText="INITIALIZING DAG AUTOMATION PIPELINE…"
         >
           <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
               <div className="space-y-2">
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans text-balance">
                   Visual DAG Automation Canvas
                 </h2>
               </div>
@@ -1098,12 +1104,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       >
         <LazySection 
           minHeight="min-h-[500px]"
-          fallbackText="LOADING COMPARATIVE BENCHMARKS..."
+          fallbackText="LOADING COMPARATIVE BENCHMARKS…"
         >
           <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
               <div className="space-y-2">
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans text-balance">
                   Why DotNexus Stands Apart
                 </h2>
               </div>
@@ -1194,12 +1200,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       >
         <LazySection 
           minHeight="min-h-[520px]"
-          fallbackText="CONNECTING LINE JOURNEY TELEMETRY..."
+          fallbackText="CONNECTING LINE JOURNEY TELEMETRY…"
         >
           <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
               <div className="space-y-2">
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans text-balance">
                   Portaldot Hacker House 2026 Timeline
                 </h2>
               </div>
@@ -1434,7 +1440,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex items-center gap-2">
             <span className="font-bold text-white">DOTNEXUS</span>
             <span className="text-zinc-600">•</span>
-            <span>Portaldot Network V3.0 (SS58: 42 • Decimals: 14)</span>
+            <span>Portaldot Network V3.0 (SS58: <span className="tabular-nums">42</span> • Decimals: <span className="tabular-nums">14</span>)</span>
           </div>
           <div className="text-zinc-600 text-[11px]">
             Node Operations &amp; Tooling Track • Portaldot Hacker House 2026

@@ -36,6 +36,13 @@ Use for structured, production-grade feature development:
 - `speckit-tasks`: Break down plans into atomic, actionable steps.
 - `speckit-implement`: Execute code changes strictly adhering to specifications.
 
+### 🕸️ Graphify Architectural Intelligence (`.agents/skills/graphify/`)
+Use for codebase graph traversal, dependency impact analysis, and architecture exploration:
+- `graphify update .`: Re-extract AST and rebuild knowledge graph across Python, Solidity, and TypeScript.
+- `graphify query [question]`: Query relationships and data flow through BFS traversal.
+- `graphify path [from] [to]`: Find shortest dependency path between components before refactoring.
+- `graphify explain [symbol]`: Inspect node degree, community cluster, and in/out connections.
+
 ---
 
 ## 3. Engineering & Coding Standards

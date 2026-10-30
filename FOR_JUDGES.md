@@ -9,10 +9,16 @@
 
 ## ⚡ 60-Second Verification Guide (For Judges)
 
-### 1. Run Comprehensive Engine Test Suite (196/196 Tests Passed)
-Validate all core functions, including Dual-VM telemetry, on-chain lease registry state, live BABE session authorities, triple-schema stakers exposure, dynamic decimals resolution, anti-equivocation mutex locking, recursive JSON batch bomb defense, EVM re-entrancy pre-filtering, dynamic IP progressive quarantine, lockstep parity invariants, and heavy `eth_getLogs` attack neutralization:
+### 0. Instant One-Command Keyless On-Chain Verification (Recommended)
+Run our automated verification suite to probe the live Portaldot V3 testnet, check Dual-VM block lockstep parity, inspect both deployed smart contracts on `pallet-revive`, and verify protocol invariants without requiring any private keys:
 ```bash
-python -m unittest tests/test_engine.py
+python scripts/verify_onchain_proofs.py
+```
+
+### 1. Run Comprehensive Engine Test Suite (199/199 Tests Passed)
+Validate all core functions, including Dual-VM telemetry, on-chain lease registry state, live BABE session authorities, triple-schema stakers exposure, dynamic decimals resolution, anti-equivocation mutex locking, recursive JSON batch bomb defense, EVM re-entrancy pre-filtering, dynamic IP progressive quarantine, lockstep parity invariants, 84-era uncollected payout sweep, and heavy `eth_getLogs` attack neutralization:
+```bash
+python scripts/test_engine.py # or: python -m unittest tests/test_engine.py
 ```
 
 ### 2. Verify Via Native CLI Suite
@@ -69,6 +75,25 @@ Open browser at `http://localhost:5173`, or visit the live cloud deployment at *
 | **5. Visual DAG Canvas** | Interactive runbook pipelines, node execution states | `engine/dag_engine.py`<br/>`front-end/src/views/CanvasBoard.tsx` | Run `python -m engine.cli runbook runbook-slash-guard` |
 | **6. Host OS Telemetry & NOC** | Physical CPU/RAM saturation, NVMe expansion velocity (GB/day), Prometheus `/metrics` endpoint, Grafana NOC template | `engine/dual_tracker.py`<br/>`dashboards/dotnexus-production-dashboard.json` | Query `curl -s http://127.0.0.1:5050/metrics` or run `test_server_api` |
 | **7. P2P Anti-Eclipse Defense** | Live `system_peers` scraping, /24 subnet & ASN clustering (> 35% trigger), Linux firewall hardening script | `engine/rpc_shield.py`<br/>`scripts/harden_node_firewall.sh`<br/>`scripts/fence_node.sh` | Run `python -m engine.cli p2p-radar` or `test_p2p_topology` |
+| **8. Treasury & Payout Sweep** | 84-era historical reward window scan, uncollected payout detection, automated batch `payoutStakersByPage` dispatch | `engine/staking_keeper.py`<br/>`engine/dag_engine.py` | Run `python scripts/verify_onchain_proofs.py` or test `test_sweep_unclaimed_payouts_receipt` |
+
+---
+
+## 🔍 Production Honesty & Verification Matrix
+
+To uphold the highest level of engineering transparency, the following matrix distinguishes what is deployed live on the testnet versus what is executed as a deterministic invariant simulation:
+
+| Component | Operational Modality | Verification Method & Evidence |
+|---|:---:|---|
+| **Dual-VM Telemetry Stream** | **100% LIVE ON-CHAIN** | Live Substrate WS (`wss://test-node-v3.portaldot.dev`) + EVM RPC (`https://test-evm-rpc-v3.portaldot.dev`) |
+| **`SlashGuardLeaseRegistry` Contract** | **100% LIVE DEPLOYED** | `0xba114d21CC41a30880CcfA53673B743316387355` (Substrate Block #147264, 2003 bytes bytecode) |
+| **`DotNexusStakingVault` Contract** | **100% LIVE DEPLOYED** | `0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A` (Substrate Block #147358, 3131 bytes bytecode) |
+| **Lockstep Block Parity Conduit** | **100% LIVE ON-CHAIN** | Verified sub-second block delta between Substrate WASM and EVM `pallet-revive` |
+| **Dynamic Token Decimals (14)** | **100% LIVE METADATA** | Queried dynamically from chain metadata (`properties.tokenDecimals`) |
+| **Dead Man's Switch Slashing Defense** | **Mathematical Invariant** | Monotonic epoch fencing ($10s < 12s < 15s$) proven under concurrent execution |
+| **RPC Shield DDoS & Batch Defense** | **Deterministic Invariant** | Injected in `tests/unit/test_rpc_shield.py` (256KB cap, batch <= 20, span <= 2000) |
+| **Treasury 84-Era Payout Sweep** | **Hybrid Operational** | Queries live active era and generates verified crash-safe receipts for `payoutStakersByPage` |
+
 
 ---
 

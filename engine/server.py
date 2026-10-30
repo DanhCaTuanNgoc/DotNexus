@@ -472,6 +472,26 @@ def get_unified_logs():
     return jsonify({"success": True, "count": len(events), "logs": events[:40]})
 
 
+@app.route("/api/npos/unclaimed-payouts", methods=["GET"])
+def get_unclaimed_payouts():
+    """Scans historical 84-era staking rewards window for uncollected validator payouts"""
+    account = request.args.get("account", getattr(CONFIG, "primary_validator_address", "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"))
+    data = STAKING_KEEPER.scan_unclaimed_payout_eras(validator_stash=account)
+    return jsonify({"success": True, "data": data})
+
+
+@app.route("/api/npos/sweep-payouts", methods=["POST"])
+def sweep_payouts():
+    """Dispatches automated payoutStakersByPage batch for uncollected historical eras"""
+    if not check_auth(request):
+        return jsonify({"success": False, "error": "Unauthorized: Invalid X-DotNexus-Auth token"}), 401
+    body = request.get_json(silent=True) or {}
+    account = body.get("account")
+    dry_run = bool(body.get("dry_run", False))
+    res = STAKING_KEEPER.sweep_unclaimed_payouts(validator_stash=account, dry_run=dry_run)
+    return jsonify({"success": True, "data": res})
+
+
 def run_server():
     logger.info("=" * 60)
     logger.info("  DotNexus Control Center - Portaldot Network V3.0")

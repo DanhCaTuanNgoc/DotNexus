@@ -46,3 +46,8 @@ portaldot-hackathon-2026-PortalModeler-Tuanngoc/
 ForeSight/
 a.txt
 
+# Graphify Cache & Large Artifacts
+graphify-out/cache/
+graphify-out/*.sig
+graphify-out/*.pending.json
+

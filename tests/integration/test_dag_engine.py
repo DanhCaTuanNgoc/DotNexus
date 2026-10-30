@@ -13,14 +13,15 @@ class TestDAGEngineIntegration(unittest.TestCase):
         self.dag_engine = DAGCanvasEngine()
 
     def test_get_runbooks_returns_all_prebuilt(self):
-        """Verifies exactly 4 prebuilt operational runbooks are available"""
+        """Verifies exactly 5 prebuilt operational runbooks are available"""
         runbooks = self.dag_engine.get_runbooks()
-        self.assertGreaterEqual(len(runbooks), 4)
+        self.assertGreaterEqual(len(runbooks), 5)
         ids = [rb["id"] for rb in runbooks]
         self.assertIn("runbook-slash-guard", ids)
         self.assertIn("runbook-dual-vm-sync", ids)
         self.assertIn("runbook-npos-compound", ids)
         self.assertIn("runbook-chaos-fire-drill", ids)
+        self.assertIn("runbook-treasury-sweep", ids)
 
     def test_get_runbook_by_id_existing(self):
         """Verifies fetching specific runbook by ID returns matching metadata"""
@@ -63,6 +64,16 @@ class TestDAGEngineIntegration(unittest.TestCase):
         self.assertIn("Dead Man's Switch Evaluation", step_names)
         self.assertIn("Chaos Defense: RPC DDoS Shield", step_names)
         self.assertIn("Causal Lag Index Probe", step_names)
+
+    def test_execute_treasury_sweep_runbook(self):
+        """Verifies execution of Treasury & Staking Era Payout Safeguard Sweep"""
+        res = self.dag_engine.execute_runbook("runbook-treasury-sweep")
+        self.assertEqual(res["status"], "COMPLETED_SUCCESSFULLY")
+        self.assertEqual(len(res["steps"]), 3)
+        step_names = [s["step"] for s in res["steps"]]
+        self.assertIn("Historical Payout Window Inspection", step_names)
+        self.assertIn("Treasury Burn Invariant Check", step_names)
+        self.assertIn("Batch payoutStakersByPage Dispatch", step_names)
 
     def test_execute_unknown_runbook_status_failed(self):
         """Verifies execution of invalid runbook ID fails gracefully"""

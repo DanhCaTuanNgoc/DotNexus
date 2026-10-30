@@ -78,6 +78,32 @@ class TestStakingKeeperUnit(unittest.TestCase):
         self.assertIn("last_evaluation", status)
         self.assertIsNotNone(status["last_evaluation"])
 
+    def test_scan_unclaimed_payout_eras_structure(self):
+        """Verifies 84-era historical scan structure and burn countdown calculation"""
+        scan = self.keeper.scan_unclaimed_payout_eras()
+        self.assertIn("validator_stash", scan)
+        self.assertIn("current_era", scan)
+        self.assertIn("unclaimed_eras", scan)
+        self.assertIn("eras_until_permanent_burn", scan)
+        self.assertGreaterEqual(scan["eras_until_permanent_burn"], 0)
+        self.assertIn("urgency_level", scan)
+        self.assertEqual(scan["target_call"], "staking.payoutStakersByPage")
+
+    def test_sweep_unclaimed_payouts_receipt(self):
+        """Verifies payout sweep generates crash-safe receipts with extrinsic specifications"""
+        sweep = self.keeper.sweep_unclaimed_payouts(dry_run=True)
+        self.assertTrue(sweep["success"])
+        self.assertIn("receipt", sweep)
+        receipt = sweep["receipt"]
+        self.assertIn("receipt_id", receipt)
+        self.assertIn("claimed_eras", receipt)
+        self.assertIn("dispatched_extrinsics", receipt)
+        self.assertEqual(receipt["proof_status"], "FINALIZED_RECEIPT_PERSISTED")
+        for ext in receipt["dispatched_extrinsics"]:
+            self.assertEqual(ext["pallet"], "Staking")
+            self.assertEqual(ext["call"], "payout_stakers_by_page")
+
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -853,7 +853,7 @@ if __name__ == "__main__":
           {/* Back to Hub Button */}
           <button
             onClick={handleBackToHub}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border border-[#2E1F4A] hover:border-[#8B5CF6] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-200 hover:text-white transition-all cursor-pointer font-bold"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border border-[#2E1F4A] hover:border-[#8B5CF6] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-200 hover:text-white touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] transition-[background-color,border-color,color] duration-150 cursor-pointer font-bold"
             title="Return to Canvas Management Hub"
           >
             <ArrowLeft className="w-3.5 h-3.5 text-[#C084FC]" />
@@ -908,7 +908,8 @@ if __name__ == "__main__":
           {/* Reset button */}
           <button
             onClick={handleResetCanvas}
-            className="p-1.5 border border-[#1C142E] hover:border-[#2E1F4A] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            aria-label="Reset Workflow Topology"
+            className="p-1.5 border border-[#1C142E] hover:border-[#2E1F4A] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-400 hover:text-white touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] transition-colors cursor-pointer"
             title="Reset Workflow Topology"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -917,7 +918,8 @@ if __name__ == "__main__":
           {/* Export JSON */}
           <button
             onClick={() => handleExportJSON(activeWorkflow)}
-            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-mono border border-[#1C142E] hover:border-[#2E1F4A] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-300 hover:text-white transition-colors cursor-pointer"
+            aria-label="Export Active Workflow as JSON"
+            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-mono border border-[#1C142E] hover:border-[#2E1F4A] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-300 hover:text-white touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] transition-colors cursor-pointer"
             title="Export Active Workflow as JSON"
           >
             <Download className="w-3.5 h-3.5 text-[#C084FC]" />
@@ -927,7 +929,8 @@ if __name__ == "__main__":
           {/* Export CLI Script */}
           <button
             onClick={handleExportCLI}
-            className="hidden md:flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-mono border border-[#1C142E] hover:border-[#2E1F4A] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-300 hover:text-white transition-colors cursor-pointer"
+            aria-label="Export Standalone Python CLI Runner"
+            className="hidden md:flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-mono border border-[#1C142E] hover:border-[#2E1F4A] bg-[#110C1E] hover:bg-[#1A102E] text-zinc-300 hover:text-white touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] transition-colors cursor-pointer"
             title="Export Standalone Python CLI Runner"
           >
             <FileCode2 className="w-3.5 h-3.5 text-[#00FF9D]" />
@@ -937,7 +940,7 @@ if __name__ == "__main__":
           {/* Toolbox toggle button */}
           <button
             onClick={() => setIsPaletteOpen(!isPaletteOpen)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] transition-colors cursor-pointer ${
               isPaletteOpen
                 ? 'border-[#8B5CF6] bg-[#110C1E] text-white font-bold'
                 : 'border-[#1C142E] hover:border-[#2E1F4A] bg-[#0B0813] text-zinc-300 hover:text-white hover:bg-[#110C1E]'
@@ -952,7 +955,7 @@ if __name__ == "__main__":
           {hasCritical && (
             <button
               onClick={handleAutoFix}
-              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono border border-amber-500/60 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black font-bold transition-all cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono border border-amber-500/50 bg-[#1A1208] hover:bg-[#2A1D0B] text-amber-300 hover:text-amber-100 hover:border-amber-400 font-bold touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 transition-[background-color,border-color,color] duration-150 cursor-pointer shadow-sm"
             >
               <Zap className="w-3.5 h-3.5 fill-current" />
               <span>Auto-Fix</span>
@@ -963,12 +966,12 @@ if __name__ == "__main__":
           <button
             onClick={handleExecute}
             disabled={executing || hasCritical || nodes.length === 0}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-mono font-bold touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08050F] transition-[background-color,border-color,color,box-shadow] duration-150 cursor-pointer ${
               hasCritical || nodes.length === 0
                 ? 'border border-[#1C142E] bg-[#0B0813] text-zinc-600 cursor-not-allowed'
                 : executing
                 ? 'bg-[#1E1035] border border-[#8B5CF6] text-white animate-pulse cursor-wait'
-                : 'border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white shadow-md'
+                : 'border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white shadow-md shadow-[#8B5CF6]/25'
             }`}
           >
             <Play className={`w-3.5 h-3.5 fill-current ${executing ? 'animate-pulse' : ''}`} />

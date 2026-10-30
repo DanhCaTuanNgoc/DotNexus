@@ -432,10 +432,10 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           <button
             onClick={handleRunKeeper}
             disabled={isKeeperRunning}
-            className="w-full py-2 bg-[#8B5CF6]/15 hover:bg-[#8B5CF6]/25 border border-[#8B5CF6]/50 text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            className="w-full py-2 bg-[#120A24] hover:bg-[#1C1236] border border-[#8B5CF6]/60 hover:border-[#8B5CF6] text-white text-xs font-mono font-bold transition-[background-color,border-color,color] duration-150 flex items-center justify-center gap-2 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] cursor-pointer disabled:opacity-50"
           >
             <Play className={`w-3.5 h-3.5 text-[#C084FC] ${isKeeperRunning ? 'animate-spin' : ''}`} />
-            <span>{isKeeperRunning ? 'EVALUATING INVARIANTS...' : 'SIMULATE & RUN KEEPER PASS'}</span>
+            <span>{isKeeperRunning ? 'EVALUATING INVARIANTS…' : 'SIMULATE & RUN KEEPER PASS'}</span>
           </button>
         </div>
 
@@ -1158,12 +1158,12 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               <button
                 onClick={handleBroadcast}
                 disabled={broadcastStatus === 'broadcasting' || selectedTargets.length === 0}
-                className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold bg-[#00FF9D] hover:bg-[#00E58D] active:bg-[#00CC7D] text-black cursor-pointer transition-all shadow-[0_0_20px_rgba(0,255,157,0.25)] disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2.5 text-xs font-mono font-bold bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white cursor-pointer transition-[background-color,transform,box-shadow] duration-150 shadow-md shadow-[#8B5CF6]/30 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08050F] disabled:opacity-50"
               >
                 <Send className={`w-3.5 h-3.5 ${broadcastStatus === 'broadcasting' ? 'animate-spin' : ''}`} />
                 <span>
                   {broadcastStatus === 'broadcasting'
-                    ? 'BROADCASTING ON-CHAIN TO PORTALDOT...'
+                    ? 'BROADCASTING ON-CHAIN TO PORTALDOT…'
                     : broadcastStatus === 'success'
                     ? 'RE-BROADCAST ON-CHAIN'
                     : 'CONFIRM & BROADCAST ON-CHAIN'}

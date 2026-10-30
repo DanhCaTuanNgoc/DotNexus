@@ -90,16 +90,16 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
           <button
             onClick={handleRotateKeys}
             disabled={rotating}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[#110C1E] hover:bg-[#1A102E] text-zinc-200 hover:text-white font-bold border border-[#2E1F4A] hover:border-[#8B5CF6] transition-colors cursor-pointer"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-xs font-mono bg-[#110C1E] hover:bg-[#1A102E] text-zinc-200 hover:text-white font-bold border border-[#2E1F4A] hover:border-[#8B5CF6] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08050F] transition-[background-color,border-color,color] duration-150 cursor-pointer"
           >
             <Key className={`w-3.5 h-3.5 text-[#C084FC] ${rotating ? 'animate-spin' : ''}`} />
             <span>ROTATE KEYS (N+2)</span>
           </button>
-          {/* Primary High-Risk Danger Action: Outlined with controlled hover */}
+          {/* Primary High-Risk Danger Action: Controlled Deep Crimson without harsh flash */}
           <button
             onClick={handleFailover}
             disabled={switching}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[#14080D] hover:bg-[#EF4444] text-[#EF4444] hover:text-white font-bold border border-[#EF4444]/60 transition-colors cursor-pointer"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-xs font-mono bg-[#16080E] hover:bg-rose-950/70 text-rose-300 hover:text-rose-100 font-bold border border-rose-800/60 hover:border-rose-600/80 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#08050F] transition-[background-color,border-color,color] duration-150 cursor-pointer"
           >
             <ArrowRightLeft className={`w-3.5 h-3.5 ${switching ? 'animate-spin' : ''}`} />
             <span>TRIGGER FAILOVER</span>
@@ -174,7 +174,7 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
               <button
                 onClick={handleSimulateMiss}
                 disabled={simulatingMiss}
-                className="px-2.5 py-1 text-[10px] bg-[#110C1E] hover:bg-[#1A102E] border border-[#2E1F4A] hover:border-[#8B5CF6] text-zinc-300 hover:text-white cursor-pointer transition-colors"
+                className="px-2.5 py-1 text-[10px] bg-[#110C1E] hover:bg-[#1A102E] border border-[#2E1F4A] hover:border-[#8B5CF6] text-zinc-300 hover:text-white touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] transition-[background-color,border-color,color] duration-150 cursor-pointer"
               >
                 +1 Sim Miss
               </button>

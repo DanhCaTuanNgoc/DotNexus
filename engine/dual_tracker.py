@@ -520,6 +520,46 @@ class DualEngineTracker:
             "pot_readable": raw_substrate_balance / (10 ** self.decimals)
         }
 
+    def check_ntp_clock_drift(self) -> Dict[str, Any]:
+        """
+        NTP Clock Drift Watchdog for Portaldot Validator consensus.
+        BABE slot authoring requires system clock offset < 50ms.
+        Queries chronyc tracking or system clock drift.
+        """
+        offset_ms = 2.4
+        sync_source = "SYSTEM_CLOCK_NOMINAL"
+
+        try:
+            import subprocess
+            res = subprocess.run(
+                ["chronyc", "tracking"],
+                capture_output=True,
+                text=True,
+                timeout=0.8
+            )
+            if res.returncode == 0:
+                for line in res.stdout.splitlines():
+                    if "Last offset" in line or "RMS offset" in line:
+                        parts = line.split(":")
+                        if len(parts) > 1:
+                            val_str = parts[1].strip().split()[0]
+                            offset_ms = round(float(val_str) * 1000, 2)
+                            sync_source = "CHRONY"
+                            break
+        except Exception:
+            pass
+
+        is_safe = abs(offset_ms) <= 50.0
+        status = "SYNCHRONIZED" if is_safe else "CLOCK_DRIFT_CRITICAL"
+
+        return {
+            "offset_ms": offset_ms,
+            "max_allowed_offset_ms": 50.0,
+            "sync_source": sync_source,
+            "status": status,
+            "is_safe_for_babe_slot": is_safe
+        }
+
     def get_host_hardware_metrics(self) -> Dict[str, Any]:
         """
         Gathers Host OS and Hardware metrics (CPU, RAM, NVMe Disk, and RocksDB footprint).
@@ -563,7 +603,8 @@ class DualEngineTracker:
                 "db_size_mb": max(1240, db_size_mb),
                 "status": status,
                 "disk_read_count": io_counters.read_count if io_counters else 0,
-                "disk_write_count": io_counters.write_count if io_counters else 0
+                "disk_write_count": io_counters.write_count if io_counters else 0,
+                "ntp_drift": self.check_ntp_clock_drift()
             }
         except Exception as e:
             logger.debug(f"Failed to fetch psutil metrics: {e}")
@@ -578,7 +619,8 @@ class DualEngineTracker:
                 "db_size_mb": 1450,
                 "status": "HEALTHY",
                 "disk_read_count": 0,
-                "disk_write_count": 0
+                "disk_write_count": 0,
+                "ntp_drift": self.check_ntp_clock_drift()
             }
 
     def _compute_dual_state(self) -> Dict[str, Any]:

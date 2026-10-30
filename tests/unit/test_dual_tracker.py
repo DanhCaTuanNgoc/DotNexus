@@ -386,5 +386,21 @@ class TestDualTrackerUnit(unittest.TestCase):
         self.assertEqual(b1, b2)
 
 
+    def test_ntp_clock_drift_watchdog(self):
+        """Verifies NTP Clock Drift Watchdog verifies clock offset and safety for BABE slots"""
+        ntp = self.dual_tracker.check_ntp_clock_drift()
+        self.assertIn("offset_ms", ntp)
+        self.assertIn("max_allowed_offset_ms", ntp)
+        self.assertEqual(ntp["max_allowed_offset_ms"], 50.0)
+        self.assertIn("status", ntp)
+        self.assertIn("is_safe_for_babe_slot", ntp)
+        self.assertIsInstance(ntp["is_safe_for_babe_slot"], bool)
+
+        # Check that hardware metrics include ntp_drift
+        hw = self.dual_tracker.get_host_hardware_metrics()
+        self.assertIn("ntp_drift", hw)
+        self.assertIn("offset_ms", hw["ntp_drift"])
+
+
 if __name__ == "__main__":
     unittest.main()

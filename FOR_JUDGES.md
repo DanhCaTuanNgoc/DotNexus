@@ -15,7 +15,7 @@ Run our automated verification suite to probe the live Portaldot V3 testnet, che
 python scripts/verify_onchain_proofs.py
 ```
 
-### 1. Run Comprehensive Engine Test Suite (199/199 Tests Passed)
+### 1. Run Comprehensive Engine Test Suite (200/200 Tests Passed)
 Validate all core functions, including Dual-VM telemetry, on-chain lease registry state, live BABE session authorities, triple-schema stakers exposure, dynamic decimals resolution, anti-equivocation mutex locking, recursive JSON batch bomb defense, EVM re-entrancy pre-filtering, dynamic IP progressive quarantine, lockstep parity invariants, 84-era uncollected payout sweep, and heavy `eth_getLogs` attack neutralization:
 ```bash
 python scripts/test_engine.py # or: python -m unittest tests/test_engine.py

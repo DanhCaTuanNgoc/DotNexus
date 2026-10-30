@@ -43,6 +43,12 @@ Use for codebase graph traversal, dependency impact analysis, and architecture e
 - `graphify path [from] [to]`: Find shortest dependency path between components before refactoring.
 - `graphify explain [symbol]`: Inspect node degree, community cluster, and in/out connections.
 
+### ▲ Vercel Interface & React Performance Skills (`.agents/skills/web-design-guidelines/`, `vercel-react-best-practices/`)
+Installed via `npx skills add vercel-labs/agent-skills`:
+- **`web-design-guidelines`**: Audit UI code against 100+ Vercel Web Interface Guidelines rules (WCAG 2.1 AA a11y, focus rings, explicit transitions, `tabular-nums`, mobile safe-area).
+- **`vercel-react-best-practices`**: React 19 / Vite performance standards, eliminating layout thrashing and bundle bloat.
+- **`vercel-composition-patterns`**: Scalable component composition patterns without boolean prop sprawl.
+
 ---
 
 ## 3. Engineering & Coding Standards

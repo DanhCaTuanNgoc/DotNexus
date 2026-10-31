@@ -23,6 +23,7 @@ import {
 import { CanvasWorkflow, NodeCategory } from '../components/canvas/types';
 import { NewWorkflowModal } from '../components/canvas/NewWorkflowModal';
 import { RenameWorkflowModal } from '../components/canvas/RenameWorkflowModal';
+import { DeleteWorkflowModal } from '../components/canvas/DeleteWorkflowModal';
 
 export interface CanvasHubViewProps {
   workflows: CanvasWorkflow[];
@@ -47,6 +48,7 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<CanvasWorkflow | null>(null);
+  const [deletingWorkflow, setDeletingWorkflow] = useState<CanvasWorkflow | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredWorkflows = useMemo(() => {
@@ -270,11 +272,9 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm(`Delete workflow "${workflow.name}"?`)) {
-                            onDeleteWorkflow(workflow.id);
-                          }
+                          setDeletingWorkflow(workflow);
                         }}
-                        className="p-1 text-zinc-400 hover:text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-800"
+                        className="p-1 text-zinc-400 hover:text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-800 transition-colors cursor-pointer"
                         title="Delete Canvas"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -358,6 +358,19 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
           onRename={(newName, newDescription) => {
             onRenameWorkflow(editingWorkflow.id, newName, newDescription);
             setEditingWorkflow(null);
+          }}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingWorkflow && (
+        <DeleteWorkflowModal
+          isOpen={!!deletingWorkflow}
+          workflow={deletingWorkflow}
+          onClose={() => setDeletingWorkflow(null)}
+          onConfirm={() => {
+            onDeleteWorkflow(deletingWorkflow.id);
+            setDeletingWorkflow(null);
           }}
         />
       )}

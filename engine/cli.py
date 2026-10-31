@@ -45,7 +45,31 @@ def main():
 
     # Command: runbook
     p_rb = subparsers.add_parser("runbook", help="Execute operational DAG runbook")
-    p_rb.add_argument("id", choices=["runbook-slash-guard", "runbook-dual-vm-sync", "runbook-npos-compound"])
+    p_rb.add_argument(
+        "id",
+        choices=[
+            "runbook-slash-guard",
+            "runbook-dual-vm-sync",
+            "runbook-npos-compound",
+            "runbook-chaos-fire-drill",
+            "runbook-treasury-sweep",
+            "runbook-health-bot",
+            "runbook-rpc-shield",
+        ],
+        help="Runbook identifier to execute"
+    )
+
+    # Command: circuit-breaker
+    subparsers.add_parser("circuit-breaker", help="Toggle protective RPC Circuit Breaker gating mode")
+
+    # Command: peers
+    subparsers.add_parser("peers", help="Inspect P2P peer topology and Sybil score")
+
+    # Command: logs
+    subparsers.add_parser("logs", help="Display recent unified security and telemetry logs")
+
+    # Command: clear-logs
+    subparsers.add_parser("clear-logs", help="Flush all active diagnostic streams")
 
     args = parser.parse_args()
 
@@ -85,6 +109,31 @@ def main():
         print(f"DAG Runbook '{res['runbook_name']}' completed in {res['duration_ms']}ms:")
         for step in res["steps"]:
             print(f"  [{step['status']}] {step['step']}: {step['detail']}")
+    elif args.command == "circuit-breaker":
+        cb = DUAL_TRACKER.toggle_circuit_breaker()
+        print(f"RPC Circuit Breaker status toggled to {cb.get('status')} (Armed: {cb.get('circuit_breaker_enabled')})")
+    elif args.command == "peers":
+        shld = RPC_SHIELD.get_shield_status()
+        peers = shld.get("p2p_topology", [])
+        print(f"Connected P2P Peers: {len(peers)} | Quarantined IPs: {shld.get('active_banned_ips_count', 0)}")
+        for p in peers[:10]:
+            print(f"  {p.get('peer_id', 'unknown')[:16]}... | IP: {p.get('ip')} | Client: {p.get('client_version')} | Latency: {p.get('latency_ms')}ms")
+    elif args.command == "logs":
+        events = []
+        for e in SLASH_GUARD.security_events:
+            events.append(f"[{e['level']}] [SLASH_GUARD] {e['title']}: {e['message']}")
+        for s in RPC_SHIELD.shield_logs:
+            events.append(f"[{s['decision']}] [RPC_SHIELD] {s['method']} from {s['client_ip']} - {s['reason']}")
+        for d in DAG_ENGINE.execution_logs:
+            events.append(f"[INFO] [DAG_ENGINE] Runbook '{d['runbook_name']}' completed in {d['duration_ms']}ms")
+        print(f"Latest Diagnostic Logs ({len(events)} events):")
+        for log_line in events[-15:]:
+            print(f"  {log_line}")
+    elif args.command == "clear-logs":
+        SLASH_GUARD.security_events.clear()
+        RPC_SHIELD.shield_logs.clear()
+        DAG_ENGINE.execution_logs.clear()
+        print("All diagnostic and security event streams cleared.")
     else:
         parser.print_help()
 

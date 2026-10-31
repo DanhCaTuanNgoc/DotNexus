@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Layers, 
   ShieldCheck, 
@@ -136,10 +136,37 @@ export const App: React.FC = () => {
   const [logs, setLogs] = useState<any[]>(() => DEFAULT_LOGS);
   const [selectedCanvasNodeId, setSelectedCanvasNodeId] = useState<string | null>(null);
   const [isTerminalOpen, setIsTerminalOpen] = useState<boolean>(() => storage.getTerminalOpen(true));
+  const lastClearedTimeRef = useRef<number>(0);
 
   const handleAppendLog = useCallback((log: any) => {
     setLogs((prev) => [...prev, log].slice(-100));
   }, []);
+
+  const handleClearLogs = useCallback(async () => {
+    lastClearedTimeRef.current = Date.now() / 1000;
+    await api.clearLogs();
+    setLogs([]);
+  }, []);
+
+  const handleExecuteCommand = useCallback(async (cmd: string) => {
+    handleAppendLog({
+      source: 'CLI',
+      level: 'INFO',
+      time: Date.now() / 1000,
+      text: `$ ${cmd}`
+    });
+    const res = await api.executeDiagnosticCommand(cmd);
+    if ((res as any).action === 'clear') {
+      await handleClearLogs();
+      return;
+    }
+    handleAppendLog({
+      source: res.source || 'SYSTEM',
+      level: res.level || (res.success ? 'SUCCESS' : 'WARN'),
+      time: Date.now() / 1000,
+      text: res.output
+    });
+  }, [handleAppendLog, handleClearLogs]);
 
   const handleToggleTerminal = useCallback((open: boolean) => {
     setIsTerminalOpen(open);
@@ -172,7 +199,7 @@ export const App: React.FC = () => {
           if (logsRes?.success) {
             setLogs((prev) => {
               const dagLogs = prev.filter((l) => l.source === 'DAG_ENGINE' || l.source === 'RUNBOOK');
-              const merged = [...dagLogs, ...logsRes.logs];
+              const merged = [...dagLogs, ...logsRes.logs].filter((l) => l.time > lastClearedTimeRef.current);
               const seen = new Set();
               return merged.filter((item) => {
                 const key = `${item.time}-${item.source}-${item.text}`;
@@ -399,11 +426,12 @@ export const App: React.FC = () => {
       {/* Fixed Diagnostic Terminal Drawer with Multi-Source and Node Filtering */}
       <TerminalDrawer
         logs={logs}
-        onClear={() => setLogs([])}
+        onClear={handleClearLogs}
         selectedNodeId={activeTab === 'canvas' ? selectedCanvasNodeId : null}
         onClearNodeFilter={() => setSelectedCanvasNodeId(null)}
         isOpen={isTerminalOpen}
         onToggleOpen={handleToggleTerminal}
+        onExecuteCommand={handleExecuteCommand}
       />
 
       {/* Guided Mission Briefing Onboarding Tour Modal */}

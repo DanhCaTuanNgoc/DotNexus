@@ -201,6 +201,34 @@ class TestServerAPIIntegration(unittest.TestCase):
         self.assertIn("logs", data)
         self.assertIsInstance(data.get("logs"), list)
 
+    def test_post_clear_unified_logs_endpoint(self):
+        """Verifies POST /api/logs/clear flushes diagnostic and security event streams"""
+        res = self.client.post("/api/logs/clear")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        self.assertIn("cleared", data.get("message", "").lower())
+
+    def test_post_diagnostic_command_endpoint(self):
+        """Verifies POST /api/diagnostic/command parses and dispatches CLI operations"""
+        # Test help
+        res_help = self.client.post("/api/diagnostic/command", json={"command": "help"})
+        self.assertEqual(res_help.status_code, 200)
+        data_help = res_help.get_json()
+        self.assertTrue(data_help.get("success"))
+        self.assertIn("Operations", data_help.get("output", ""))
+
+        # Test status
+        res_stat = self.client.post("/api/diagnostic/command", json={"command": "status"})
+        self.assertEqual(res_stat.status_code, 200)
+        data_stat = res_stat.get_json()
+        self.assertTrue(data_stat.get("success"))
+        self.assertEqual(data_stat.get("source"), "DUAL_TRACKER")
+
+        # Test empty command
+        res_empty = self.client.post("/api/diagnostic/command", json={"command": ""})
+        self.assertEqual(res_empty.status_code, 400)
+
     def test_post_dispatch_nominate_endpoint(self):
         """Verifies POST /api/npos/dispatch-nominate endpoint validation and execution"""
         res = self.client.post("/api/npos/dispatch-nominate", json={"targets": []}, headers=self.auth_headers)

@@ -10,7 +10,11 @@ import {
   Filter, 
   Maximize2, 
   Minimize2,
-  GripHorizontal
+  GripHorizontal,
+  Search,
+  CornerDownLeft,
+  ArrowDown,
+  X
 } from 'lucide-react';
 import { storage } from '../services/storage';
 import { LogItem } from '../services/api';
@@ -22,12 +26,15 @@ interface TerminalDrawerProps {
   onClearNodeFilter?: () => void;
   isOpen?: boolean;
   onToggleOpen?: (open: boolean) => void;
+  onExecuteCommand?: (command: string) => Promise<void> | void;
 }
 
-const MIN_HEIGHT = 120;
+const MIN_HEIGHT = 140;
 const MAX_HEIGHT = 650;
-const DEFAULT_HEIGHT = 160;
-const EXPANDED_HEIGHT = 420;
+const DEFAULT_HEIGHT = 180;
+const EXPANDED_HEIGHT = 440;
+
+const QUICK_COMMANDS = ['help', 'status', 'rotate-keys', 'circuit-breaker', 'shield-test', 'npos', 'peers', 'clear'] as const;
 
 export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
   logs,
@@ -36,6 +43,7 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
   onClearNodeFilter,
   isOpen: controlledIsOpen,
   onToggleOpen,
+  onExecuteCommand,
 }) => {
   const [internalIsOpen, setInternalIsOpen] = useState<boolean>(() => storage.getTerminalOpen(true));
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
@@ -44,8 +52,19 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
   const [height, setHeightState] = useState<number>(() => storage.getTerminalHeight(DEFAULT_HEIGHT));
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+  
+  // Interactive CLI & Search States
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSearchVisible, setIsSearchVisible] = useState<boolean>(false);
+  const [commandInput, setCommandInput] = useState<string>('');
+  const [commandHistory, setCommandHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+  const [autoScroll, setAutoScroll] = useState<boolean>(true);
+  const [showScrollPrompt, setShowScrollPrompt] = useState<boolean>(false);
 
+  const terminalScrollRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const dragStartYRef = useRef<number>(0);
   const dragStartHeightRef = useRef<number>(DEFAULT_HEIGHT);
 
@@ -117,29 +136,70 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
     }
   };
 
-  // Filter logs by source tab and node filter
+  // Handle user scroll detection for smart auto-scroll pinning
+  const handleScroll = () => {
+    if (!terminalScrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = terminalScrollRef.current;
+    const isAtBottom = scrollHeight - (scrollTop + clientHeight) < 40;
+    if (isAtBottom) {
+      setShowScrollPrompt(false);
+      setAutoScroll(true);
+    } else {
+      setAutoScroll(false);
+    }
+  };
+
+  const scrollToBottom = () => {
+    if (endRef.current) {
+      endRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+    setAutoScroll(true);
+    setShowScrollPrompt(false);
+  };
+
+  // Filter logs by source tab, selectedNodeId, and text grep search
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
       // 1. Tab filter
       if (activeTab === 'DAG' && log.source !== 'DAG_ENGINE' && log.source !== 'RUNBOOK') return false;
       if (activeTab === 'SECURITY' && log.source !== 'SLASH_GUARD' && log.source !== 'RPC_SHIELD') return false;
-      if (activeTab === 'SYSTEM' && (log.source === 'DAG_ENGINE' || log.source === 'RUNBOOK')) return false;
-
-      // 2. Node filter (if selected on Canvas)
-      if (selectedNodeId && log.nodeId && log.nodeId !== selectedNodeId) {
+      if (
+        activeTab === 'SYSTEM' &&
+        (log.source === 'DAG_ENGINE' || log.source === 'RUNBOOK' || log.source === 'SLASH_GUARD' || log.source === 'RPC_SHIELD')
+      ) {
         return false;
+      }
+
+      // 2. Node filter (Strict isolation when selected on Canvas)
+      if (selectedNodeId && log.nodeId !== selectedNodeId) {
+        return false;
+      }
+
+      // 3. Search query grep filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matches =
+          log.text.toLowerCase().includes(q) ||
+          log.source.toLowerCase().includes(q) ||
+          log.level.toLowerCase().includes(q) ||
+          (log.nodeId && log.nodeId.toLowerCase().includes(q));
+        if (!matches) return false;
       }
 
       return true;
     });
-  }, [logs, activeTab, selectedNodeId]);
+  }, [logs, activeTab, selectedNodeId, searchQuery]);
 
-  // Auto-scroll to latest event when new log arrives
+  // Smart auto-scroll: Only scroll down if already near bottom
   useEffect(() => {
-    if (isOpen && endRef.current) {
-      endRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (isOpen) {
+      if (autoScroll && endRef.current) {
+        endRef.current.scrollIntoView({ behavior: 'smooth' });
+      } else if (!autoScroll && filteredLogs.length > 0) {
+        setShowScrollPrompt(true);
+      }
     }
-  }, [filteredLogs.length, isOpen]);
+  }, [filteredLogs.length, isOpen, autoScroll]);
 
   // Copy logs handler
   const handleCopyLogs = (e: React.MouseEvent) => {
@@ -157,10 +217,21 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Download raw logs bundle
+  // Download raw logs bundle with authentic enterprise audit headers
   const handleDownloadLogs = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const text = filteredLogs
+    const nowIso = new Date().toISOString();
+    const headerLines = [
+      '# ==============================================================================',
+      '# DotNexus Visual Control Plane — Diagnostic Telemetry Audit Export',
+      `# Network   : Portaldot Network V3.0 (Substrate WASM + Frontier EVM Dual-VM)`,
+      `# Consensus : BABE Slot Leadership + GRANDPA Finality (SS58: 42, Decimals: 14)`,
+      `# Generated : ${nowIso}`,
+      `# Total Logs: ${filteredLogs.length} events (Filter: ${activeTab}${selectedNodeId ? `, Node: ${selectedNodeId}` : ''})`,
+      '# ==============================================================================\n'
+    ].join('\n');
+
+    const logLines = filteredLogs
       .map(
         (l) =>
           `[${new Date(l.time * 1000).toISOString()}] [${l.source}] [${l.level}]${
@@ -168,15 +239,57 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
           } ${l.text}`
       )
       .join('\n');
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+
+    const blob = new Blob([`${headerLines}\n${logLines}\n`], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `dotnexus-telemetry-${new Date().toISOString().replace(/[:.]/g, '-')}.log`;
+    link.download = `dotnexus-diagnostic-${nowIso.replace(/[:.]/g, '-')}.log`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  // Execute terminal CLI command
+  const handleSendCommand = (cmdString?: string) => {
+    const raw = cmdString !== undefined ? cmdString : commandInput;
+    const trimmed = raw.trim();
+    if (!trimmed) return;
+
+    if (onExecuteCommand) {
+      onExecuteCommand(trimmed);
+    }
+    setCommandHistory((prev) => [...prev.slice(-30), trimmed]);
+    setHistoryIndex(-1);
+    setCommandInput('');
+    setAutoScroll(true);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSendCommand();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (commandHistory.length > 0) {
+        const nextIdx = historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1);
+        setHistoryIndex(nextIdx);
+        setCommandInput(commandHistory[nextIdx]);
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex !== -1) {
+        const nextIdx = historyIndex + 1;
+        if (nextIdx < commandHistory.length) {
+          setHistoryIndex(nextIdx);
+          setCommandInput(commandHistory[nextIdx]);
+        } else {
+          setHistoryIndex(-1);
+          setCommandInput('');
+        }
+      }
+    }
   };
 
   const isTall = height >= EXPANDED_HEIGHT - 30;
@@ -213,7 +326,7 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
           <span className="font-semibold tracking-wide hidden sm:inline truncate">DIAGNOSTIC TERMINAL & EVENT STREAM</span>
           <span className="font-semibold tracking-wide sm:hidden truncate">TERMINAL</span>
           
-          <span className="text-[10px] px-1.5 sm:px-2 py-0.2 rounded-none border border-[#3B2564] bg-[#1E113E] text-[#C084FC] tabular-nums font-bold shrink-0">
+          <span className="text-[10px] px-1.5 sm:px-2 py-[1px] border border-[#3B2564] bg-[#1E113E] text-[#C084FC] tabular-nums font-bold shrink-0">
             {filteredLogs.length}
           </span>
 
@@ -235,12 +348,28 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
                 e.stopPropagation();
                 onClearNodeFilter?.();
               }}
-              className="flex items-center gap-1 px-1.5 py-0.2 bg-[#581C87] border border-[#C084FC] text-[9px] font-mono text-white cursor-pointer hover:bg-rose-950 hover:border-rose-500 transition-colors shrink-0"
+              className="flex items-center gap-1 px-1.5 py-[1px] bg-[#581C87] border border-[#C084FC] text-[9px] font-mono text-white cursor-pointer hover:bg-rose-950 hover:border-rose-500 transition-colors shrink-0"
               title="Filter active: Click to clear node filter"
             >
               <Filter className="w-2.5 h-2.5 text-[#C084FC]" />
               <span className="truncate max-w-[80px] sm:max-w-none">Node: {selectedNodeId}</span>
               <span className="text-zinc-300 hover:text-white font-bold ml-0.5">✕</span>
+            </div>
+          )}
+
+          {/* Search Query indicator pill */}
+          {searchQuery && (
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                setSearchQuery('');
+              }}
+              className="flex items-center gap-1 px-1.5 py-[1px] bg-[#0E2A47] border border-sky-400 text-[9px] font-mono text-sky-200 cursor-pointer hover:bg-rose-950 hover:border-rose-500 transition-colors shrink-0"
+              title="Clear search filter"
+            >
+              <Search className="w-2.5 h-2.5 text-sky-400" />
+              <span className="truncate max-w-[80px]">grep: {searchQuery}</span>
+              <span className="font-bold ml-0.5">✕</span>
             </div>
           )}
         </div>
@@ -272,6 +401,23 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {isOpen && (
             <>
+              {/* Search Toggle */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsSearchVisible((prev) => !prev);
+                }}
+                className={`p-1 transition-colors cursor-pointer ${
+                  isSearchVisible || searchQuery
+                    ? 'text-sky-400 bg-sky-950/50 border border-sky-500/50'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#261B42]/50'
+                }`}
+                title="Search / Grep Logs"
+              >
+                <Search className="w-3 h-3" />
+              </button>
+
               {/* Copy logs */}
               <button
                 type="button"
@@ -297,7 +443,7 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
                 type="button"
                 onClick={handleToggleExpandHeight}
                 className="text-zinc-400 hover:text-[#C084FC] p-1 hover:bg-[#261B42]/50 transition-colors cursor-pointer"
-                title={isTall ? "Restore Default Height (160px)" : "Expand Height Vertically (420px)"}
+                title={isTall ? "Restore Default Height (180px)" : "Expand Height Vertically (440px)"}
               >
                 {isTall ? (
                   <Minimize2 className="w-3 h-3 text-[#C084FC]" />
@@ -339,6 +485,37 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
       {/* Terminal Content (Dynamic Height) */}
       {isOpen && (
         <>
+          {/* Subheader: Grep Search Bar (if opened) */}
+          {isSearchVisible && (
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-2 px-3 py-1.5 bg-[#090514] border-b border-[#261B42]"
+            >
+              <Search className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Grep filter logs (e.g. 194.26, BLOCKED, #265, eth_getLogs)..."
+                className="flex-1 bg-transparent border-none text-[11px] font-mono text-zinc-200 placeholder-zinc-600 focus:outline-none"
+                autoFocus
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="p-0.5 text-zinc-500 hover:text-zinc-200 cursor-pointer"
+                  title="Clear grep"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+              <span className="text-[10px] font-mono text-zinc-500 tabular-nums shrink-0">
+                {filteredLogs.length} matched
+              </span>
+            </div>
+          )}
+
           {/* Mobile Tab Selector Strip */}
           <div className="sm:hidden flex items-center justify-between px-3 py-1 bg-[#0A0516] border-b border-[#261B42]/70 overflow-x-auto gap-1">
             <div className="flex items-center gap-1">
@@ -365,69 +542,150 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
             </span>
           </div>
 
+          {/* Scrollable Event Stream Area */}
           <div 
+            ref={terminalScrollRef}
+            onScroll={handleScroll}
             style={{ height: `${height}px` }}
-            className="overflow-y-auto p-3 font-mono text-[11px] space-y-1 bg-[#06030D]/95 border-b border-[#261B42]/50 transition-[height] duration-75"
+            className="relative overflow-y-auto p-3 font-mono text-[11px] space-y-1 bg-[#06030D]/95 border-b border-[#261B42]/50 transition-[height] duration-75 scroll-smooth"
           >
-          {filteredLogs.length === 0 ? (
-            <div className="text-zinc-600 italic py-2">
-              {selectedNodeId
-                ? `No execution logs found for Node ID: "${selectedNodeId}". Run pipeline or click on another node.`
-                : 'No incoming events in this view. Diagnostic engine listening on Portaldot RPC...'}
+            {filteredLogs.length === 0 ? (
+              <div className="text-zinc-600 italic py-2">
+                {selectedNodeId
+                  ? `No execution logs found for Node ID: "${selectedNodeId}". Run pipeline or click on another node.`
+                  : searchQuery
+                  ? `No events matching grep query: "${searchQuery}".`
+                  : 'No incoming events in this view. Diagnostic engine listening on Portaldot RPC...'}
+              </div>
+            ) : (
+              <>
+                {filteredLogs.map((log, idx) => {
+                  const timeStr = new Date(log.time * 1000).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                  
+                  // Accurate Level Colors (INFO is neutral zinc-300, SUCCESS is emerald-400)
+                  const levelColor =
+                    log.level === 'BLOCKED' || log.level === 'CRITICAL' || log.level === 'ERROR'
+                      ? 'text-[#EF4444]'
+                      : log.level === 'THROTTLED' || log.level === 'WARNING' || log.level === 'WARN'
+                      ? 'text-[#F59E0B]'
+                      : log.level === 'RUNNING'
+                      ? 'text-[#A855F7] animate-pulse'
+                      : log.level === 'SUCCESS'
+                      ? 'text-[#10B981]'
+                      : log.level === 'DEBUG'
+                      ? 'text-zinc-500'
+                      : 'text-zinc-300';
+
+                  // Distinct Subsystem Source Colors
+                  const sourceColor =
+                    log.source === 'DAG_ENGINE' || log.source === 'RUNBOOK'
+                      ? 'text-[#C084FC]'
+                      : log.source === 'SLASH_GUARD'
+                      ? 'text-rose-400'
+                      : log.source === 'RPC_SHIELD'
+                      ? 'text-amber-400'
+                      : log.source === 'DUAL_TRACKER'
+                      ? 'text-cyan-400'
+                      : log.source === 'NPOS_OPTIMIZER' || log.source === 'STAKING_KEEPER'
+                      ? 'text-emerald-400'
+                      : log.source === 'P2P'
+                      ? 'text-indigo-400'
+                      : log.source === 'CLI'
+                      ? 'text-[#00FF9D]'
+                      : 'text-sky-400';
+
+                  const logKey = log.id || `${log.time}-${log.source}-${idx}`;
+
+                  return (
+                    <div key={logKey} className="flex items-start gap-2 leading-relaxed hover:bg-[#110A24]/40 px-1 py-0.5 transition-colors">
+                      <span className="text-zinc-600 shrink-0 tabular-nums">[{timeStr}]</span>
+                      <span className={`${sourceColor} shrink-0 font-semibold`}>[{log.source}]</span>
+                      <span className={`shrink-0 font-semibold ${levelColor}`}>[{log.level}]</span>
+                      {log.nodeId && (
+                        <span className="text-[#8B5CF6] font-semibold shrink-0">({log.nodeId})</span>
+                      )}
+                      <span className="text-zinc-300 break-all whitespace-pre-wrap">
+                        {(() => {
+                          const latencyMatch = log.text.match(/\(\+[\d\.]+ms\)/);
+                          if (!latencyMatch) return log.text;
+                          const matchStr = latencyMatch[0];
+                          const parts = log.text.split(matchStr);
+                          return (
+                            <>
+                              {parts[0]}
+                              <span className="inline-block px-1 py-[1px] mx-1 text-[9px] font-mono font-bold bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 tabular-nums">
+                                {matchStr}
+                              </span>
+                              {parts[1]}
+                            </>
+                          );
+                        })()}
+                      </span>
+                    </div>
+                  );
+                })}
+                <div ref={endRef} />
+              </>
+            )}
+
+            {/* Jump-to-bottom prompt if scrolled up */}
+            {showScrollPrompt && (
+              <button
+                type="button"
+                onClick={scrollToBottom}
+                className="sticky bottom-2 right-4 ml-auto flex items-center gap-1.5 px-2 py-1 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-[10px] font-mono font-bold shadow-lg transition-colors cursor-pointer border border-[#A78BFA]"
+              >
+                <ArrowDown className="w-3 h-3 animate-bounce" />
+                <span>Jump to latest events</span>
+              </button>
+            )}
+          </div>
+
+          {/* Interactive Diagnostic Command Bar & Quick Actions */}
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="px-3 py-1.5 bg-[#0A0516] border-t border-[#261B42] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2"
+          >
+            {/* Quick Command Suggestions */}
+            <div className="hidden lg:flex items-center gap-1 shrink-0 overflow-x-auto text-[9px] font-mono text-zinc-500">
+              <span className="uppercase text-[8px] tracking-wider text-zinc-600 font-bold mr-0.5">Quick:</span>
+              {QUICK_COMMANDS.map((qc) => (
+                <button
+                  key={qc}
+                  type="button"
+                  onClick={() => handleSendCommand(qc)}
+                  className="px-1.5 py-0.5 bg-[#140D24] hover:bg-[#261B42] text-zinc-400 hover:text-zinc-200 border border-[#2E1C4E] hover:border-[#8B5CF6] transition-colors cursor-pointer"
+                >
+                  {qc}
+                </button>
+              ))}
             </div>
-          ) : (
-            <>
-              {filteredLogs.map((log, idx) => {
-                const timeStr = new Date(log.time * 1000).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                const levelColor =
-                  log.level === 'BLOCKED' || log.level === 'CRITICAL' || log.level === 'ERROR'
-                    ? 'text-[#EF4444]'
-                    : log.level === 'THROTTLED' || log.level === 'WARNING' || log.level === 'WARN'
-                    ? 'text-[#F59E0B]'
-                    : log.level === 'RUNNING'
-                    ? 'text-[#A855F7] animate-pulse'
-                    : 'text-[#10B981]';
 
-                const sourceColor =
-                  log.source === 'DAG_ENGINE' || log.source === 'RUNBOOK'
-                    ? 'text-[#C084FC]'
-                    : log.source === 'SLASH_GUARD'
-                    ? 'text-rose-400'
-                    : log.source === 'RPC_SHIELD'
-                    ? 'text-amber-400'
-                    : 'text-sky-400';
-
-                return (
-                  <div key={idx} className="flex items-start gap-2 leading-relaxed hover:bg-[#110A24]/40 px-1 py-0.5 transition-colors">
-                    <span className="text-zinc-600 shrink-0 tabular-nums">[{timeStr}]</span>
-                    <span className={`${sourceColor} shrink-0 font-semibold`}>[{log.source}]</span>
-                    <span className={`shrink-0 font-semibold ${levelColor}`}>[{log.level}]</span>
-                    {log.nodeId && (
-                      <span className="text-[#8B5CF6] font-semibold shrink-0">({log.nodeId})</span>
-                    )}
-                    <span className="text-zinc-300 break-all">
-                      {(() => {
-                        const latencyMatch = log.text.match(/\(\+[\d\.]+ms\)/);
-                        if (!latencyMatch) return log.text;
-                        const matchStr = latencyMatch[0];
-                        const parts = log.text.split(matchStr);
-                        return (
-                          <>
-                            {parts[0]}
-                            <span className="inline-block px-1 py-0.2 mx-1 text-[9px] font-mono font-bold bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 tabular-nums">
-                              {matchStr}
-                            </span>
-                            {parts[1]}
-                          </>
-                        );
-                      })()}
-                    </span>
-                  </div>
-                );
-              })}
-              <div ref={endRef} />
-            </>
-          )}
+            {/* Interactive Terminal Input Prompt */}
+            <div className="flex-1 flex items-center gap-2 bg-[#06030D] px-2 py-1 border border-[#2E1C4E] focus-within:border-[#8B5CF6] transition-colors">
+              <span className="text-[#00FF9D] text-[11px] font-mono font-bold select-none shrink-0">
+                admin@dotnexus:~$
+              </span>
+              <input
+                ref={inputRef}
+                type="text"
+                value={commandInput}
+                onChange={(e) => setCommandInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Type command ('help', 'status', 'rotate-keys', 'circuit-breaker', 'clear')..."
+                className="flex-1 bg-transparent border-none text-[11px] font-mono text-zinc-200 placeholder-zinc-600 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => handleSendCommand()}
+                disabled={!commandInput.trim()}
+                className="px-2 py-0.5 text-[10px] font-mono bg-[#8B5CF6] hover:bg-[#7C3AED] disabled:opacity-30 disabled:hover:bg-[#8B5CF6] text-white flex items-center gap-1 transition-colors cursor-pointer"
+                title="Execute Command (Enter)"
+              >
+                <span>Run</span>
+                <CornerDownLeft className="w-2.5 h-2.5" />
+              </button>
+            </div>
           </div>
         </>
       )}

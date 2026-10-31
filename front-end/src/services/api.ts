@@ -12,9 +12,10 @@
 
 // Dynamic API endpoint: Uses VITE_API_BASE_URL if configured, otherwise falls back to relative '/api' proxy
 
-const RAW_API_URL = (import.meta as any).env?.VITE_API_BASE_URL || '';
+const RAW_API_URL = ((import.meta as any).env?.VITE_API_BASE_URL || '').trim();
+const normalizedUrl = RAW_API_URL.replace(/\/+$/, '');
 
-const BASE_URL = RAW_API_URL ? `${RAW_API_URL.replace(/\/$/, '')}/api` : '/api';
+const BASE_URL = normalizedUrl ? (normalizedUrl.endsWith('/api') ? normalizedUrl : `${normalizedUrl}/api`) : '/api';
 
 
 

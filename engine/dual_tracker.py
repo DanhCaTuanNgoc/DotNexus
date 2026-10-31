@@ -237,6 +237,17 @@ class DualEngineTracker:
                 except Exception:
                     peers_count = 0
 
+                # Query system_health for node sync and peer status
+                is_syncing = False
+                try:
+                    health_res = self.substrate_client.rpc_request("system_health", [])
+                    health = health_res.get('result', {}) if health_res else {}
+                    if peers_count == 0 and 'peers' in health:
+                        peers_count = health['peers']
+                    is_syncing = bool(health.get('isSyncing', False))
+                except Exception:
+                    is_syncing = False
+
                 # Query system_syncState for P2P stall diagnosis
                 try:
                     sync_res = self.substrate_client.rpc_request("system_syncState", [])
@@ -248,6 +259,7 @@ class DualEngineTracker:
                 return {
                     "is_connected": True,
                     "is_live_chain": True,
+                    "is_syncing": is_syncing,
                     "endpoint": self.substrate_url,
                     "best_block": best_block,
                     "finalized_block": finalized_block,
@@ -372,7 +384,22 @@ class DualEngineTracker:
         mapping_lag = sub_block - evm_block
 
         # Tier 1: Substrate P2P Stall
-        if (highest_block - sub_block > CONFIG.p2p_stall_block_lag) or (peers < CONFIG.p2p_min_peers):
+        # Consensus logic:
+        # A true P2P stall occurs if:
+        # 1. Block lag behind network tip exceeds p2p_stall_block_lag, OR
+        # 2. Peer count is below minimum AND the node is not safely synchronized at the chain tip.
+        # (On live public RPC endpoints, system_peers is suppressed/zero; if the node is at chain tip
+        # with zero block lag, it is operating in healthy nominal parity, not stalling).
+        is_live = sub_telemetry.get("is_live_chain", False)
+        is_at_head = (highest_block - sub_block <= 0) and not sub_telemetry.get("is_syncing", False)
+        is_nominal_tip = is_live and is_at_head and (abs(mapping_lag) <= CONFIG.max_desync_block_delta)
+
+        has_p2p_stall = (highest_block - sub_block > CONFIG.p2p_stall_block_lag)
+        if not has_p2p_stall and (peers < CONFIG.p2p_min_peers):
+            if not is_nominal_tip:
+                has_p2p_stall = True
+
+        if has_p2p_stall:
             return {
                 "tier": 1,
                 "root_cause_code": "SUBSTRATE_P2P_STALL",
@@ -459,7 +486,16 @@ class DualEngineTracker:
         cli_score = round(min(100.0, raw_cli * 100.0), 2)
 
         # 3. Automated Heuristic Classification
-        if (highest_sub - sub_block > CONFIG.p2p_stall_block_lag) or (peers < CONFIG.p2p_min_peers):
+        is_live = sub_telemetry.get("is_live_chain", False)
+        is_at_head = (highest_sub - sub_block <= 0) and not sub_telemetry.get("is_syncing", False)
+        is_nominal_tip = is_live and is_at_head and (abs(block_delta) <= CONFIG.max_desync_block_delta)
+
+        has_p2p_stall = (highest_sub - sub_block > CONFIG.p2p_stall_block_lag)
+        if not has_p2p_stall and (peers < CONFIG.p2p_min_peers):
+            if not is_nominal_tip:
+                has_p2p_stall = True
+
+        if has_p2p_stall:
             classification = "SUBSTRATE_P2P_STALL"
             diagnosis_msg = f"CLI {cli_score}: Substrate Libp2p network stall detected (peers: {peers}, lag: {highest_sub - sub_block})."
         elif v1_block_lag >= 0.4:  # >= 2 blocks desync

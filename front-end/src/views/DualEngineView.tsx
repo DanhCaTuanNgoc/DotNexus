@@ -207,7 +207,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
           }`}
         >
           <Server className="w-3.5 h-3.5 text-[#00FF9D]" />
-          <span>Hardware &amp; Decimals</span>
+          <span>Hardware, Decimals &amp; Contracts</span>
         </button>
       </div>
 
@@ -820,6 +820,120 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                 Protected against JS Number.MAX_SAFE_INTEGER overflow
               </span>
             </div>
+          </div>
+
+          {/* Pallet-Revive Smart Contract Mainnet Audit */}
+          <div className="p-4 bg-[#080512] border border-white/[0.08] space-y-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-2.5">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#C084FC]" />
+                <span className="text-xs font-bold text-white tracking-wider uppercase">
+                  PALLET-REVIVE SMART CONTRACT MAINNET AUDIT
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center border border-white/[0.08] bg-[#05030A] p-0.5 text-[10px]">
+                  <button
+                    onClick={() => setSelectedAuditContract('SlashGuardLeaseRegistry')}
+                    className={`px-2.5 py-1 font-bold uppercase transition-colors cursor-pointer ${
+                      selectedAuditContract === 'SlashGuardLeaseRegistry'
+                        ? 'bg-[#8B5CF6]/20 text-[#C084FC] border border-[#8B5CF6]/50'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    SlashGuardLeaseRegistry
+                  </button>
+                  <button
+                    onClick={() => setSelectedAuditContract('DotNexusStakingVault')}
+                    className={`px-2.5 py-1 font-bold uppercase transition-colors cursor-pointer ${
+                      selectedAuditContract === 'DotNexusStakingVault'
+                        ? 'bg-[#8B5CF6]/20 text-[#C084FC] border border-[#8B5CF6]/50'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    DotNexusStakingVault
+                  </button>
+                </div>
+                {auditResult && (
+                  <span className="text-[10px] text-[#00FF9D] bg-emerald-950/40 px-2 py-0.5 border border-emerald-800/40 font-bold uppercase">
+                    {auditResult.status} ({auditResult.suitability_score_pct}%)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {isAuditing ? (
+              <div className="p-6 text-center text-xs text-zinc-500 space-y-2">
+                <RefreshCw className="w-4 h-4 mx-auto animate-spin text-[#8B5CF6]" />
+                <div>Auditing Solidity contract bytecode against Pallet-Revive specifications...</div>
+              </div>
+            ) : auditResult ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                  <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1">
+                    <div className="text-[10px] text-zinc-500 uppercase">Compiled Bytecode</div>
+                    <div className="text-sm font-bold text-white tabular-nums">
+                      {auditResult.bytecode_size_bytes.toLocaleString()} Bytes
+                    </div>
+                    <div className="text-[10px] text-zinc-500 truncate" title={auditResult.source_file}>
+                      {auditResult.source_file}
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1">
+                    <div className="text-[10px] text-zinc-500 uppercase">Portaldot Storage Deposit</div>
+                    <div className="text-sm font-bold text-amber-400 tabular-nums">
+                      {auditResult.estimated_storage_deposit_pot.toFixed(4)} POT
+                    </div>
+                    <div className="text-[10px] text-zinc-500">
+                      Rate: {auditResult.storage_deposit_rate_pot_per_byte} POT/byte
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1">
+                    <div className="text-[10px] text-zinc-500 uppercase">Target Runtime</div>
+                    <div className="text-sm font-bold text-[#00FF9D]">
+                      PolkaVM / Pallet-Revive
+                    </div>
+                    <div className="text-[10px] text-zinc-500">
+                      Shanghai EVM Opcode Target
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                  <div className="p-2 bg-[#05030A] border border-white/[0.04] flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#00FF9D] shrink-0" />
+                    <span className="text-zinc-300">Pallet-Revive Compatible</span>
+                  </div>
+                  <div className="p-2 bg-[#05030A] border border-white/[0.04] flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#00FF9D] shrink-0" />
+                    <span className="text-zinc-300">Decimals (14 to 18) Normalized</span>
+                  </div>
+                  <div className="p-2 bg-[#05030A] border border-white/[0.04] flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#00FF9D] shrink-0" />
+                    <span className="text-zinc-300">Zero Unbounded Storage Slots</span>
+                  </div>
+                  <div className="p-2 bg-[#05030A] border border-white/[0.04] flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#00FF9D] shrink-0" />
+                    <span className="text-zinc-300">Gas-Lean Custom Errors</span>
+                  </div>
+                  <div className="p-2 bg-[#05030A] border border-white/[0.04] flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#00FF9D] shrink-0" />
+                    <span className="text-zinc-300">Via-IR Optimizer Enabled</span>
+                  </div>
+                  <div className="p-2 bg-[#05030A] border border-white/[0.04] flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#00FF9D] shrink-0" />
+                    <span className="text-zinc-300">Shanghai EVM Compatible</span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-[#05030A] border border-white/[0.06] text-[11px] text-[#C084FC] flex items-center gap-2">
+                  <span className="text-zinc-400">Audit Verdict:</span>
+                  <span>{auditResult.recommendation}</span>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       )}

@@ -1791,7 +1791,7 @@ export const api = {
     );
   },
 
-  simulateShieldAttack: async (type: 'HEAVY_GETLOGS' | 'RATE_LIMIT_BURST') => {
+  simulateShieldAttack: async (type: 'HEAVY_GETLOGS' | 'RATE_LIMIT_BURST' | 'BATCH_OVERLOAD' | 'RECURSIVE_BATCH_BOMB' | 'STATE_BLOAT_TX' | 'REENTRANCY_CALDATA' | 'STATE_GETPAIRS_EXHAUSTION' | 'SYBIL_SUBNET_FLOOD') => {
     return fetchWithFallback(
       `${BASE_URL}/rpc-shield/simulate-attack`,
       {
@@ -1802,30 +1802,80 @@ export const api = {
       () => {
         dynamicShieldStatus.total_inspected += 1;
         dynamicShieldStatus.total_blocked += 1;
+        let method = 'eth_getLogs';
+        let reason = 'Query span 500k blocks exceeds max limit (Quarantined 60s).';
+        let ip = '194.26.29.11';
+        if (type === 'RATE_LIMIT_BURST') {
+          method = 'eth_blockNumber';
+          reason = 'Rate limit burst exceeded: 60 req/min hard ceiling.';
+          ip = '185.190.140.22';
+        } else if (type === 'BATCH_OVERLOAD') {
+          method = 'batch';
+          reason = 'Batch size 50 exceeds max safe limit of 20 calls.';
+          ip = '185.190.140.33';
+        } else if (type === 'RECURSIVE_BATCH_BOMB') {
+          method = 'batch';
+          reason = 'Nested JSON-RPC batch bomb detected (nesting depth > 4).';
+          ip = '185.190.140.44';
+        } else if (type === 'STATE_BLOAT_TX') {
+          method = 'eth_sendRawTransaction';
+          reason = 'State-bloat raw tx payload exceeds safe pre-filter threshold (128KB limit).';
+          ip = '185.190.140.55';
+        } else if (type === 'REENTRANCY_CALDATA') {
+          method = 'eth_sendRawTransaction';
+          reason = 'Suspicious EVM re-entrancy recursive calldata signature detected.';
+          ip = '185.190.140.66';
+        } else if (type === 'STATE_GETPAIRS_EXHAUSTION') {
+          method = 'state_getPairs';
+          reason = "Substrate method 'state_getPairs' blocked to prevent storage OOM dump.";
+          ip = '103.251.167.5';
+        } else if (type === 'SYBIL_SUBNET_FLOOD') {
+          method = 'p2p_handshake';
+          reason = 'Sybil Eclipse cluster detected on subnet 198.51.100.0/24. /24 diversity filter enforced.';
+          ip = '198.51.100.100';
+        }
         const newEvt = {
           id: `evt-${Date.now().toString(16).slice(-4)}`,
           timestamp: Date.now(),
-          client_ip: '194.26.29.11',
-          method: type === 'HEAVY_GETLOGS' ? 'eth_getLogs' : 'eth_blockNumber',
+          client_ip: ip,
+          method,
           decision: 'BLOCKED' as const,
-          status_code: 429,
-          reason: type === 'HEAVY_GETLOGS'
-            ? 'Query span 500k blocks exceeds max limit (Quarantined 60s).'
-            : 'Rate limit burst exceeded: 60 req/min hard ceiling.'
+          status_code: 403,
+          reason
         };
         dynamicShieldStatus.recent_events.unshift(newEvt);
         dynamicLogs.push({
           source: 'RPC_SHIELD',
           level: 'CRITICAL',
           time: Math.floor(Date.now() / 1000),
-          text: `Attack Simulated: ${type} from 194.26.29.11 -> Intercepted & Quarantined.`
+          text: `Attack Simulated: ${type} from ${ip} -> Intercepted & Neutralized.`
         });
         return {
+          attack_type: type,
           result: {
-            client_ip: '194.26.29.11',
+            client_ip: ip,
             decision: 'BLOCKED',
             reason: newEvt.reason
           }
+        };
+      }
+    );
+  },
+
+  unbanShieldIp: async (ip: string) => {
+    return fetchWithFallback(
+      `${BASE_URL}/rpc-shield/unban`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip })
+      },
+      () => {
+        dynamicShieldStatus.quarantined_ips = (dynamicShieldStatus.quarantined_ips || []).filter(q => q.ip !== ip);
+        dynamicShieldStatus.active_banned_ips_count = Math.max(0, (dynamicShieldStatus.active_banned_ips_count || 1) - 1);
+        return {
+          success: true,
+          message: `IP ${ip} released from progressive quarantine jail by operator.`
         };
       }
     );

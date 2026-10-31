@@ -26,22 +26,32 @@ interface CyberWorldMapProps {
 // Coordinate resolution for known locations
 export const getPeerCoordinates = (location: string, peerId: string): [number, number] => {
   const loc = (location || '').toLowerCase();
-  // [longitude, latitude] for d3-geo projection
-  if (loc.includes('frankfurt') || loc.includes('germany')) return [8.6821, 50.1109];
-  if (loc.includes('singapore')) return [103.8198, 1.3521];
-  if (loc.includes('new york') || loc.includes('usa')) return [-74.0060, 40.7128];
-  if (loc.includes('cloud') || loc.includes('live')) return [13.4050, 52.5200];
-  if (loc.includes('tor') || loc.includes('unknown') || loc.includes('spammer')) return [-19.0208, 64.9631];
-  if (loc.includes('london') || loc.includes('uk')) return [-0.1278, 51.5074];
-  if (loc.includes('tokyo') || loc.includes('japan')) return [139.6503, 35.6762];
-  if (loc.includes('sydney') || loc.includes('australia')) return [151.2093, -33.8688];
+  let baseCoords: [number, number] | null = null;
 
-  // Deterministic fallback based on peerId hash
+  if (loc.includes('frankfurt') || loc.includes('germany')) baseCoords = [8.6821, 50.1109];
+  else if (loc.includes('singapore')) baseCoords = [103.8198, 1.3521];
+  else if (loc.includes('new york') || loc.includes('usa')) baseCoords = [-74.0060, 40.7128];
+  else if (loc.includes('london') || loc.includes('uk')) baseCoords = [-0.1278, 51.5074];
+  else if (loc.includes('tokyo') || loc.includes('japan')) baseCoords = [139.6503, 35.6762];
+  else if (loc.includes('seoul') || loc.includes('korea')) baseCoords = [126.9780, 37.5665];
+  else if (loc.includes('sydney') || loc.includes('australia')) baseCoords = [151.2093, -33.8688];
+  else if (loc.includes('cloud') || loc.includes('live')) baseCoords = [13.4050, 52.5200];
+  else if (loc.includes('tor') || loc.includes('unknown') || loc.includes('spammer')) baseCoords = [-19.0208, 64.9631];
+
   let hash = 0;
-  for (let i = 0; i < peerId.length; i++) {
+  for (let i = 0; i < (peerId || '').length; i++) {
     hash = (hash << 5) - hash + peerId.charCodeAt(i);
     hash |= 0;
   }
+
+  if (baseCoords) {
+    // Add deterministic micro-jitter so multiple peers in the same region/cloud cluster spread visibly
+    const jitterX = ((Math.abs(hash) % 7) - 3) * 0.6;
+    const jitterY = ((Math.abs(hash >> 3) % 7) - 3) * 0.6;
+    return [baseCoords[0] + jitterX, baseCoords[1] + jitterY];
+  }
+
+  // Deterministic fallback based on peerId hash
   const lng = ((Math.abs(hash >> 3) % 320) - 160);
   const lat = ((Math.abs(hash) % 110) - 50);
   return [lng, lat];

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Shield,
   ShieldAlert,
@@ -7,7 +7,8 @@ import {
   Server,
   Filter,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Unlock
 } from 'lucide-react';
 import { ShieldStatus, api } from '../services/api';
 import { CyberWorldMap } from '../components/CyberWorldMap';
@@ -17,8 +18,18 @@ interface TopologyRadarViewProps {
   onRefresh: () => void;
 }
 
+type DrillType =
+  | 'HEAVY_GETLOGS'
+  | 'RATE_LIMIT_BURST'
+  | 'BATCH_OVERLOAD'
+  | 'RECURSIVE_BATCH_BOMB'
+  | 'STATE_BLOAT_TX'
+  | 'REENTRANCY_CALDATA'
+  | 'STATE_GETPAIRS_EXHAUSTION'
+  | 'SYBIL_SUBNET_FLOOD';
+
 interface AttackDrill {
-  type: 'HEAVY_GETLOGS' | 'RATE_LIMIT_BURST' | 'BATCH_OVERLOAD' | 'RECURSIVE_BATCH_BOMB' | 'STATE_BLOAT_TX';
+  type: DrillType;
   label: string;
   tag: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -61,6 +72,27 @@ const ATTACK_DRILLS: AttackDrill[] = [
     icon: Server,
     iconColor: 'text-cyan-400',
   },
+  {
+    type: 'REENTRANCY_CALDATA',
+    label: 'Re-entrancy Calldata',
+    tag: 'ERC777/721 HOOK',
+    icon: AlertTriangle,
+    iconColor: 'text-orange-400',
+  },
+  {
+    type: 'STATE_GETPAIRS_EXHAUSTION',
+    label: 'Substrate State Dump',
+    tag: 'state_getPairs',
+    icon: Server,
+    iconColor: 'text-rose-400',
+  },
+  {
+    type: 'SYBIL_SUBNET_FLOOD',
+    label: 'Sybil /24 Eclipse Flood',
+    tag: 'BOTNET CLUSTER',
+    icon: Globe,
+    iconColor: 'text-emerald-400',
+  },
 ];
 
 export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRefresh }) => {
@@ -68,12 +100,41 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
   const [activeAttackType, setActiveAttackType] = useState<string | null>(null);
   const [simulationResult, setSimulationResult] = useState<any | null>(null);
   const [selectedPeer, setSelectedPeer] = useState<any | null>(null);
+  const [localCountdowns, setLocalCountdowns] = useState<Record<string, number>>({});
+  const [unbanningIp, setUnbanningIp] = useState<string | null>(null);
 
-  const handleSimulateAttack = async (type: 'HEAVY_GETLOGS' | 'RATE_LIMIT_BURST' | 'BATCH_OVERLOAD' | 'RECURSIVE_BATCH_BOMB' | 'STATE_BLOAT_TX' | 'REENTRANCY_CALDATA') => {
+  // Sync countdowns when data.quarantined_ips updates
+  useEffect(() => {
+    const initial: Record<string, number> = {};
+    (data.quarantined_ips || []).forEach((q) => {
+      initial[q.ip] = q.expires_in_seconds;
+    });
+    setLocalCountdowns(initial);
+  }, [data.quarantined_ips]);
+
+  // Decrement 1s ticker for live expiry
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLocalCountdowns((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        Object.keys(next).forEach((ip) => {
+          if (next[ip] > 0 && next[ip] <= 86400) {
+            next[ip] = Math.max(0, next[ip] - 1);
+            changed = true;
+          }
+        });
+        return changed ? next : prev;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSimulateAttack = async (type: DrillType) => {
     setSimulating(true);
     setActiveAttackType(type);
     try {
-      const res = await api.simulateShieldAttack(type as any);
+      const res = await api.simulateShieldAttack(type);
       if (res.success) {
         setSimulationResult(res.data);
         onRefresh();
@@ -81,6 +142,16 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
     } finally {
       setSimulating(false);
       setActiveAttackType(null);
+    }
+  };
+
+  const handleUnbanIp = async (ip: string) => {
+    setUnbanningIp(ip);
+    try {
+      await api.unbanShieldIp(ip);
+      onRefresh();
+    } finally {
+      setUnbanningIp(null);
     }
   };
 
@@ -344,7 +415,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
         </div>
 
         {/* Progressive Quarantine & IP Reputation Panel */}
-        {data.quarantined_ips && data.quarantined_ips.length > 0 && (
+        {data.quarantined_ips && data.quarantined_ips.length > 0 ? (
           <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-2 text-xs">
             <div className="flex items-center justify-between border-b border-[#140D24] pb-1.5">
               <span className="text-[#C084FC] font-bold flex items-center gap-1.5">
@@ -352,29 +423,61 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
                 ACTIVE PROGRESSIVE QUARANTINE JAIL (MULTI-TIER DEFENSE)
               </span>
               <span className="text-[10px] text-zinc-400">
-                Avg Network Reputation: <strong className="text-[#00FF9D]">{data.average_reputation_score ?? 100.0} / 100</strong>
+                Avg Network Reputation: <strong className="text-[#00FF9D] tabular-nums">{data.average_reputation_score ?? 100.0} / 100</strong>
               </span>
             </div>
             <div className="space-y-1.5">
-              {data.quarantined_ips.map((q, idx) => (
-                <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-2 bg-[#0A0615] border border-[#1C142E] gap-1 text-[11px]">
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-mono font-bold">{q.ip}</span>
-                    <span className={`px-1.5 py-0.5 text-[9px] font-bold uppercase border ${
-                      q.tier === 4 ? 'bg-rose-950/60 text-rose-300 border-rose-800' :
-                      q.tier === 3 ? 'bg-purple-950/60 text-purple-300 border-purple-800' :
-                      'bg-amber-950/60 text-amber-300 border-amber-800'
-                    }`}>
-                      TIER {q.tier} [{q.tier === 4 ? 'PERMANENT' : q.tier === 3 ? '1 HOUR' : '60 SEC'}]
-                    </span>
-                    <span className="text-zinc-500 text-[10px]">Score: {q.score}</span>
+              {data.quarantined_ips.map((q, idx) => {
+                const remaining = localCountdowns[q.ip] ?? q.expires_in_seconds;
+                const isExpiring = remaining <= 0;
+                return (
+                  <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-2 bg-[#0A0615] border border-[#1C142E] gap-2 text-[11px]">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-white font-mono font-bold">{q.ip}</span>
+                      <span className={`px-1.5 py-0.5 text-[9px] font-bold uppercase border ${
+                        q.tier === 4 ? 'bg-rose-950/60 text-rose-300 border-rose-800' :
+                        q.tier === 3 ? 'bg-purple-950/60 text-purple-300 border-purple-800' :
+                        'bg-amber-950/60 text-amber-300 border-amber-800'
+                      }`}>
+                        TIER {q.tier} [{q.tier === 4 ? 'PERMANENT' : q.tier === 3 ? '1 HOUR' : '60 SEC'}]
+                      </span>
+                      <span className="text-zinc-500 text-[10px] tabular-nums">Score: {q.score}</span>
+                    </div>
+
+                    <div className="flex items-center gap-3 justify-between sm:justify-end">
+                      <div className="text-zinc-400 truncate max-w-sm">
+                        {q.reason} ({q.tier === 4 || remaining > 86400 ? (
+                          <span className="text-rose-400 font-semibold">Permanent Jail</span>
+                        ) : isExpiring ? (
+                          <span className="text-emerald-400 font-semibold">Expiring...</span>
+                        ) : (
+                          <span className="text-amber-300 font-mono tabular-nums">{remaining}s remaining</span>
+                        )})
+                      </div>
+                      <button
+                        onClick={() => handleUnbanIp(q.ip)}
+                        disabled={unbanningIp === q.ip}
+                        className="px-2 py-0.5 text-[9px] font-mono font-bold tracking-wider uppercase bg-[#180F33] hover:bg-emerald-950/70 text-zinc-300 hover:text-emerald-300 border border-white/10 hover:border-emerald-600/50 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 cursor-pointer disabled:opacity-50 shrink-0 flex items-center gap-1"
+                        title={`Release ${q.ip} from quarantine jail`}
+                      >
+                        <Unlock className="w-2.5 h-2.5" />
+                        <span>{unbanningIp === q.ip ? 'RELEASING...' : 'RELEASE IP'}</span>
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-zinc-400 truncate max-w-md">
-                    {q.reason} ({q.expires_in_seconds > 86400 ? 'Permanent Blacklist' : `${q.expires_in_seconds}s remaining`})
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+          </div>
+        ) : (
+          <div className="p-3 bg-[#06040A] border border-[#1C142E] flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="text-zinc-400 flex items-center gap-2">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#00FF9D]" />
+              <span>JAIL STATUS: All client endpoints operating within nominal limits. Zero active IP quarantines.</span>
+            </span>
+            <span className="text-[10px] text-zinc-500 font-mono">
+              Network Reputation: <strong className="text-[#00FF9D] tabular-nums">{data.average_reputation_score ?? 100.0} / 100</strong>
+            </span>
           </div>
         )}
 

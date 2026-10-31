@@ -402,6 +402,17 @@ def get_quarantined_ips():
     return jsonify({"success": True, "count": len(quarantined), "data": quarantined})
 
 
+@app.route("/api/rpc-shield/unban", methods=["POST"])
+def unban_shield_ip():
+    """Immediately releases an IP from quarantine jail and restores reputation score"""
+    body = request.get_json(silent=True) or {}
+    ip = body.get("ip")
+    if not ip:
+        return jsonify({"success": False, "error": "IP address is required"}), 400
+    RPC_SHIELD.unban_ip(ip)
+    return jsonify({"success": True, "message": f"IP {ip} unbanned and reputation restored."})
+
+
 @app.route("/api/rpc-shield/ip-reputation", methods=["GET"])
 def get_ip_reputation():
     """Returns dynamic reputation score and history for a client IP"""

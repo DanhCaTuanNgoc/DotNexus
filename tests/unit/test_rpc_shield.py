@@ -321,6 +321,43 @@ class TestRPCShieldUnit(unittest.TestCase):
         self.assertIn("inspection_overhead_ms", res)
         self.assertLess(res["inspection_overhead_ms"], 10.0)
 
+    def test_unban_ip_clears_jail_and_restores_reputation(self):
+        """Verifies unban_ip fully clears quarantine jail and restores reputation score"""
+        bad_ip = "192.168.100.88"
+        # Cause a ban
+        self.rpc_shield.inspect_request(
+            client_ip=bad_ip,
+            method="eth_getLogs",
+            params=[{"fromBlock": 0, "toBlock": 100000}]
+        )
+        quarantined = [q["ip"] for q in self.rpc_shield.get_quarantined_ips()]
+        self.assertIn(bad_ip, quarantined)
+
+        # Unban immediately
+        self.rpc_shield.unban_ip(bad_ip)
+        quarantined_after = [q["ip"] for q in self.rpc_shield.get_quarantined_ips()]
+        self.assertNotIn(bad_ip, quarantined_after)
+        rep = self.rpc_shield.get_ip_reputation(bad_ip)
+        self.assertEqual(rep["score"], 100.0)
+        self.assertEqual(rep["quarantine_tier"], 0)
+        self.assertFalse(rep["is_quarantined"])
+
+    def test_simulate_sybil_subnet_flood(self):
+        """Verifies SYBIL_SUBNET_FLOOD attack simulation triggers eclipse defense"""
+        sim = self.rpc_shield.simulate_attack_test("SYBIL_SUBNET_FLOOD")
+        self.assertEqual(sim["attack_type"], "SYBIL_SUBNET_FLOOD")
+        self.assertTrue(sim["sybil_analysis"]["is_sybil_cluster_detected"])
+        self.assertEqual(sim["result"]["decision"], "BLOCKED")
+        self.assertEqual(sim["result"]["status_code"], 403)
+
+    def test_get_shield_status_prunes_expired_bans(self):
+        """Verifies get_shield_status automatically prunes expired IP bans"""
+        stale_ip = "10.99.99.1"
+        self.rpc_shield.blocked_ips[stale_ip] = time.time() - 10.0
+        status = self.rpc_shield.get_shield_status()
+        self.assertNotIn(stale_ip, self.rpc_shield.blocked_ips)
+        self.assertEqual(status["active_banned_ips_count"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

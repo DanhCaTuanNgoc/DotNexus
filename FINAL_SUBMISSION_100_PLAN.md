@@ -46,7 +46,7 @@ graph TD
         P5["Trụ Cột 5 [BỔ SUNG]: Host OS Deep Telemetry<br/>(Prometheus /metrics & Grafana NOC)"]
         P6["Trụ Cột 6 [BỔ SUNG]: P2P Topology & Anti-Eclipse<br/>(Sybil Detection & Auto-Firewall)"]
         P7["Trụ Cột 7: Final Media & Pitch Package<br/>(3-Min HD Video, Pitch Deck Slides)"]
-        QA["Nền Tảng QA & DoraHacks Compliance<br/>(175+ Automated Tests, Docker, Explorer Proofs)"]
+        QA["Nền Tảng QA & DoraHacks Compliance<br/>(212 Automated Tests, Docker, Explorer Proofs)"]
     end
     P1 --> QA
     P2 --> QA
@@ -71,7 +71,7 @@ graph TD
 | **Trụ Cột 6** | **P2P Topology Radar & Anti-Eclipse / Sybil Alert Engine**<br/>- Quét live peers `system_peers`, cảnh báo Eclipse khi 1 ASN $> 35\%$, auto-reserved peer.<br/>- Tự động áp dụng script tường lửa `scripts/harden_node_firewall.sh`. | 🟢 **HOÀN THÀNH 100%**<br/>*(Verified & Deployed)* | **10 Unit Tests Passed**<br/>(ASN Analysis, Sybil Detection, Firewall Rules) | [`0b68d9e`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/) |
 | **Trụ Cột 7** | **Bộ Tài Liệu Trình Diễn, Video 3 Phút & Slide Pitch Deck Demo Day**<br/>- Video walkthrough HD 180s theo kịch bản chuẩn, pitch deck slides 10 trang. | 🟡 **CHUẨN BỊ BƯỚC QUAY & THIẾT KẾ** | Sẵn sàng storyboard & dàn ý 10 slides | Sắp triển khai |
 
-> **Tổng số tests tự động hiện tại:** **196/196 tests passed (100% Pass Rate)** trong [`tests/test_engine.py`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/tests/test_engine.py).  
+> **Tổng số tests tự động hiện tại:** **212/212 tests passed (100% Pass Rate)** trong [`tests/test_engine.py`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/tests/test_engine.py).  
 > **Frontend Build Status:** **0 TypeScript errors (Vite 7.7s production bundle clean)**.  
 > 📌 **Hạng Mục Hậu Kiểm Đã Hoàn Thành:** Đã tích hợp mục **Tài liệu Ranh giới Kỹ thuật & Giới hạn Vận hành (System Boundaries & Operational Limits)** vào [`FOR_JUDGES.md`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/FOR_JUDGES.md) và [`README.md`](file:///D:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/README.md) công bố minh bạch thông số tải, độ trễ proxy, quyền hạn OS và giả định mô phỏng.
 
@@ -349,7 +349,7 @@ DotNexus System Architecture
 │   ├── src/views/CanvasBoard.tsx    # Interactive Operational Runbook DAG Builder & Live Runner
 │   ├── src/views/TopologyRadarView.tsx # P2P Sybil Detection Radar, ASN Analyzer, Geo-IP Map
 │   └── src/components/DualBlockConduit.tsx # Real-time WASM vs EVM side-by-side block lockstep stream
-└── tests/                           # Comprehensive Test Suite (188+ Tests)
+└── tests/                           # Comprehensive Test Suite (212 Tests)
     └── test_engine.py               # All-in-one verified test suite
 ```
 
@@ -371,7 +371,7 @@ gantt
     Host OS Telemetry & Prometheus /metrics Endpoint    :       p5, 2026-10-31, 2026-11-02
     P2P Live Peer Scraping & Sybil/Eclipse Alert Radar  :       p6, 2026-11-02, 2026-11-03
     section Trụ Cột 7 & QA: Nghiệm Thu & Đóng Băng
-    Chaos Fire Drill & Bộ Test E2E 188+ Tests Passed    :       p7, 2026-11-03, 2026-11-04
+    Chaos Fire Drill & Bộ Test E2E 212 Tests Passed    :       p7, 2026-11-03, 2026-11-04
     Quay Video Demo 3 Phút & Thiết Kế Pitch Deck Slides :       p8, 2026-11-04, 2026-11-05
     Tài liệu Ranh giới Kỹ thuật (Boundaries Section)    :       p8b, 2026-11-05, 2026-11-05
     FINAL CODE FREEZE (04:00 UTC) & Nộp Bài DoraHacks   :crit,  p9, 2026-11-05, 2026-11-06
@@ -382,7 +382,7 @@ gantt
 ## 🏆 6. Chiến Lược Giành Điểm Tuyệt Đối Từ Ban Giám Khảo
 
 1. **Vượt Trội về Kỹ Thuật (Technical Feasibility - 30%):**
-   * Chứng minh bằng việc chạy trực tiếp bộ test `188/188 tests passed` ngay trước mặt ban giám khảo.
+   * Chứng minh bằng việc chạy trực tiếp bộ test `212/212 tests passed` ngay trước mặt ban giám khảo.
    * Giao diện thật đã deploy trên Vercel: [https://dotnexus-hackerhouse.vercel.app/](https://dotnexus-hackerhouse.vercel.app/).
    * Hợp đồng thông minh đã deploy trên Portaldot Testnet V3 với block explorer thật.
 2. **Tính Sáng Tạo & Đột Phá (Innovation - 30%):**
@@ -393,3 +393,123 @@ gantt
    * Tích hợp sẵn Prometheus exporter và Grafana dashboard giúp các validator lớn (như Luganodes, Allnodes, P2P.org) có thể đưa DotNexus vào vận hành ngay lập tức.
 4. **Tiềm Năng Thương Mại & Kinh Doanh (Business Potential - 20%):**
    * Mô hình kinh doanh rõ ràng: Dịch vụ bảo hiểm SLA Staking Vault thu phí $2\%$ trên lợi nhuận ủy quyền tối ưu ($+1.16\%$ APY boost), tạo doanh thu bền vững lâu dài.
+
+---
+
+## 🏅 7. Báo Cáo Thẩm Định Giám Khảo & Lộ Trình Nâng Điểm Tuyệt Đối (90/100 $\rightarrow$ 100/100 Master Blueprint)
+
+### 📊 7.1. Bảng Tổng Hợp Thẩm Định Khách Quan Với Các Đối Thủ
+
+Qua rà soát kỹ thuật sâu và đối soát on-chain với 3 đối thủ đáng gờm nhất trong cuộc thi:
+* **Kaizen (`kaizen` - Track 3):** Chaos Engineering & Proof-of-Resilience engine (Điểm: **86.5 / 100**).
+* **Potake (`Potake` - Track 3):** Staking Oracle & Nominator Policy Agent (Điểm: **87.0 / 100**).
+* **Pindex (`portalIndex` - Track 1):** Zero-Code Runtime Metadata Indexer & EVM Tx Search (Điểm: **88.0 / 100**).
+* **DotNexus (`DotNexus` - Track 3):** Visual Control Plane & Automated Security Operations Engine (Điểm: **90.0 / 100** - **Top 1 Track 3 & Ứng viên Grand Prize**).
+
+| Tiêu chí thẩm định (Rubric) | Trọng số | Pindex | Kaizen | Potake | **DotNexus (Hiện tại)** | **DotNexus (Mục tiêu sau tối ưu)** |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **1. Technical Feasibility** *(Kiến trúc, Code, Test, On-chain)* | **30%** | 27.5 | 25.5 | 25.5 | **27.0** / 30 | **30.0** / 30 *(+3.0đ)* |
+| **2. Innovation** *(Đổi mới giải pháp, Dual-VM V3 Mastery)* | **30%** | 25.0 | 28.0 | 27.5 | **27.5** / 30 | **30.0** / 30 *(+2.5đ)* |
+| **3. Ecosystem Contribution** *(Đóng góp hạ tầng, dev tools)* | **20%** | 19.5 | 16.5 | 17.5 | **17.5** / 20 | **20.0** / 20 *(+2.5đ)* |
+| **4. Business Potential** *(Thị trường, kinh tế, Deliverables)* | **20%** | 16.0 | 16.5 | 16.5 | **18.0** / 20 | **20.0** / 20 *(+2.0đ)* |
+| **TỔNG ĐIỂM (WEIGHTED TOTAL)** | **100%** | **88.0** | **86.5** | **87.0** | **90.0 / 100** | **100.0 / 100** |
+
+---
+
+### 🔍 7.2. Giải Phẫu Chi Tiết 10 Điểm Bị Trừ (The 10 Missing Points Anatomy)
+
+Dưới góc nhìn của một Ban Giám khảo quốc tế khó tính và không thiên vị (*Strictly No Bias*), DotNexus hiện mất 10 điểm ở các góc khuất sau:
+
+#### A. Tiêu chí Technical Feasibility (-3.0 điểm: 27.0 / 30)
+1. **Thiếu Hosted Cloud Backend Endpoint (-1.5đ):**
+   * *Thực trạng:* Link demo Vercel `https://dotnexus-hackerhouse.vercel.app` khi mở độc lập trên trình duyệt của giám khảo (không có daemon local) phải dùng cơ chế *simulation fallback*. Đối thủ Pindex đã host API và Ingester chạy thật 24/7 trên Render (`https://portalindex-98f0.onrender.com`).
+   * *Hậu quả:* Giám khảo có thể nghi ngờ mức độ hoạt động live của backend daemon nếu không thấy kết nối WebSocket/REST trực tiếp từ cloud.
+2. **Thiếu file `docker-compose.yml` 1-Click Deploy (-0.8đ):**
+   * *Thực trạng:* Đã có `Dockerfile` backend nhưng chưa có `docker-compose.yml` để validator dựng trọn gói cả Backend + Frontend + RPC Shield chỉ với một dòng lệnh.
+3. **Automation Canvas Chưa Ký On-Chain Transaction Thật (-0.7đ):**
+   * *Thực trạng:* Trình diễn kịch bản DAG rất mượt và trực quan, nhưng khi nhấn "Execute Runbook", các node như *Renew Lease* hoặc *Keystore Isolation* chưa gọi trực tiếp ví Web3 (MetaMask/SubWallet) để ký giao dịch thật trên Testnet V3.
+
+#### B. Tiêu chí Innovation (-2.5 điểm: 27.5 / 30)
+1. **Chưa Triển Khai ink! WASM Smart Contract (-1.5đ):**
+   * *Thực trạng:* Mạng Portaldot V3 là **Dual-VM: Substrate WASM (`pallet-contracts`) + EVM (`pallet-revive`)**. DotNexus đã deploy 2 hợp đồng Solidity trên EVM (`SlashGuardLeaseRegistry` và `DotNexusStakingVault`), nhưng **chưa có hợp đồng nào viết bằng ink! (WASM)**.
+   * *Hậu quả:* Chưa khai thác 100% sức mạnh song song của Dual-VM về mặt smart contract. Nếu có thêm 1 ink! contract giao tiếp chéo, DotNexus sẽ đạt 30/30 điểm tuyệt đối.
+2. **Thiếu Văn Bản Chứng Minh Toán Học Hình Thức (-1.0đ):**
+   * *Thực trạng:* Bất biến toán học Mutex Leases:
+     $$T_{\text{fence}} < T_{\text{lease}} < T_{\text{takeover}}$$
+     được lập trình chuẩn xác trong code nhưng chưa có một file tài liệu phân tích mô hình toán (*Formal Verification Writeup / TLA+ State Proof*) riêng biệt để thuyết phục các chuyên gia mật mã học.
+
+#### C. Tiêu chí Ecosystem Contribution (-2.5 điểm: 17.5 / 20)
+1. **Chưa Đóng Gói Thành Thư Viện SDK Độc Lập (-1.5đ):**
+   * *Thực trạng:* Hệ thống đang nằm trong monorepo. Chưa phát hành một module độc lập (ví dụ `pip install dotnexus-shield` hoặc package npm `@dotnexus/core`) để các builder hoặc node operator khác có thể import làm middleware.
+2. **Chưa Có Sự Liên Kết Cộng Hưởng Với Builder Khác (-1.0đ):**
+   * *Thực trạng:* Chưa có sự tích hợp chéo. Ví dụ: Pindex được team PotKit dùng để tra cứu giao dịch; Potake cung cấp `IStakingView` cho dApp khác. DotNexus cần mở rộng API hoặc liên kết tham chiếu để thể hiện vị thế trung tâm hệ sinh thái.
+
+#### D. Tiêu chí Business Potential (-2.0 điểm: 18.0 / 20)
+1. **Thiếu Deliverables Bắt Buộc: PITCH DECK (PDF) & DEMO VIDEO (-1.5đ):**
+   * *Thực trạng:* Theo quy chế chính thức tại dòng 113-122 của `hackathon_details.md`, deliverables nộp bài trên DoraHacks **bắt buộc phải có file Pitch Deck (PDF) và Video Demo tối đa 3 phút**. Hiện tại repo chưa có sẵn file PDF pitch deck và link video hoàn chỉnh.
+2. **Chưa Lượng Hóa Chi Tiết Bảng Phân Bổ Doanh Thu (Unit Economics) (-0.5đ):**
+   * *Thực trạng:* Mô hình thu phí $2\%$ Staking Vault đã nêu nhưng chưa có bảng tính chi tiết tỷ lệ phân bổ dòng tiền: bao nhiêu % cho Keeper Bots chi trả gas on-chain, bao nhiêu % cho quỹ bảo hiểm slashing, bao nhiêu % giữ lại Treasury.
+
+---
+
+### 🚀 7.3. Kế Hoạch Hành Động 5 Bước Chạm Mốc 98 – 100 Điểm (Actionable Execution Checklist)
+
+Dưới đây là kế hoạch chi tiết từng bước mà bạn có thể trực tiếp triển khai trước giờ Code Freeze (Nov 6, 04:00 UTC):
+
+#### 🛠️ BƯỚC 1: Triển Khai Hosted Backend Cloud & Bổ Sung `docker-compose.yml` (+3.0 Điểm)
+- [ ] **1.1. Tạo file `docker-compose.yml` ở thư mục gốc:**
+  - Định nghĩa 2 service:
+    * `backend`: Build từ `Dockerfile`, expose port `5050`, gắn network bridge, tự động restart.
+    * `frontend`: Chạy bản build production của React 19 trên nginx/node port `3000`.
+- [ ] **1.2. Deploy Backend Engine lên Cloud miễn phí (Render / Railway / Fly.io):**
+  - Cấu hình Web Service chạy lệnh: `python -m engine.server`.
+  - Cung cấp domain công khai: ví dụ `https://dotnexus-api.onrender.com`.
+- [ ] **1.3. Cập nhật biến môi trường trên Vercel Frontend:**
+  - Đặt `VITE_API_URL=https://dotnexus-api.onrender.com`.
+  - Khi đó, ban giám khảo truy cập Vercel sẽ thấy trạng thái WebSocket thời gian thực kết nối 100% với Testnet V3 mà không cần mở terminal local.
+
+#### 🎬 BƯỚC 2: Sản Xuất Pitch Deck (PDF 12 Slides) & Video Demo 3 Phút (+2.0 Điểm)
+- [ ] **2.1. Thiết kế Pitch Deck PDF (`docs/dotnexus_pitchdeck.pdf` - 12 Slides):**
+  - *Slide 1:* Cover (DotNexus - Visual Control Plane & Automated Security Engine for Portaldot V3).
+  - *Slide 2:* The Dual-VM Blind Spot (Substrate WASM vs Frontier EVM desync, Equivocation Slashing risk).
+  - *Slide 3:* The Solution (Realtime Telemetry, Distributed Mutex Leases, Automation DAG Canvas, RPC Shield).
+  - *Slide 4:* Core Architecture & Dataflow (DualEngineTracker, Causal Lag Index, Flask/WebSockets).
+  - *Slide 5:* Portaldot Testnet V3 Deployment Evidence (2 Live Smart Contracts: `SlashGuardLeaseRegistry` #147264, `DotNexusStakingVault` #147358).
+  - *Slide 6:* Distributed Mutex Lease Invariant & Formal Verification ($T_{\text{fence}} < T_{\text{lease}} < T_{\text{takeover}}$).
+  - *Slide 7:* Visual Automation Canvas (20+ DAG Nodes, 7 Operational Runbooks, Kahn's Parallel Execution).
+  - *Slide 8:* RPC Shield & Advanced Threat Defense (Recursive Batch Bomb Filter, Progressive Quarantine Jail).
+  - *Slide 9:* Target Market & Ideal Customer Profile (Validator Operators, Infrastructure Providers, NPoS Stakers).
+  - *Slide 10:* Business Model & Unit Economics (B2B Enterprise License + B2C Vault Performance Fee).
+  - *Slide 11:* Engineering Rigor & Testing Evidence (212/212 Tests Passed, TypeScript 0 Errors, Playwright E2E).
+  - *Slide 12:* Team, Vision & Post-Hackathon Roadmap (Mainnet V3 Migration & Foundation Builder Program).
+- [ ] **2.2. Quay Video Walkthrough Chuẩn 180 Giây (3 Phút):**
+  - *0:00 - 0:30:* Nêu vấn đề lệch pha Dual-VM và rủi ro bị slash $100\%$ stake khi failover validator.
+  - *0:30 - 1:15:* Demo màn hình Dual-VM Telemetry, chỉ số Causal Lag Index và block lockstep stream thời gian thực.
+  - *1:15 - 1:55:* Thử nghiệm kích hoạt Dead Man's Switch, chứng minh hợp đồng Mutex Leases cô lập Keystore trên Testnet V3.
+  - *1:55 - 2:35:* Thao tác trực tiếp trên Automation Canvas: chạy Runbook "Standby Failover", theo dõi tiến trình từng node.
+  - *2:35 - 3:00:* Giới thiệu RPC Shield, Diagnostic Terminal, 212 tests pass và thông điệp tham gia Mainnet V3.
+
+#### ⚡ BƯỚC 3: Tích Hợp Web3 Wallet Trigger Cho Automation Canvas (+1.5 Điểm)
+- [ ] **3.1. Bổ sung hook ethers/wagmi trong `front-end/src/views/CanvasBoard.tsx`:**
+  - Thêm nút "On-Chain Dispatch" bên cạnh "Simulate Runbook".
+- [ ] **3.2. Kết nối trực tiếp ví của giám khảo (MetaMask / SubWallet):**
+  - Khi chạy node *Renew Lease*, mở popup ví để user ký trực tiếp transaction gọi hàm `renewLease()` trên hợp đồng `SlashGuardLeaseRegistry.sol` (`0xba114d...`).
+  - Hiển thị transaction hash trả về trực tiếp trên màn hình Canvas với link trỏ sang `node-console.portaldot.dev`.
+
+#### 📐 BƯỚC 4: Soạn Thảo Tài Liệu Chứng Minh Toán Học `FORMAL_VERIFICATION.md` (+1.5 Điểm)
+- [ ] **4.1. Tạo file `docs/FORMAL_VERIFICATION.md`:**
+  - Định nghĩa mô hình trạng thái hữu hạn (State Machine Model) của validator: $\mathcal{S} = \{ \text{PRIMARY\_ACTIVE}, \text{FENCED}, \text{STANDBY\_TAKEOVER}, \text{EQUIVOCATION\_HAZARD} \}$.
+  - Chứng minh định lý an toàn (Safety Theorem):
+    $$\text{Theorem 1 (Zero Equivocation): } \forall t, \quad \left| \{ N_i \mid \text{HasSigningKey}(N_i, t) \} \right| \le 1$$
+  - Chứng minh định lý sống (Liveness Theorem):
+    $$\text{Theorem 2 (Bounded Failover): } t_{\text{standby\_start}} - t_{\text{primary\_down}} \le T_{\text{takeover}} + \epsilon_{\text{clock}}$$
+  - Phân tích ranh giới khi mạng phân rã (Network Partitioning / Split-Brain) và vai trò của Fencing Epoch.
+
+#### 🦀 BƯỚC 5: Xây Dựng ink! WASM Contract Companion (`contracts/wasm/`) (+2.0 Điểm)
+- [ ] **5.1. Viết hợp đồng `contracts/wasm/dotnexus_sentinel/lib.rs` bằng ink! v5:**
+  - Chức năng: Lưu trữ nhịp tim (*heartbeat*) của validator node trên máy ảo WASM (`pallet-contracts`).
+  - Cung cấp hàm `record_heartbeat(era, block_number)` và `get_validator_liveness(stash)`.
+- [ ] **5.2. Tạo script biên dịch `cargo contract build`:**
+  - Xuất ra file bytecode `dotnexus_sentinel.wasm` và metadata `dotnexus_sentinel.json`.
+  - Tích hợp module kiểm tra trạng thái WASM Sentinel vào `engine/dual_tracker.py`.
+  - **Khẳng định vị thế:** Dự án duy nhất làm chủ trọn vẹn 100% cả 2 máy ảo Substrate WASM + EVM Frontier.

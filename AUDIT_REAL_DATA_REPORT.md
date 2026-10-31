@@ -492,11 +492,22 @@ flowchart TD
 
 ### 2. Kết quả kiểm định trực tiếp trên Playwright E2E
 
-1. **Màn 1 (`/console/dual-vm`)**:
-   * **WASM Best Block**: `#262,393` | **EVM Block**: `#262,393` | **Delta**: `0 BLKS` (100% Lockstep Parity).
-   * **BABE Author**: `Author: 5Grj5u...hwjk` (Giải mã từ consensus digest on-chain).
-   * **Huy hiệu**: `PORTALDOT V3 LIVE RPC` (Xanh lục) & `CHAIN ID: 420420777 · LIVE RPC`.
-   * **Token Decimals**: `14 (POT) · SS58: 42` (Đọc trực tiếp từ runtime metadata).
+1. **Màn 1 (`/console/dual-vm`) — Kiểm định chi tiết cả 3 Tab hoạt động**:
+   * **Tab 1: Lockstep Stream & SRE**:
+     * **WASM Best Block**: `#262,940` | **EVM Block**: `#262,940` | **Delta**: `0 BLKS` (100% Lockstep Parity).
+     * **BABE Author**: `Author: 5Grj5u...hwjk` (Giải mã trực tiếp từ consensus digest header on-chain).
+     * **Huy hiệu**: `PORTALDOT V3 LIVE RPC` (Xanh lục) & `CHAIN ID: 420420777 · LIVE RPC`.
+     * **Token Decimals**: `14 (POT) · SS58: 42` (Đọc từ runtime metadata).
+   * **Tab 2: Sync Diagnostics (Causal Lag Index & Root-Cause)**:
+     * **Vector 1 (Block Lag, w₁=0.50)**: `0 blk` (Đồng bộ tuyệt đối giữa WASM và Frontier EVM).
+     * **Vector 2 (Mempool Skew, w₂=0.30)**: `0 EVM / 0 WASM` (Đọc trực tiếp từ pool giao dịch thực tế).
+     * **Vector 3 (I/O Skew, w₃=0.20)**: `446.3ms EVM / 968.5ms WASM` (Đo lường latency vật lý thực tế).
+     * **Tiered Isolation**: Tier 1 P2P Swarm phát hiện chuẩn xác `peers: 1` (< 2 peer), Tier 2 FC-DB Bridge: `IN LOCKSTEP`, Tier 3 EVM Engine: `OPTIMAL GAS`.
+     * **Root-Cause Isolation**: `SUBSTRATE_P2P_STALL` với hành động khắc phục cụ thể: kiểm tra cổng 30333 và bổ sung bootstrap peer.
+   * **Tab 3: Hardware & Decimals (Host Resources & BigInt Parity)**:
+     * **Host Hardware Telemetry**: Đọc trực tiếp từ OS qua psutil: `CPU: 33.1%`, `RAM: 68.0%`, `NVMe Free: 51.7 GB`, `RocksDB: 1240 MB`. Không còn giá trị hardcode dự phòng nào.
+     * **Mempool Distribution**: `0 txs` (50% WASM / 50% EVM tỉ lệ cân bằng).
+     * **Safe Decimal Mapping & BigInt Parity**: Đọc số dư thực tế của ví Genesis Authority Alice trên Portaldot Testnet: `1010000000000000` Planck ($10.10 	imes 10^{14}$) đối sánh với `10100000000000000000` Wei ($10.10 	imes 10^{18}$), tỉ lệ chuẩn hóa $10^4$ hoàn toàn chính xác.
 
 2. **Màn 2 (`/console/slashing`)**:
    * **BABE Session Authorities**: `SESSION #440`, `BABE Epoch Index: #453`, `Active Consensus Validators: 2 Authorities`, `Primary Stash Status: INCLUDED IN ACTIVE SET`.

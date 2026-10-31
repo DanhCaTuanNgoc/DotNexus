@@ -706,37 +706,37 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
               <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-2">
                 <div className="flex items-center justify-between text-zinc-400 text-[10px]">
                   <span className="flex items-center gap-1.5"><Cpu className="w-3 h-3 text-[#00FF9D]" /> CPU Load</span>
-                  <span className="font-bold text-white tabular-nums">{hardware?.cpu_percent ?? 18.5}%</span>
+                  <span className="font-bold text-white tabular-nums">{hardware?.cpu_percent !== undefined ? `${hardware.cpu_percent.toFixed(1)}%` : '0.0%'}</span>
                 </div>
                 <div className="h-1.5 w-full bg-[#120B22] overflow-hidden">
-                  <div style={{ width: `${Math.min(100, hardware?.cpu_percent ?? 18.5)}%` }} className={`h-full ${(hardware?.cpu_percent ?? 0) > 80 ? 'bg-rose-500' : 'bg-[#00FF9D]'}`} />
+                  <div style={{ width: `${Math.min(100, hardware?.cpu_percent ?? 0)}%` }} className={`h-full ${(hardware?.cpu_percent ?? 0) > 80 ? 'bg-rose-500' : 'bg-[#00FF9D]'}`} />
                 </div>
               </div>
 
               <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-2">
                 <div className="flex items-center justify-between text-zinc-400 text-[10px]">
                   <span className="flex items-center gap-1.5"><Activity className="w-3 h-3 text-[#C084FC]" /> RAM Used</span>
-                  <span className="font-bold text-white tabular-nums">{hardware?.ram_percent ?? 42.1}%</span>
+                  <span className="font-bold text-white tabular-nums">{hardware?.ram_percent !== undefined ? `${hardware.ram_percent.toFixed(1)}%` : '0.0%'}</span>
                 </div>
                 <div className="h-1.5 w-full bg-[#120B22] overflow-hidden">
-                  <div style={{ width: `${Math.min(100, hardware?.ram_percent ?? 42.1)}%` }} className={`h-full ${(hardware?.ram_percent ?? 0) > 85 ? 'bg-rose-500' : 'bg-[#C084FC]'}`} />
+                  <div style={{ width: `${Math.min(100, hardware?.ram_percent ?? 0)}%` }} className={`h-full ${(hardware?.ram_percent ?? 0) > 85 ? 'bg-rose-500' : 'bg-[#C084FC]'}`} />
                 </div>
               </div>
 
               <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-2">
                 <div className="flex items-center justify-between text-zinc-400 text-[10px]">
                   <span className="flex items-center gap-1.5"><HardDrive className="w-3 h-3 text-[#38BDF8]" /> NVMe Free</span>
-                  <span className="font-bold text-white tabular-nums">{hardware?.disk_free_gb ?? 220.5} GB</span>
+                  <span className="font-bold text-white tabular-nums">{hardware?.disk_free_gb !== undefined ? `${hardware.disk_free_gb.toFixed(1)} GB` : '0.0 GB'}</span>
                 </div>
                 <div className="h-1.5 w-full bg-[#120B22] overflow-hidden">
-                  <div style={{ width: `${Math.min(100, hardware?.disk_percent ?? 54.2)}%` }} className={`h-full ${(hardware?.disk_percent ?? 0) > 85 ? 'bg-rose-500' : 'bg-[#38BDF8]'}`} />
+                  <div style={{ width: `${Math.min(100, hardware?.disk_percent ?? 0)}%` }} className={`h-full ${(hardware?.disk_percent ?? 0) > 85 ? 'bg-rose-500' : 'bg-[#38BDF8]'}`} />
                 </div>
               </div>
 
               <div className="p-3 bg-[#05030A] border border-white/[0.06] space-y-1">
                 <div className="flex items-center justify-between text-zinc-400 text-[10px]">
                   <span className="flex items-center gap-1.5"><Database className="w-3 h-3 text-amber-400" /> RocksDB Size</span>
-                  <span className="font-bold text-amber-400 tabular-nums">{hardware?.db_size_mb ?? 1450} MB</span>
+                  <span className="font-bold text-amber-400 tabular-nums">{hardware?.db_size_mb !== undefined ? `${hardware.db_size_mb} MB` : '0 MB'}</span>
                 </div>
                 <div className="text-[10px] text-zinc-500 pt-1">Node DB Footprint</div>
               </div>
@@ -795,7 +795,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                   Substrate Native POT (14 Decimals)
                 </div>
                 <div className="text-sm font-bold text-white tabular-nums break-all">
-                  {decimal_normalization?.substrate_balance_planck || '10000000000000000'}
+                  {decimal_normalization?.substrate_balance_planck || '0'}
                 </div>
                 <div className="text-[10px] text-zinc-500">1.0 POT = 10^14 Planck base units</div>
               </div>
@@ -805,7 +805,7 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                   Frontier EVM Display (18 Decimals)
                 </div>
                 <div className="text-sm font-bold text-zinc-200 tabular-nums break-all">
-                  {decimal_normalization?.evm_balance_wei || '100000000000000000000'}
+                  {decimal_normalization?.evm_balance_wei || '0'}
                 </div>
                 <div className="text-[10px] text-zinc-500">1.0 POT = 10^18 Wei standard units</div>
               </div>

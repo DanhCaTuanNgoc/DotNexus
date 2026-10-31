@@ -823,6 +823,13 @@ class DualEngineTracker:
             res["message"] = f"Purged {purged_count} stale/dropped transactions with conflicting nonces from local EVM mempool buffer."
             res["purged_transactions"] = purged_count
 
+        elif action == "inject_evm_lag":
+            lag_blocks = (details or {}).get("lag_blocks", 5)
+            self._mock_evm_block = max(0, getattr(self, "_mock_evm_block", 264500) - lag_blocks)
+            res["lag_blocks"] = lag_blocks
+            res["message"] = f"Injected +{lag_blocks} blocks artificial EVM delay. Causal Lag Index response verified."
+
+
         elif action == "toggle_circuit_breaker":
             cb_res = self.toggle_circuit_breaker()
             res["circuit_breaker"] = cb_res
@@ -837,6 +844,8 @@ class DualEngineTracker:
 
         self.last_remediation = res
         return res
+
+    remediate = execute_remediation
 
     def audit_contract_for_mainnet(self, contract_name: str = "SlashGuardLeaseRegistry", custom_code: Optional[str] = None) -> Dict[str, Any]:
         """

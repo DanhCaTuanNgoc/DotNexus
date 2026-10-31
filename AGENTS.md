@@ -49,6 +49,10 @@ Installed via `npx skills add vercel-labs/agent-skills`:
 - **`vercel-react-best-practices`**: React 19 / Vite performance standards, eliminating layout thrashing and bundle bloat.
 - **`vercel-composition-patterns`**: Scalable component composition patterns without boolean prop sprawl.
 
+### 🚀 Auto-Commit Workflow (`.agents/skills/auto-commit/`)
+- Automatically stage changed files and generate standard Conventional Commits after tasks are completed and verified.
+- **Mandatory Policy**: The Agent MUST automatically commit all verified changes at the end of every code edit task. The Agent must NEVER run `git push` — pushing is strictly left to the user.
+
 ---
 
 ## 3. Engineering & Coding Standards
@@ -61,6 +65,10 @@ Installed via `npx skills add vercel-labs/agent-skills`:
 ---
 
 ## 4. Verification & Commit Hygiene
-- Run `python -m unittest tests/test_engine.py` before finalizing any backend changes (must pass 10/10).
-- Run `cd front-end && npm run build` to verify zero TypeScript errors.
-- Commit code in clear, meaningful chunks with conventional commit prefixes (`feat:`, `fix:`, `test:`, `docs:`).
+- **Pre-commit Verification**:
+  - Run `python -m unittest tests/test_engine.py` before finalizing any backend changes (must pass 100%).
+  - Run `cd front-end && npm run build` to verify zero TypeScript errors.
+- **Auto-Commit Execution**:
+  - At the conclusion of any task modifying files, verify the tests/build, stage modified files cleanly, and create a git commit using Conventional Commits prefixes (`feat:`, `fix:`, `style:`, `refactor:`, `chore:`, `test:`, `docs:`).
+  - Explicitly output the commit hash and summary so the user can review and push with one click.
+  - **NEVER execute `git push`** — leave remote synchronization entirely to the user.

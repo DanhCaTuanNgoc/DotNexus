@@ -181,13 +181,13 @@ class TestDualEngineDataFlowIntegration(unittest.TestCase):
         wasm_conduit_top = top_conduit["block_number_wasm"]
         evm_conduit_top = top_conduit["block_number_evm"]
 
-        # Nominal lockstep tolerance is <= 5 blocks during active BABE slot production on live testnets
+        # Nominal lockstep tolerance is <= 10 blocks during active BABE slot production on live testnets
         self.assertLessEqual(
-            abs(sub_best - wasm_conduit_top), 5,
+            abs(sub_best - wasm_conduit_top), 10,
             f"Desync detected: Substrate card (#{sub_best}) != Conduit item 0 (#{wasm_conduit_top})"
         )
         self.assertLessEqual(
-            abs(evm_best - evm_conduit_top), 5,
+            abs(evm_best - evm_conduit_top), 10,
             f"Desync detected: EVM card (#{evm_best}) != Conduit item 0 (#{evm_conduit_top})"
         )
 

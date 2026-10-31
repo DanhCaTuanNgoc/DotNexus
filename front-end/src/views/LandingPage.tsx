@@ -35,7 +35,7 @@ import {
 } from '../services/api';
 import { TabType } from '../services/storage';
 import { InteractiveCanvas } from '../components/canvas/InteractiveCanvas';
-import { DEFAULT_RUNBOOKS, convertRunbookToWorkflow } from '../components/canvas/constants';
+import { DEFAULT_RUNBOOKS, convertRunbookToWorkflow, NODE_WIDTH, NODE_HEIGHT } from '../components/canvas/constants';
 import { CanvasNode, CanvasEdge, CanvasViewport } from '../components/canvas/types';
 import { 
   BlueprintSection, 
@@ -175,7 +175,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
   const getCenteredViewport = useCallback((): CanvasViewport => {
     const el = boardContainerRef.current;
     const width = el?.clientWidth || (typeof window !== 'undefined' ? Math.min(window.innerWidth - 32, 1152) : 1152);
-    const height = el?.clientHeight || (typeof window !== 'undefined' && window.innerWidth < 640 ? 300 : 330);
+    const height = el?.clientHeight || (typeof window !== 'undefined' && window.innerWidth < 640 ? 380 : 440);
 
     let zoom = 0.84;
     if (width < 500) {
@@ -209,6 +209,8 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
   const [execStep, setExecStep] = useState<number>(0);
   const [cycleCount, setCycleCount] = useState<number>(0);
   const [viewport, setViewport] = useState<CanvasViewport>(getCenteredViewport);
+  const viewportRef = useRef<CanvasViewport>(viewport);
+  viewportRef.current = viewport;
 
   // Sync and center viewport dynamically across all screen sizes and container resizes
   useEffect(() => {
@@ -231,23 +233,47 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
     };
   }, [getCenteredViewport]);
 
-  // Ultra-smooth node movement handler without UI jitter
+  // Ultra-smooth node movement handler across the entire scope of the parent div
   const handleMoveNodes = useCallback(
     (nodeIds: string[], delta: { x: number; y: number } | null | undefined) => {
       if (!delta || !Number.isFinite(delta.x) || !Number.isFinite(delta.y)) return;
       if (delta.x === 0 && delta.y === 0) return;
+
+      const el = boardContainerRef.current;
+      const containerWidth = el?.clientWidth || (typeof window !== 'undefined' ? Math.min(window.innerWidth - 32, 1152) : 1152);
+      const containerHeight = el?.clientHeight || (typeof window !== 'undefined' && window.innerWidth < 640 ? 380 : 440);
+
+      const curVp = viewportRef.current || { x: 0, y: 0, zoom: 0.88 };
+      const zoom = Number.isFinite(curVp.zoom) && curVp.zoom > 0 ? curVp.zoom : 0.88;
+      const vpX = Number.isFinite(curVp.x) ? curVp.x : 0;
+      const vpY = Number.isFinite(curVp.y) ? curVp.y : 0;
+
+      // Entire scope of parent div bounds mapped to world coordinates with comfortable margin
+      const margin = 8;
+      const minWorldX = (margin - vpX) / zoom;
+      const maxWorldX = (containerWidth - NODE_WIDTH * zoom - margin - vpX) / zoom;
+      const minWorldY = (margin - vpY) / zoom;
+      const maxWorldY = (containerHeight - NODE_HEIGHT * zoom - margin - vpY) / zoom;
+
+      const effectiveMinX = Math.min(minWorldX, maxWorldX);
+      const effectiveMaxX = Math.max(minWorldX, maxWorldX);
+      const effectiveMinY = Math.min(minWorldY, maxWorldY);
+      const effectiveMaxY = Math.max(minWorldY, maxWorldY);
+
       const moving = new Set(nodeIds);
       setNodes((current) =>
         current.map((node) => {
           if (!moving.has(node.id)) return node;
           const currentX = Number.isFinite(node.position?.x) ? node.position.x : 0;
           const currentY = Number.isFinite(node.position?.y) ? node.position.y : 0;
+          const nextX = currentX + delta.x;
+          const nextY = currentY + delta.y;
           return {
             ...node,
             position: {
               // Sub-pixel continuous coordinates ensure zero 1px oscillation/jitter
-              x: Math.max(10, Math.min(1600, currentX + delta.x)),
-              y: Math.max(10, Math.min(220, currentY + delta.y)),
+              x: Math.max(effectiveMinX, Math.min(effectiveMaxX, nextX)),
+              y: Math.max(effectiveMinY, Math.min(effectiveMaxY, nextY)),
             },
           };
         })
@@ -414,7 +440,7 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
       </div>
 
       {/* Mockup InteractiveCanvas Component Framed Strictly for 3 Nodes */}
-      <div ref={boardContainerRef} className="relative h-[300px] sm:h-[330px] w-full bg-[#06030D] overflow-hidden select-none">
+      <div ref={boardContainerRef} className="relative h-[380px] sm:h-[440px] md:h-[460px] w-full bg-[#06030D] overflow-hidden select-none">
         <InteractiveCanvas
           nodes={nodes}
           edges={edges}

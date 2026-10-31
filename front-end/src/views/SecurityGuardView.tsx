@@ -63,11 +63,15 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
   const missedCount = data.missed_heartbeats;
   const currentEpoch = data.fencing_epoch || 1;
 
-  // Visual calculation for Dead Man's Switch countdown bar (10s < 12s < 15s)
-  const simulatedElapsedSeconds = missedCount === 0 ? 3.0 : missedCount === 1 ? 7.5 : 11.5;
-  const isSelfFenced = simulatedElapsedSeconds >= 10.0;
+  // Visual calculation for Dead Man's Switch countdown bar derived from backend configuration
+  const selfFenceLimit = data.dead_mans_switch?.self_fence_timeout_s ?? 10.0;
+  const leaseTtl = data.dead_mans_switch?.lease_ttl_s ?? 12.0;
+  const takeoverLimit = data.dead_mans_switch?.takeover_delay_s ?? 15.0;
+
+  const simulatedElapsedSeconds = Math.min(takeoverLimit, missedCount === 0 ? 2.5 : missedCount * 5.5);
+  const isSelfFenced = Boolean(data.onchain_lease?.is_fenced) || simulatedElapsedSeconds >= selfFenceLimit;
   const totalSlots = 30;
-  const filledSlots = Math.min(totalSlots, Math.round((simulatedElapsedSeconds / 15.0) * totalSlots));
+  const filledSlots = Math.min(totalSlots, Math.round((simulatedElapsedSeconds / takeoverLimit) * totalSlots));
 
   return (
     <div className="space-y-4">
@@ -113,7 +117,7 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
           <div className="flex items-center gap-2">
             <Clock className="w-3.5 h-3.5 text-[#8B5CF6]" />
             <span className="text-xs font-bold text-white tracking-wider">
-              FAILOVER GRACE PERIOD TIMELINE (10s FENCE · 12s TTL · 15s TAKEOVER)
+              FAILOVER GRACE PERIOD TIMELINE ({selfFenceLimit.toFixed(0)}s FENCE · {leaseTtl.toFixed(0)}s TTL · {takeoverLimit.toFixed(0)}s TAKEOVER)
             </span>
           </div>
           <div className="flex items-center gap-2 text-[11px]">
@@ -129,24 +133,24 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
           {/* Milestone Labels */}
           <div className="flex flex-wrap justify-between text-[10px] font-mono text-zinc-400 gap-1 pb-1">
             <span className="text-zinc-500">0.0s [LEASE ACTIVE]</span>
-            <span className="text-amber-400 font-bold">10.0s [SELF-FENCE]</span>
-            <span className="text-zinc-300 font-bold">12.0s [TTL EXPIRED]</span>
-            <span className="text-rose-400 font-bold">15.0s [TAKEOVER]</span>
+            <span className="text-amber-400 font-bold">{selfFenceLimit.toFixed(1)}s [SELF-FENCE]</span>
+            <span className="text-zinc-300 font-bold">{leaseTtl.toFixed(1)}s [TTL EXPIRED]</span>
+            <span className="text-rose-400 font-bold">{takeoverLimit.toFixed(1)}s [TAKEOVER]</span>
           </div>
 
           {/* Continuous Progress Bar with Reference Milestone Lines */}
           <div className="relative h-2.5 w-full bg-[#110C1E] border border-[#1C142E] overflow-hidden">
-            {/* 10s Milestone Marker */}
-            <div className="absolute top-0 bottom-0 left-[66.7%] w-0.5 bg-amber-400/80 z-10" title="10.0s Self-Fence Marker" />
-            {/* 12s Milestone Marker */}
-            <div className="absolute top-0 bottom-0 left-[80.0%] w-0.5 bg-zinc-300/80 z-10" title="12.0s TTL Expiry Marker" />
+            {/* Self-Fence Milestone Marker */}
+            <div className="absolute top-0 bottom-0 w-0.5 bg-amber-400/80 z-10" style={{ left: `${(selfFenceLimit / takeoverLimit) * 100}%` }} title={`${selfFenceLimit.toFixed(1)}s Self-Fence Marker`} />
+            {/* TTL Expiry Milestone Marker */}
+            <div className="absolute top-0 bottom-0 w-0.5 bg-zinc-300/80 z-10" style={{ left: `${(leaseTtl / takeoverLimit) * 100}%` }} title={`${leaseTtl.toFixed(1)}s TTL Expiry Marker`} />
 
             {/* Active Elapsed Fill Bar */}
             <div
               className={`h-full transition-all duration-300 ${
-                isSelfFenced ? 'bg-rose-500' : simulatedElapsedSeconds >= 7.5 ? 'bg-amber-400' : 'bg-[#00FF9D]'
+                isSelfFenced ? 'bg-rose-500' : simulatedElapsedSeconds >= selfFenceLimit ? 'bg-amber-400' : 'bg-[#00FF9D]'
               }`}
-              style={{ width: `${Math.min(100, (simulatedElapsedSeconds / 15.0) * 100)}%` }}
+              style={{ width: `${Math.min(100, (simulatedElapsedSeconds / takeoverLimit) * 100)}%` }}
             />
           </div>
 
@@ -154,7 +158,7 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
           <div className="flex flex-col md:flex-row md:items-center justify-between text-[11px] pt-2 border-t border-[#1C142E] gap-2">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <span>
-                ELAPSED: <strong className="text-white tabular-nums">{simulatedElapsedSeconds.toFixed(1)}s</strong> / 12.0s
+                ELAPSED: <strong className="text-white tabular-nums">{simulatedElapsedSeconds.toFixed(1)}s</strong> / {leaseTtl.toFixed(1)}s
               </span>
               <span className="text-zinc-700">|</span>
               <span>
@@ -318,7 +322,7 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
               <div className="flex justify-between">
                 <span>Expiry Block:</span>
                 <span className="text-zinc-200 tabular-nums font-mono">
-                  #{data.onchain_lease?.expires_at_block ?? 147500} ({data.onchain_lease?.blocks_remaining ?? 236} blks left)
+                  #{data.onchain_lease?.expires_at_block ?? 262300} ({data.onchain_lease?.blocks_remaining ?? 200} blks left)
                 </span>
               </div>
               <div className="flex justify-between pt-1 border-t border-[#140D24]">

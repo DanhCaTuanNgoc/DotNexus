@@ -77,7 +77,7 @@ SLASH_GUARD_ABI = [
 class SlashingGuard:
     def __init__(self, substrate_url: Optional[str] = None):
         self.substrate_url = substrate_url or CONFIG.substrate_ws_url
-        self.node_id = f"validator-primary-{socket.gethostname()}"
+        self.node_id = os.getenv("VALIDATOR_NODE_ID", "dotnexus-primary-validator-01")
         self.standby_node_id = "validator-standby-node-02"
         self.active_node = "PRIMARY"
         self.missed_heartbeats = 0
@@ -438,14 +438,24 @@ class SlashingGuard:
         target_operator = operator_address or os.getenv("VALIDATOR_OPERATOR_ADDRESS", "0x56a64421b4a8eef8cfbd79c93df7579bb4bf4da4")
         now = time.time()
 
+        curr_b = 261900
+        try:
+            from engine.dual_tracker import DUAL_TRACKER
+            b_val = DUAL_TRACKER.get_evm_telemetry().get("block_number")
+            if b_val and b_val > 0:
+                curr_b = b_val
+        except Exception:
+            pass
+        expires_b = curr_b + 200
+
         fallback_state = {
             "contract_address": SLASH_GUARD_CONTRACT_ADDRESS,
             "operator_address": target_operator,
             "active_node_operator": target_operator,
             "fencing_epoch": self.fencing_epoch,
-            "expires_at_block": 147500,
-            "current_evm_block": 147264,
-            "blocks_remaining": 236,
+            "expires_at_block": expires_b,
+            "current_evm_block": curr_b,
+            "blocks_remaining": 200,
             "peer_id_hash": "0x" + hashlib.sha256(self.node_id.encode()).hexdigest(),
             "is_fenced": self.is_self_fenced,
             "is_currently_valid": not self.is_self_fenced,

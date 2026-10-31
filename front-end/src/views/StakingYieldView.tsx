@@ -458,33 +458,36 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               <div className="bg-[#05030A] border border-[#1C142E] p-2">
                 <div className="text-zinc-500 text-[10px]">QUEUED UNBONDING</div>
                 <div className="text-[#00E5FF] font-bold text-sm">
-                  {unbondingData?.total_unbonding_pot?.toFixed(2) ?? '150.00'} POT
+                  {(unbondingData?.total_unbonding_pot ?? 0.0).toFixed(2)} POT
                 </div>
               </div>
               <div className="bg-[#05030A] border border-[#1C142E] p-2">
                 <div className="text-zinc-500 text-[10px]">CHUNKS IN FLIGHT</div>
                 <div className="text-white font-bold text-sm">
-                  {unbondingData?.total_chunks ?? 2} / 32 Max
+                  {unbondingData?.total_chunks ?? 0} / 32 Max
                 </div>
               </div>
             </div>
 
             <div className="space-y-2 mb-3">
-              {(unbondingData?.unbonding_queue && unbondingData.unbonding_queue.length > 0 ? unbondingData.unbonding_queue : [
-                { chunk_index: 0, amount_pot: 100.0, target_era: 156, current_era: 142, hours_remaining: 336.0 },
-                { chunk_index: 1, amount_pot: 50.0, target_era: 160, current_era: 142, hours_remaining: 432.0 }
-              ]).map((chunk: any, idx: number) => (
-                <div key={idx} className="bg-[#05030A] border border-[#1C142E] p-2 text-[10px] flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#00E5FF] font-bold">#{chunk.chunk_index + 1}</span>
-                    <span className="text-white font-bold">{chunk.amount_pot} POT</span>
+              {unbondingData?.unbonding_queue && unbondingData.unbonding_queue.length > 0 ? (
+                unbondingData.unbonding_queue.map((chunk: any, idx: number) => (
+                  <div key={idx} className="bg-[#05030A] border border-[#1C142E] p-2 text-[10px] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#00E5FF] font-bold">#{chunk.chunk_index + 1}</span>
+                      <span className="text-white font-bold">{chunk.amount_pot} POT</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-zinc-400">
+                      <span>Unlock Era #{chunk.target_era}</span>
+                      <span className="text-[#00FF9D] font-mono">~{chunk.hours_remaining.toFixed(1)}h</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 text-zinc-400">
-                    <span>Unlock Era #{chunk.target_era}</span>
-                    <span className="text-[#00FF9D] font-mono">~{chunk.hours_remaining.toFixed(1)}h</span>
-                  </div>
+                ))
+              ) : (
+                <div className="bg-[#05030A] border border-[#1C142E] p-3 text-[11px] text-zinc-500 text-center font-mono">
+                  No unbonding chunks in escrow. 100% of bonded POT is active &amp; compounding.
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

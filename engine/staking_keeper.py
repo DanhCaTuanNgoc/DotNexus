@@ -44,7 +44,7 @@ class StakingKeeperDaemon:
         target_account = account_address or getattr(CONFIG, "primary_validator_address", "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
         unlocking_chunks = []
         total_unbonding_planck = 0
-        current_era = 142
+        current_era = 0
 
         if SubstrateInterface is not None and self.substrate_url != "ws://127.0.0.1:99999":
             try:
@@ -56,7 +56,11 @@ class StakingKeeperDaemon:
                 active_era_query = client.query("Staking", "ActiveEra")
                 if active_era_query and active_era_query.value:
                     val = active_era_query.value
-                    current_era = val.get("index", current_era) if isinstance(val, dict) else int(val)
+                    current_era = val.get("index", 0) if isinstance(val, dict) else int(val)
+                else:
+                    curr_era_q = client.query("Staking", "CurrentEra")
+                    if curr_era_q and curr_era_q.value is not None:
+                        current_era = int(curr_era_q.value)
 
                 ledger_query = client.query("Staking", "Ledger", [target_account])
                 if ledger_query and ledger_query.value:
@@ -75,21 +79,9 @@ class StakingKeeperDaemon:
                             "status": "UNBONDING" if remaining_eras > 0 else "READY_TO_WITHDRAW"
                         })
             except Exception as e:
-                logger.debug(f"Live Staking.Ledger query probe failed: {e}. Using deterministic unbonding state.")
+                logger.debug(f"Live Staking.Ledger query probe failed: {e}.")
 
-        if not unlocking_chunks:
-            sample_val = 500 * (10 ** CONFIG.default_token_decimals)
-            total_unbonding_planck = sample_val
-            target_era = current_era + 14
-            remaining_eras = 14
-            unlocking_chunks.append({
-                "amount_planck": str(sample_val),
-                "amount_pot": 500.0,
-                "target_era": target_era,
-                "remaining_eras": remaining_eras,
-                "estimated_hours_remaining": float(remaining_eras * 24),
-                "status": "UNBONDING"
-            })
+        # Zero-Mock Policy: If ledger has zero unlocking chunks, return empty queue honestly without injecting fake unbonding chunks.
 
         formatted_queue = [
             {

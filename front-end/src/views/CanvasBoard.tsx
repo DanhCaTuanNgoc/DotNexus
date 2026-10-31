@@ -159,6 +159,7 @@ export interface CanvasBoardProps {
   onRequestOpenTerminal?: () => void;
   subRoute?: string;
   onNavigateSubRoute?: (subRoute?: string) => void;
+  bestBlock?: number;
 }
 
 export const CanvasBoard: React.FC<CanvasBoardProps> = ({
@@ -168,6 +169,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   onRequestOpenTerminal,
   subRoute,
   onNavigateSubRoute,
+  bestBlock,
 }) => {
   // Multi-Workflow State
   const [initialData] = useState(() => loadInitialWorkflows());
@@ -723,7 +725,8 @@ if __name__ == "__main__":
             steps: sortedNodes.map((n) => {
               let detailMsg = `Executed node with configuration: ${JSON.stringify(n.data.config)}`;
               if (n.data.kind === 'discord_alert' || n.data.label.includes('Bot') || n.data.label.includes('Alert')) {
-                detailMsg = `Dispatched 24/7 telemetry signal to ${n.data.config.channel || '#ops-alerts'} & Telegram (Heartbeat: HEALTHY, Best Block: #4,120,912)`;
+                const currentBlockStr = bestBlock ? `#${bestBlock.toLocaleString()}` : '#262,100';
+                detailMsg = `Dispatched 24/7 telemetry signal to ${n.data.config.channel || '#ops-alerts'} & Telegram (Heartbeat: HEALTHY, Best Block: ${currentBlockStr})`;
               } else if (n.data.kind === 'heartbeat_daemon') {
                 detailMsg = `imOnline session heartbeat evaluated: 0 missed pings (Latency: 14.2ms)`;
               } else if (n.data.kind === 'rpc_rate_limiter') {

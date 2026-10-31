@@ -146,10 +146,10 @@ export const Header: React.FC<HeaderProps> = ({
           <div className={`hidden xs:flex items-center gap-1.5 text-[10px] font-mono border px-2 py-0.5 font-bold ${
             isLiveChain 
               ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' 
-              : 'border-[#00FF9D]/30 bg-[#00FF9D]/5 text-[#00FF9D]'
+              : 'border-amber-500/40 bg-amber-500/10 text-amber-400'
           }`}>
-            <span className={`w-1.5 h-1.5 ${isLiveChain ? 'bg-emerald-400 animate-pulse' : 'bg-[#00FF9D]'}`} />
-            <span>{isLiveChain ? 'PORTALDOT TESTNET' : ':9944 WS'}</span>
+            <span className={`w-1.5 h-1.5 ${isLiveChain ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+            <span>{isLiveChain ? 'PORTALDOT V3 LIVE RPC' : 'SANDBOX SIMULATION'}</span>
           </div>
         </div>
       </header>

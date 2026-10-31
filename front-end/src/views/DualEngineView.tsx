@@ -224,8 +224,12 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                   <span className="text-zinc-200 font-bold tracking-wider">SUBSTRATE WASM RUNTIME</span>
                   <span className="text-[10px] text-zinc-500">:9944 WS</span>
                 </div>
-                <span className="text-[9px] px-1.5 py-0.5 bg-[#E6007A]/10 text-[#E6007A] border border-[#E6007A]/25 font-bold">
-                  {substrate.is_live_chain ? 'LIVE RPC' : 'TESTNET V3'}
+                <span className={`text-[9px] px-1.5 py-0.5 border font-bold ${
+                  substrate.is_live_chain 
+                    ? 'bg-emerald-950/40 text-[#00FF9D] border-emerald-800/60' 
+                    : 'bg-amber-950/40 text-amber-400 border-amber-800/60'
+                }`}>
+                  {substrate.is_live_chain ? 'PORTALDOT V3 LIVE RPC' : 'SANDBOX SIMULATION'}
                 </span>
               </div>
 
@@ -283,8 +287,12 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
                   <span className="text-zinc-200 font-bold tracking-wider">FRONTIER EVM (REVIVE)</span>
                   <span className="text-[10px] text-zinc-500">:8545 HTTP</span>
                 </div>
-                <span className="text-[9px] px-1.5 py-0.5 bg-[#818CF8]/10 text-[#818CF8] border border-[#818CF8]/25 font-bold">
-                  CHAIN ID: {evm.chain_id}
+                <span className={`text-[9px] px-1.5 py-0.5 border font-bold ${
+                  evm.is_live_chain 
+                    ? 'bg-emerald-950/40 text-[#00FF9D] border-emerald-800/60' 
+                    : 'bg-amber-950/40 text-amber-400 border-amber-800/60'
+                }`}>
+                  CHAIN ID: {evm.chain_id} {evm.is_live_chain ? '· LIVE RPC' : '· SIMULATION'}
                 </span>
               </div>
 

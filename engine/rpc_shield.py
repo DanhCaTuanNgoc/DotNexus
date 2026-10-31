@@ -87,16 +87,15 @@ class RPCShield:
                 "is_malicious": False
             },
             {
-                "peer_id": "12D3KooWBadActorX99SpammerBotAttacker99999999999999X",
-                "ip": "203.0.113.88",
-                "location": "Unknown (Tor Proxy)",
-                "client_version": "custom-spammer/v1.0",
-                "protocol": "/portaldot/invalid/0.1",
-                "latency_ms": 240,
-                "role": "Unknown Peer",
-                "status": "FLAGGED_SUSPICIOUS",
-                "is_malicious": True,
-                "anomaly": "Repeated invalid block proposals and spam requests"
+                "peer_id": "12D3KooWTok98aZ4mY7kQ1s4D7xL9aB9876543210FEDCBA",
+                "ip": "13.230.14.88",
+                "location": "Tokyo, Japan",
+                "client_version": "portaldot/v3.0.0-rc1-evm",
+                "protocol": "/portaldot/sync/3.0",
+                "latency_ms": 35,
+                "role": "Full Node (RPC)",
+                "status": "HEALTHY",
+                "is_malicious": False
             }
         ]
 
@@ -107,6 +106,14 @@ class RPCShield:
         - "earliest" -> 0
         - "0x..." -> int(..., 16)
         """
+        try:
+            from engine.dual_tracker import DUAL_TRACKER
+            curr_b = DUAL_TRACKER.get_evm_telemetry().get("block_number")
+            if curr_b and curr_b > 0:
+                self.cached_latest_evm_block = curr_b
+        except Exception:
+            pass
+
         if block_param is None:
             return self.cached_latest_evm_block
         if isinstance(block_param, int):
@@ -628,7 +635,7 @@ class RPCShield:
                             "status": "HEALTHY",
                             "is_malicious": False
                         })
-                    topology = live_entries + topology
+                    topology = live_entries
         except Exception:
             pass
 

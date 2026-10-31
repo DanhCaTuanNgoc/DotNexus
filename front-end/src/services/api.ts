@@ -396,28 +396,28 @@ export interface RunbookDAG {
 export const DEFAULT_DUAL_TELEMETRY: DualTelemetryState = {
   timestamp: Math.floor(Date.now() / 1000),
   substrate: {
-    is_connected: true,
-    is_live_chain: true,
+    is_connected: false,
+    is_live_chain: false,
     endpoint: 'wss://test-node-v3.portaldot.dev',
-    best_block: 205160,
-    finalized_block: 205158,
+    best_block: 262100,
+    finalized_block: 262098,
     finality_lag: 2,
     latency_ms: 18.4,
-    pending_extrinsics: 3,
+    pending_extrinsics: 0,
     token_decimals: 14,
     ss58_format: 42,
     execution_engine: 'Substrate WASM / Pallet-Revive Host'
   },
   evm: {
-    is_connected: true,
-    is_live_chain: true,
+    is_connected: false,
+    is_live_chain: false,
     endpoint: 'https://test-evm-rpc-v3.portaldot.dev',
-    block_number: 205160,
+    block_number: 262100,
     chain_id: 420420777,
     gas_price_gwei: 18.5,
     base_fee_gwei: 18.0,
     latency_ms: 16.2,
-    pending_transactions: 4,
+    pending_transactions: 0,
     execution_engine: 'Pallet-Revive EVM Dual-VM'
   },
   sync: {
@@ -590,14 +590,14 @@ export const DEFAULT_SECURITY_STATE: SecurityDashboardState = {
     operator_address: '0x56a64421b4a8eef8cfbd79c93df7579bb4bf4da4',
     active_node_operator: '0x56a64421b4a8eef8cfbd79c93df7579bb4bf4da4',
     fencing_epoch: 14,
-    expires_at_block: 147500,
-    current_evm_block: 147264,
-    blocks_remaining: 236,
+    expires_at_block: 262300,
+    current_evm_block: 262100,
+    blocks_remaining: 200,
     peer_id_hash: '0x7b819a...421c',
     is_fenced: false,
     is_currently_valid: true,
-    is_live_onchain: true,
-    source: 'PORTALDOT_V3_EVM_TESTNET'
+    is_live_onchain: false,
+    source: 'PORTALDOT_V3_EVM_TESTNET (OFFLINE_CACHE)'
   },
   session_authorities: {
     session_index: 842,
@@ -608,8 +608,8 @@ export const DEFAULT_SECURITY_STATE: SecurityDashboardState = {
       '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty'
     ],
     queued_keys_count: 2,
-    is_live_rpc: true,
-    source: 'PORTALDOT_V3_SUBSTRATE_STORAGE'
+    is_live_rpc: false,
+    source: 'PORTALDOT_V3_SUBSTRATE_STORAGE (OFFLINE_CACHE)'
   }
 };
 
@@ -1186,8 +1186,8 @@ export const DEFAULT_SHIELD_STATUS: ShieldStatus = {
 
 export const DEFAULT_RECENT_BLOCKS: DualBlockConduitItem[] = [
   {
-    block_number_wasm: 205160,
-    block_number_evm: 205160,
+    block_number_wasm: 262100,
+    block_number_evm: 262100,
     hash_wasm: '0x1c7d3066e78a208ae74c341f750aa6dd1446388a2f15b1554ae6f183e958c213',
     hash_evm: '0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f',
     babe_author: 'Alice (Primary)',
@@ -1201,8 +1201,8 @@ export const DEFAULT_RECENT_BLOCKS: DualBlockConduitItem[] = [
     timestamp: Date.now() - 6000
   },
   {
-    block_number_wasm: 205159,
-    block_number_evm: 205159,
+    block_number_wasm: 262099,
+    block_number_evm: 262099,
     hash_wasm: '0x2a8e45b1289cf0123456789abcdef0123456789abcdef0123456789abcdef012',
     hash_evm: '0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb',
     babe_author: 'Bob (Core #1)',
@@ -1216,8 +1216,8 @@ export const DEFAULT_RECENT_BLOCKS: DualBlockConduitItem[] = [
     timestamp: Date.now() - 12000
   },
   {
-    block_number_wasm: 205158,
-    block_number_evm: 205158,
+    block_number_wasm: 262098,
+    block_number_evm: 262098,
     hash_wasm: '0x3b9f56c2390de123456789abcdef0123456789abcdef0123456789abcdef013',
     hash_evm: '0x4374e222db35c5f200213131e7565edf2d8dd006ed92e225e9e02bd9d172c9dc',
     babe_author: 'Charlie (Zero-SLA)',
@@ -1237,7 +1237,7 @@ export const DEFAULT_LOGS: LogItem[] = [
     source: 'DUAL_TRACKER',
     level: 'SUCCESS',
     time: Math.floor(Date.now() / 1000) - 2,
-    text: 'Dual-VM state verified: Substrate WASM #205,160 <-> EVM #205,160 in 100% lockstep parity.'
+    text: 'Dual-VM state verified: Substrate WASM #262,100 <-> EVM #262,100 in 100% lockstep parity.'
   },
   {
     source: 'SLASH_GUARD',
@@ -1279,6 +1279,9 @@ function gentlyAdvanceBlockSimulation() {
     dynamicDualState.substrate.finalized_block += elapsedSlots;
     dynamicDualState.evm.block_number += elapsedSlots;
     dynamicDualState.timestamp = Math.floor(now / 1000);
+    // Explicit offline indicator for simulation mode
+    dynamicDualState.substrate.is_live_chain = false;
+    dynamicDualState.evm.is_live_chain = false;
 
     const newBlockWasm = dynamicDualState.substrate.best_block;
     const newBlockEvm = dynamicDualState.evm.block_number;

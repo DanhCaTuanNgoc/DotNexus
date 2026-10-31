@@ -388,6 +388,7 @@ export const App: React.FC = () => {
                   onRequestOpenTerminal={() => handleToggleTerminal(true)}
                   subRoute={routeState.subRoute}
                   onNavigateSubRoute={(sub) => navigateTo('console', 'canvas', sub)}
+                  bestBlock={dualData.substrate.best_block}
                 />
               </ErrorBoundary>
             )}

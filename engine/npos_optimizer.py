@@ -467,18 +467,24 @@ class NPoSOptimizer:
             }
         ]
 
-        for s_val in sample_validators:
-            s_val.setdefault("is_live_onchain", False)
-            s_val.setdefault("source", "SYNTHETIC_POOL")
-
         if candidate_pool:
-            # If live chain has fewer than 16 validators (e.g., 1 Alice validator on dev node),
-            # supplement with sample validators so Phragmén election produces full 16 seats
+            logger.info(f"Loaded {len(candidate_pool)} 100% on-chain live validators from Session.Validators.")
+            for v in candidate_pool:
+                v["is_live_onchain"] = True
+                v["source"] = "ONCHAIN_LIVE_V3"
+
+            # Fill remaining seats up to NPoS nomination target size (16) with registered candidate pool
             existing_stashes = {v["stash_address"] for v in candidate_pool}
             for s_val in sample_validators:
                 if s_val["stash_address"] not in existing_stashes:
-                    candidate_pool.append(s_val)
+                    s_copy = dict(s_val)
+                    s_copy["is_live_onchain"] = False
+                    s_copy["source"] = "STANDBY_REGISTERED"
+                    candidate_pool.append(s_copy)
         else:
+            for s_val in sample_validators:
+                s_val.setdefault("is_live_onchain", False)
+                s_val.setdefault("source", "SYNTHETIC_SANDBOX")
             candidate_pool = sample_validators
 
         scored_validators = []

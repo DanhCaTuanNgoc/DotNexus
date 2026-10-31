@@ -52,7 +52,11 @@ class RPCShield:
         self.peer_topology = self._init_p2p_topology()
 
     def _init_p2p_topology(self) -> List[Dict[str, Any]]:
-        """Initializes realistic P2P peer topology for Portaldot V3.0"""
+        """
+        Initializes geo-representative P2P peer topology for Portaldot V3.0 testnet demonstration.
+        When live node system_peers does not expose external geo-IP multiaddresses,
+        these representative nodes model global testnet validator distribution.
+        """
         return [
             {
                 "peer_id": "12D3KooWDpJ7As7yhfrBpwt3xQv8v17jQxMvdJ8vXj34M7fL4qU",

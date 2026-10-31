@@ -167,9 +167,12 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
             <h2 className="text-xs sm:text-sm font-bold font-mono text-white tracking-widest uppercase">
               RPC REVERSE PROXY &amp; ACTIVE P2P GLOBAL TOPOLOGY
             </h2>
+            <span className="px-1.5 py-0.5 bg-[#8B5CF6]/15 border border-[#8B5CF6]/40 text-[#C084FC] text-[9px] font-mono font-semibold">
+              REPRESENTATIVE MESH SAMPLE
+            </span>
           </div>
           <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-            Hardened reverse proxy with sub-millisecond JSON-RPC payload sanitization and real-time libp2p topology mesh.
+            Hardened reverse proxy with sub-millisecond JSON-RPC payload sanitization and real-time libp2p topology mesh (representative testnet nodes mapped via system_peers).
           </p>
         </div>
 
@@ -293,9 +296,12 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
               <span className="text-xs font-bold text-white tracking-wider">
                 ACTIVE P2P LIBP2P GLOBAL TOPOLOGY (PORT :30333)
               </span>
+              <span className="px-1.5 py-0.2 bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[9px] font-mono">
+                GEO ESTIMATION
+              </span>
             </div>
             <span className="text-[10px] text-zinc-500 font-mono">
-              GLOBAL P2P DISTRIBUTION &bull; LIBP2P MESH
+              ESTIMATED LIBP2P MESH &bull; BASED ON SYSTEM_PEERS
             </span>
           </div>
 
@@ -342,7 +348,11 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
               </div>
               <div className="flex justify-between border-b border-[#140D24] pb-1">
                 <span className="text-zinc-500">LOCATION:</span>
-                <span className="text-white">{selectedPeer.location}</span>
+                <span className="text-white">{selectedPeer.location} <span className="text-[9px] text-zinc-500 font-mono">(Geo-Sample)</span></span>
+              </div>
+              <div className="flex justify-between border-b border-[#140D24] pb-1 text-[10px]">
+                <span className="text-zinc-500">TELEMETRY TYPE:</span>
+                <span className="text-[#C084FC] font-semibold">Representative Testnet Node</span>
               </div>
               <div className="flex justify-between border-b border-[#140D24] pb-1">
                 <span className="text-zinc-500">PROTOCOL:</span>

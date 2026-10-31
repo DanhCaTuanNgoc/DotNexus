@@ -115,7 +115,7 @@ def main():
     elif args.command == "peers":
         shld = RPC_SHIELD.get_shield_status()
         peers = shld.get("p2p_topology", [])
-        print(f"Connected P2P Peers: {len(peers)} | Quarantined IPs: {shld.get('active_banned_ips_count', 0)}")
+        print(f"Connected P2P Peers: {len(peers)} (Representative Testnet Geo-Sample) | Quarantined IPs: {shld.get('active_banned_ips_count', 0)}")
         for p in peers[:10]:
             print(f"  {p.get('peer_id', 'unknown')[:16]}... | IP: {p.get('ip')} | Client: {p.get('client_version')} | Latency: {p.get('latency_ms')}ms")
     elif args.command == "logs":

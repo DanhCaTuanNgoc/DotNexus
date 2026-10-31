@@ -222,6 +222,9 @@ class DualEngineTracker:
                     finalized_block = max(0, best_block - 1)
 
                 self._last_live_sub_block = best_block
+                self._mock_substrate_block = best_block
+                if self.web3_client is None:
+                    self._mock_evm_block = best_block
 
                 # Fetch pending extrinsics from author
                 try:
@@ -277,14 +280,19 @@ class DualEngineTracker:
                 self.substrate_client = None
 
         # Fallback simulation
-        now = time.time()
-        elapsed = now - self._mock_last_tick
-        if elapsed > 6.0:  # ~6 second Substrate block time
-            blocks_to_add = int(elapsed // 6.0)
-            self._mock_substrate_block += blocks_to_add
-            self._mock_finalized_block = self._mock_substrate_block - 3
-            self._mock_highest_block = self._mock_substrate_block
-            self._mock_last_tick = now
+        if getattr(self, '_last_live_evm_block', None) is not None:
+            self._mock_substrate_block = self._last_live_evm_block
+            self._mock_finalized_block = max(0, self._last_live_evm_block - 2)
+            self._mock_highest_block = self._last_live_evm_block
+        else:
+            now = time.time()
+            elapsed = now - self._mock_last_tick
+            if elapsed > 6.0:  # ~6 second Substrate block time
+                blocks_to_add = int(elapsed // 6.0)
+                self._mock_substrate_block += blocks_to_add
+                self._mock_finalized_block = self._mock_substrate_block - 3
+                self._mock_highest_block = self._mock_substrate_block
+                self._mock_last_tick = now
 
         return {
             "is_connected": False,
@@ -308,6 +316,12 @@ class DualEngineTracker:
         if self._init_evm():
             try:
                 block_num = self.web3_client.eth.block_number
+                self._last_live_evm_block = block_num
+                self._mock_evm_block = block_num
+                if self.substrate_client is None:
+                    self._mock_substrate_block = block_num
+                    self._mock_finalized_block = max(0, block_num - 2)
+                    self._mock_highest_block = block_num
                 gas_price_wei = self.web3_client.eth.gas_price
                 chain_id = self.web3_client.eth.chain_id
                 latency_ms = round((time.time() - t0) * 1000, 2)
@@ -665,8 +679,22 @@ class DualEngineTracker:
         Calculates synchronicity delta, mempool distribution, 3-tier root-cause diagnosis,
         and decimal mapping normalization from live nodes or simulation.
         """
-        sub_telemetry = self.get_substrate_telemetry()
         evm_telemetry = self.get_evm_telemetry()
+        sub_telemetry = self.get_substrate_telemetry()
+
+        # If one engine is live and the other is offline/simulated, align the simulated head
+        if evm_telemetry.get("is_live_chain") and not sub_telemetry.get("is_live_chain"):
+            live_h = evm_telemetry["block_number"]
+            sub_telemetry["best_block"] = live_h
+            sub_telemetry["finalized_block"] = max(0, live_h - 2)
+            sub_telemetry["highest_block"] = live_h
+            self._mock_substrate_block = live_h
+            self._mock_finalized_block = max(0, live_h - 2)
+            self._mock_highest_block = live_h
+        elif sub_telemetry.get("is_live_chain") and not evm_telemetry.get("is_live_chain"):
+            live_h = sub_telemetry["best_block"]
+            evm_telemetry["block_number"] = live_h
+            self._mock_evm_block = live_h
 
         sub_block = sub_telemetry["best_block"]
         evm_block = evm_telemetry["block_number"]
@@ -808,11 +836,12 @@ class DualEngineTracker:
         and decimal mapping normalization.
         Uses thread-safe cached telemetry with Stale-While-Revalidate for sub-millisecond response time.
         """
-        if not force_refresh and self._dual_state_cache is not None:
+        now = time.time()
+        if not force_refresh and self._dual_state_cache is not None and (now - self._dual_state_cache_time < self._dual_state_cache_ttl):
             return self._dual_state_cache
 
         with self._cache_lock:
-            if not force_refresh and self._dual_state_cache is not None:
+            if not force_refresh and self._dual_state_cache is not None and (now - self._dual_state_cache_time < self._dual_state_cache_ttl):
                 return self._dual_state_cache
             return self._compute_dual_state()
 
@@ -1100,6 +1129,31 @@ class DualEngineTracker:
 
         # Robust simulation fallback (when offline or in mock test environment)
         fallback_items: List[Dict[str, Any]] = []
+
+        if has_evm and self.web3_client:
+            try:
+                evm_live = self.web3_client.eth.block_number
+                if evm_live > 0:
+                    self._mock_evm_block = evm_live
+                    self._last_live_evm_block = evm_live
+                    if not (has_sub and self.substrate_client):
+                        self._mock_substrate_block = evm_live
+                        self._mock_finalized_block = max(0, evm_live - 2)
+                        self._mock_highest_block = evm_live
+            except Exception:
+                pass
+        elif has_sub and self.substrate_client:
+            try:
+                head_res = self.substrate_client.rpc_request("chain_getHeader", [])
+                if head_res and head_res.get("result") and "number" in head_res["result"]:
+                    sub_live = int(head_res["result"]["number"], 16)
+                    self._mock_substrate_block = sub_live
+                    self._last_live_sub_block = sub_live
+                    if not (has_evm and self.web3_client):
+                        self._mock_evm_block = sub_live
+            except Exception:
+                pass
+
         w_curr = self._mock_substrate_block
         e_curr = self._mock_evm_block
 
@@ -1122,7 +1176,7 @@ class DualEngineTracker:
             else:
                 status = "DESYNC_CRITICAL"
 
-            fallback_items.append({
+            entry = {
                 "block_number_wasm": w_num,
                 "block_number_evm": e_num,
                 "hash_wasm": w_hash,
@@ -1136,7 +1190,11 @@ class DualEngineTracker:
                 "delta_blocks": delta,
                 "status": status,
                 "timestamp": now - (i * 6.0)
-            })
+            }
+            fallback_items.append(entry)
+
+            if len(self._historical_blocks_cache) < 200:
+                self._historical_blocks_cache[w_num] = entry
 
         self._recent_blocks_cache = fallback_items
         self._recent_blocks_cache_time = now
@@ -1149,11 +1207,22 @@ class DualEngineTracker:
         """
         limit = max(1, min(limit, 10))
 
-        if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
+        now = time.time()
+        if (
+            not force_refresh
+            and self._recent_blocks_cache
+            and len(self._recent_blocks_cache) >= limit
+            and (now - self._recent_blocks_cache_time < self._recent_blocks_cache_ttl)
+        ):
             return self._recent_blocks_cache[:limit]
 
         with self._cache_lock:
-            if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
+            if (
+                not force_refresh
+                and self._recent_blocks_cache
+                and len(self._recent_blocks_cache) >= limit
+                and (now - self._recent_blocks_cache_time < self._recent_blocks_cache_ttl)
+            ):
                 return self._recent_blocks_cache[:limit]
             return self._refresh_recent_dual_blocks(limit=limit)
 

@@ -4055,7 +4055,7 @@ export const api = {
         success: true,
         source: 'P2P',
         level: 'INFO',
-        output: `P2P Network Topology: ${peerCount} peers connected | Active Quarantined IPs: ${quarantined} | Subnet Diversity: NOMINAL`
+        output: `P2P Network Topology: ${peerCount} peers mapped (Representative Testnet Geo-Sample) | Active Quarantined IPs: ${quarantined} | Subnet Diversity: NOMINAL`
       };
     } else if (cmd === 'clear') {
       await api.clearLogs();

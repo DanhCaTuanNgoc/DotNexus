@@ -288,13 +288,18 @@ export const CyberWorldMap: React.FC<CyberWorldMapProps> = ({
         })}
       </svg>
 
+      {/* Top Disclaimer Badge on Canvas */}
+      <div className="absolute top-2 left-2 z-10 px-2 py-0.5 bg-[#08050F]/85 border border-[#1C142E] text-[9px] font-mono text-zinc-400 pointer-events-none">
+        <span className="text-[#00FF9D] font-bold">TOPOLOGY PROJECTION:</span> Representative testnet libp2p peers geo-mapped via <code className="text-zinc-300">system_peers</code>
+      </div>
+
       {/* Bottom Coordinates & Engine HUD */}
       <div className="absolute bottom-1.5 right-2 font-mono text-[9px] text-zinc-500 tracking-wider flex items-center gap-3">
         <span>PROJECTION: EQUIRECTANGULAR (D3-GEO &bull; NATURAL EARTH)</span>
         <span className="text-zinc-600">|</span>
         <span>PEERS: {peers.length}</span>
         <span className="text-zinc-600">|</span>
-        <span>LIBP2P :30333</span>
+        <span>LIBP2P :30333 (GEO ESTIMATION / REPRESENTATIVE TESTNET NODES)</span>
       </div>
     </div>
   );

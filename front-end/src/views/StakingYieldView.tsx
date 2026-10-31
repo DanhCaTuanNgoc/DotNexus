@@ -1008,13 +1008,13 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               <div className="flex items-center justify-between p-2.5">
                 <span className="text-zinc-400">Capital per Validator</span>
                 <span className="text-white font-semibold tabular-nums">
-                  {selectedTargets.length > 0 ? (stakeInput / selectedTargets.length).toFixed(2) : 0} POT
+                  {selectedTargets.length > 0 ? (bondAmountPot / selectedTargets.length).toFixed(3) : 0} POT
                 </span>
               </div>
               <div className="flex items-center justify-between p-2.5">
                 <span className="text-zinc-400">Projected Annual Yield</span>
                 <span className="text-[#00FF9D] font-bold tabular-nums">
-                  +{compoundReturnPot.toLocaleString()} POT ({data.auto_compounded_apy}% APY)
+                  +{((bondAmountPot * (Math.pow(1 + compoundRate / 1460, 1460) - 1))).toFixed(3)} POT ({data.auto_compounded_apy}% APY)
                 </span>
               </div>
               <div className="flex items-center justify-between p-2.5">

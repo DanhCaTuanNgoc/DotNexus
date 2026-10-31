@@ -1631,16 +1631,17 @@ export const api = {
         return {
           is_success: true,
           tx_hash: txHash,
-          block_hash: '0x1c7d3066e78a208ae74c341f750aa6dd1446388a2f15b1554ae6f183e958c213',
+          block_hash: '0xd3358002f55b7290c54ff88282b36b91589a2bab90a65319e692a829e07c2377',
           signer_address: signerKey,
           targets,
           amount_pot: bondPot,
           events: ['staking.Nominated', 'balances.Transfer'],
-          is_live_chain: true,
-          network: 'Portaldot Testnet V3.0',
+          is_live_chain: false,
+          network: 'Portaldot Testnet V3.0 (Offline Fallback)',
           timestamp: Date.now()
         };
-      }
+      },
+      15000
     );
   },
 

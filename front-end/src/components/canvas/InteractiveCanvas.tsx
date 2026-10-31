@@ -521,19 +521,24 @@ export const InteractiveCanvas = React.memo(function InteractiveCanvas({
     }
   };
 
-  // Keyboard shortcut for deleting selected edge
+  // Keyboard shortcut for deleting selected node or selected wire
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedEdgeId) {
-        const activeTag = (document.activeElement?.tagName || '').toLowerCase();
-        if (activeTag === 'input' || activeTag === 'textarea') return;
-        onEdgesChange(edges.filter((edge) => edge.id !== selectedEdgeId));
-        setSelectedEdgeId(null);
+      const activeTag = (document.activeElement?.tagName || '').toLowerCase();
+      if (activeTag === 'input' || activeTag === 'textarea') return;
+
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedNodeId && !readOnly) {
+          onDeleteSelectedNode?.();
+        } else if (selectedEdgeId && !readOnly) {
+          onEdgesChange(edges.filter((edge) => edge.id !== selectedEdgeId));
+          setSelectedEdgeId(null);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedEdgeId, edges, onEdgesChange]);
+  }, [selectedNodeId, selectedEdgeId, readOnly, edges, onEdgesChange, onDeleteSelectedNode]);
 
   const vpX = viewport?.x ?? 30;
   const vpY = viewport?.y ?? 30;

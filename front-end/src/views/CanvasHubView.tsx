@@ -92,6 +92,22 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
           bg: 'bg-[#140E06]',
           color: 'text-amber-400',
         };
+      case 'CHAOS':
+        return {
+          icon: <Shield className="w-3 h-3 text-[#EF4444]" />,
+          text: 'CHAOS',
+          border: 'border-rose-800/40',
+          bg: 'bg-[#14080D]',
+          color: 'text-rose-400',
+        };
+      case 'TREASURY':
+        return {
+          icon: <SlidersHorizontal className="w-3 h-3 text-cyan-400" />,
+          text: 'TREASURY',
+          border: 'border-cyan-800/40',
+          bg: 'bg-[#061214]',
+          color: 'text-cyan-400',
+        };
       default:
         return {
           icon: <Workflow className="w-3 h-3 text-[#818CF8]" />,
@@ -167,7 +183,7 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
 
         {/* Filter Pills */}
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          {['ALL', 'SECURITY', 'TELEMETRY', 'STAKING', 'CUSTOM'].map((cat) => (
+          {['ALL', 'SECURITY', 'TELEMETRY', 'STAKING', 'TREASURY', 'CHAOS', 'CUSTOM'].map((cat) => (
             <button
               key={cat}
               type="button"

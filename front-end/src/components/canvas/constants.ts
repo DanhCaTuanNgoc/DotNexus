@@ -62,6 +62,14 @@ export const CATEGORY_THEMES: Record<
     badgeBg: 'bg-[#3B0C0F] border-[#EF4444]/50 text-[#EF4444]',
     dotColor: '#EF4444',
   },
+  TREASURY: {
+    border: 'border-[#06B6D4]',
+    text: 'text-[#22D3EE]',
+    bg: 'bg-[#082026]',
+    glow: '#06B6D4',
+    badgeBg: 'bg-[#0B2E37] border-[#06B6D4]/50 text-[#22D3EE]',
+    dotColor: '#06B6D4',
+  },
 };
 
 // 20 Specialized Node Templates for Portaldot V3.0
@@ -492,7 +500,7 @@ export const DEFAULT_RUNBOOKS = [
         type: 'infra',
         label: 'EVM RPC (:8545)',
         position: { x: 50, y: 120 },
-        data: { endpoint: 'http://127.0.0.1:8545', chainId: 4200, status: 'STREAMING' },
+        data: { endpoint: 'http://127.0.0.1:8545', chainId: 420420777, status: 'STREAMING' },
       },
       {
         id: 'rpc-2',
@@ -546,6 +554,39 @@ export const DEFAULT_RUNBOOKS = [
       { id: 'e-chaos-fence', source: 'n-chaos-cut', target: 'n-fence-guard', animated: true, label: 'Missing Ping > 10s' },
       { id: 'e-fence-takeover', source: 'n-fence-guard', target: 'n-standby-takeover', animated: true, label: 'Safe Epoch Takeover' }
     ]
+  },
+  {
+    id: 'runbook-treasury-sweep',
+    name: 'Treasury & Staking Era Payout Safeguard Sweep',
+    description: 'Inspects 84-era historical reward window, detects uncollected staking payouts, and dispatches batch payoutStakersByPage transactions before permanent burn.',
+    category: 'TREASURY',
+    nodes: [
+      {
+        id: 'n-payout-scan',
+        type: 'watcher',
+        label: '84-Era Historical Window Scanner',
+        position: { x: 50, y: 140 },
+        data: { window_eras: 84, target_pallet: 'Staking.ClaimedRewards', status: 'SCANNING' }
+      },
+      {
+        id: 'n-payout-eval',
+        type: 'security',
+        label: 'Expiry & Burn Invariant Guard',
+        position: { x: 380, y: 140 },
+        data: { burn_threshold: '84 eras', check: 'Era Gap <= 84', status: 'VERIFIED' }
+      },
+      {
+        id: 'n-payout-dispatch',
+        type: 'action',
+        label: 'Dispatch payoutStakersByPage Batch',
+        position: { x: 720, y: 140 },
+        data: { method: 'staking.payoutStakersByPage', page: 0, status: 'READY' }
+      }
+    ],
+    edges: [
+      { id: 'e-scan-eval', source: 'n-payout-scan', target: 'n-payout-eval', animated: true, label: 'Unclaimed Eras Detected' },
+      { id: 'e-eval-dispatch', source: 'n-payout-eval', target: 'n-payout-dispatch', animated: true, label: 'Batch Extrinsic Dispatched' }
+    ]
   }
 ];
 
@@ -593,6 +634,12 @@ export function convertRunbookToWorkflow(rb: any): CanvasWorkflow {
       labelLower.includes('inject')
     ) {
       cat = 'CHAOS';
+    } else if (
+      t.includes('treasury') ||
+      labelLower.includes('treasury') ||
+      labelLower.includes('payout')
+    ) {
+      cat = 'TREASURY';
     } else if (
       t.includes('action') || 
       t.includes('promot') || 

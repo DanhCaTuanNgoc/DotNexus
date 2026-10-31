@@ -13,15 +13,17 @@ class TestDAGEngineIntegration(unittest.TestCase):
         self.dag_engine = DAGCanvasEngine()
 
     def test_get_runbooks_returns_all_prebuilt(self):
-        """Verifies exactly 5 prebuilt operational runbooks are available"""
+        """Verifies all 7 prebuilt operational runbooks are available"""
         runbooks = self.dag_engine.get_runbooks()
-        self.assertGreaterEqual(len(runbooks), 5)
+        self.assertGreaterEqual(len(runbooks), 7)
         ids = [rb["id"] for rb in runbooks]
         self.assertIn("runbook-slash-guard", ids)
         self.assertIn("runbook-dual-vm-sync", ids)
         self.assertIn("runbook-npos-compound", ids)
         self.assertIn("runbook-chaos-fire-drill", ids)
         self.assertIn("runbook-treasury-sweep", ids)
+        self.assertIn("runbook-health-bot", ids)
+        self.assertIn("runbook-rpc-shield", ids)
 
     def test_get_runbook_by_id_existing(self):
         """Verifies fetching specific runbook by ID returns matching metadata"""
@@ -74,6 +76,27 @@ class TestDAGEngineIntegration(unittest.TestCase):
         self.assertIn("Historical Payout Window Inspection", step_names)
         self.assertIn("Treasury Burn Invariant Check", step_names)
         self.assertIn("Batch payoutStakersByPage Dispatch", step_names)
+
+    def test_execute_health_bot_runbook(self):
+        """Verifies execution of 24/7 Node Health Monitor & Telemetry Bot runbook"""
+        res = self.dag_engine.execute_runbook("runbook-health-bot")
+        self.assertEqual(res["status"], "COMPLETED_SUCCESSFULLY")
+        self.assertEqual(len(res["steps"]), 4)
+        step_names = [s["step"] for s in res["steps"]]
+        self.assertIn("Substrate WS Head Block Stream", step_names)
+        self.assertIn("imOnline Session Heartbeat", step_names)
+        self.assertIn("Log Anomaly Sentry Filter", step_names)
+        self.assertIn("Discord / Telegram Alert Bot", step_names)
+
+    def test_execute_rpc_shield_runbook(self):
+        """Verifies execution of RPC Anti-Spam Sentry & Malicious IP Defense runbook"""
+        res = self.dag_engine.execute_runbook("runbook-rpc-shield")
+        self.assertEqual(res["status"], "COMPLETED_SUCCESSFULLY")
+        self.assertEqual(len(res["steps"]), 3)
+        step_names = [s["step"] for s in res["steps"]]
+        self.assertIn("Frontier EVM JSON-RPC (:8545) Ingestion", step_names)
+        self.assertIn("RPC Shield Rate-Limiter & Deep Inspection", step_names)
+        self.assertIn("Progressive Quarantine Jail & Sentry Alert", step_names)
 
     def test_execute_unknown_runbook_status_failed(self):
         """Verifies execution of invalid runbook ID fails gracefully"""

@@ -1,6 +1,6 @@
 export type FlowHandleId = 'left' | 'right' | 'top' | 'bottom';
 export type FlowHandleType = 'trigger' | 'telemetry' | 'security' | 'action' | 'any';
-export type NodeCategory = 'INFRA' | 'WATCHER' | 'SECURITY' | 'ACTION' | 'STAKING' | 'CHAOS';
+export type NodeCategory = 'INFRA' | 'WATCHER' | 'SECURITY' | 'ACTION' | 'STAKING' | 'CHAOS' | 'TREASURY';
 export type NodeStatus = 'idle' | 'running' | 'success' | 'error';
 
 export interface CanvasNodeData {
@@ -64,7 +64,7 @@ export interface CanvasWorkflow {
   id: string;
   name: string;
   description: string;
-  category: NodeCategory | 'CUSTOM' | 'TELEMETRY' | 'SECURITY' | 'STAKING';
+  category: NodeCategory | 'CUSTOM' | 'TELEMETRY' | 'SECURITY' | 'STAKING' | 'TREASURY';
   nodes: CanvasNode[];
   edges: CanvasEdge[];
   viewport?: CanvasViewport;

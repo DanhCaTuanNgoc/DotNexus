@@ -26,9 +26,22 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
   const nodeIssues = issues.filter((i) => i.nodeId === node.id);
 
   const handleFieldChange = (key: string, value: string) => {
+    const originalVal = node.data.config?.[key];
+    let parsedVal: any = value;
+
+    if (typeof originalVal === 'number') {
+      const num = Number(value);
+      if (!isNaN(num) && value.trim() !== '') {
+        parsedVal = num;
+      }
+    } else if (typeof originalVal === 'boolean') {
+      if (value.toLowerCase() === 'true') parsedVal = true;
+      else if (value.toLowerCase() === 'false') parsedVal = false;
+    }
+
     onUpdateConfig(node.id, {
       ...node.data.config,
-      [key]: value,
+      [key]: parsedVal,
     });
   };
 

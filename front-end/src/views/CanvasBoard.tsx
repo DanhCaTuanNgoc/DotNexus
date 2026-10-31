@@ -587,7 +587,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("DotNexus.Runner")
 
-RUNBOOK_DAG = json.loads('''''')${dagPayload}
+RUNBOOK_DAG = json.loads(r'''${dagPayload}''')
 
 def execute_via_gateway(gateway_url: str, dry_run: bool = False):
     """Executes runbook pipeline via local or remote DotNexus Gateway API"""
@@ -606,7 +606,7 @@ def execute_direct_rpc(dry_run: bool = False):
     """Fallback: Executes pre-flight queries directly against Portaldot V3 live RPC"""
     evm_url = "https://test-evm-rpc-v3.portaldot.dev"
     req_body = json.dumps({"jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 1}).encode('utf-8')
-    current_block = 263150
+    current_block = 265130
     try:
         req = urllib.request.Request(evm_url, data=req_body, headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -678,14 +678,23 @@ if __name__ == "__main__":
   };
 
   // Export Incident Post-Mortem Report
-  const handleExportIncidentReport = () => {
+  const handleExportIncidentReport = async () => {
+    let digestHex = '';
+    try {
+      const rawPayload = `${activeWorkflow.id}:${Date.now()}:${nodes.length}:${edges.length}`;
+      const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawPayload));
+      digestHex = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    } catch {
+      digestHex = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+    }
+
     const reportContent = `# INCIDENT POST-MORTEM & SRE TELEMETRY AUDIT REPORT
 **Workflow:** ${activeWorkflow.name} (${activeWorkflow.id})
 **Category:** ${activeWorkflow.category}
 **Timestamp:** ${new Date().toISOString()}
 **Runtime Engine:** Portaldot Network V3.0 (Substrate WASM + EVM Dual-VM)
 **Single-Signer Invariant:** SATISFIED (Zero Equivocation Faults)
-**Audit Digest:** sha256:${Math.random().toString(16).slice(2, 14)}
+**Audit Digest:** sha256:${digestHex}
 
 ## 1. Topology Specification
 - Total DAG Nodes: ${nodes.length}

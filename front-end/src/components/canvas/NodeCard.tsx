@@ -58,6 +58,32 @@ const ICON_MAP: Record<string, React.FC<any>> = {
   FileText,
 };
 
+const KIND_TO_ICON: Record<string, React.FC<any>> = {
+  ws_substrate: Server,
+  evm_rpc: Cpu,
+  standby_node: RadioTower,
+  p2p_sensor: Globe,
+  heartbeat_daemon: Activity,
+  desync_detector: Gauge,
+  rpc_spam_filter: ShieldAlert,
+  era_scanner: Clock,
+  mutex_lock: Lock,
+  rpc_rate_limiter: Shield,
+  safe_gate: ShieldCheck,
+  rotate_keys: Key,
+  promote_standby: ArrowRightCircle,
+  emergency_chill: AlertOctagon,
+  discord_alert: Bell,
+  restart_node: RefreshCw,
+  compound_yield: TrendingUp,
+  top_16_filter: Zap,
+  export_cli: FileCode2,
+  incident_report: FileText,
+  chaos_evm_lag: Clock,
+  chaos_heartbeat_cut: AlertTriangle,
+  chaos_rpc_ddos: ShieldAlert,
+};
+
 const HANDLES: FlowHandleId[] = ['left', 'right', 'top', 'bottom'];
 
 export const NodeCard = memo(function NodeCard({
@@ -68,7 +94,12 @@ export const NodeCard = memo(function NodeCard({
   onHandlePointerDown,
 }: NodeCardProps) {
   const theme = CATEGORY_THEMES[node.data.category] || CATEGORY_THEMES.INFRA;
-  const IconComponent = ICON_MAP[node.data.kind] || Activity;
+  const iconName = (node.data as any).iconName;
+  const IconComponent =
+    KIND_TO_ICON[node.data.kind] ||
+    (iconName ? ICON_MAP[iconName] : null) ||
+    ICON_MAP[node.data.kind] ||
+    Activity;
 
   return (
     <div

@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: dotnexus-backend
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/status
+    envVars:
+      - key: PORTALDOT_WS_URL
+        value: wss://test-node-v3.portaldot.dev
+      - key: PORTALDOT_EVM_URL
+        value: https://test-evm-rpc-v3.portaldot.dev
+      - key: PORTALDOT_CHAIN_ID
+        value: "420420777"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: DOTNEXUS_AUTH_TOKEN
+        value: nexus-ops-secret-key-2026

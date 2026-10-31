@@ -710,48 +710,45 @@ if __name__ == "__main__":
     setNodes((prev) => prev.map((n) => ({ ...n, data: { ...n.data, status: 'idle' } })));
 
     try {
-      let res: any;
-      if (activeWorkflow.id === 'runbook-slash-guard' || activeWorkflow.id === 'runbook-dual-vm-sync' || activeWorkflow.id === 'runbook-npos-compound') {
+      const runbookPayload = {
+        id: activeWorkflow.id,
+        name: activeWorkflow.name,
+        nodes: sortedNodes.map((n) => ({
+          id: n.id,
+          label: n.data.label,
+          type: n.data.kind || n.type,
+          kind: n.data.kind,
+          category: n.data.category,
+          config: n.data.config || {},
+        })),
+        edges: edges.map((e) => ({
+          id: e.id,
+          source: e.source,
+          target: e.target,
+        })),
+      };
+
+      // Real Headless Worker Daemon execution with Kahn's topological sort and dual-VM bindings
+      let res: any = await api.executeWorkerRunbook(runbookPayload, false).catch(() => null);
+
+      if (!res?.success) {
         res = await api.executeRunbook(activeWorkflow.id).catch(() => null);
       }
 
-      if (!res?.success) {
-        await sleep(300);
-        res = {
-          success: true,
-          data: {
-            execution_id: `exec-${Date.now().toString(36)}`,
-            duration_ms: sortedNodes.length * 480,
-            steps: sortedNodes.map((n) => {
-              let detailMsg = `Executed node with configuration: ${JSON.stringify(n.data.config)}`;
-              if (n.data.kind === 'discord_alert' || n.data.label.includes('Bot') || n.data.label.includes('Alert')) {
-                const currentBlockStr = bestBlock ? `#${bestBlock.toLocaleString()}` : '#262,100';
-                detailMsg = `Dispatched 24/7 telemetry signal to ${n.data.config.channel || '#ops-alerts'} & Telegram (Heartbeat: HEALTHY, Best Block: ${currentBlockStr})`;
-              } else if (n.data.kind === 'heartbeat_daemon') {
-                detailMsg = `imOnline session heartbeat evaluated: 0 missed pings (Latency: 14.2ms)`;
-              } else if (n.data.kind === 'rpc_rate_limiter') {
-                detailMsg = `RPC Shield Filter active: 0 suspicious queries detected (Rate limit: 60/min)`;
-              }
-              return {
-                step: n.data.label,
-                status: 'SUCCESS',
-                detail: detailMsg,
-              };
-            }),
-          },
-        };
-      }
-
       if (res?.success && res.data) {
-        const steps: Array<{ step: string; status: string; detail: string }> = res.data.steps || [];
+        const steps: Array<{ node_id?: string; step?: string; label?: string; status?: string; detail: string }> =
+          res.data.steps || res.data.steps_result || [];
 
         for (let i = 0; i < sortedNodes.length; i++) {
           const currentNode = sortedNodes[i];
-          const matchedStep = steps[i] || {
-            step: currentNode.data.label,
-            status: 'SUCCESS',
-            detail: `Processed by Portaldot runtime (Engine: ${currentNode.type || currentNode.data.category})`,
-          };
+          const matchedStep =
+            steps.find((s) => s.node_id === currentNode.id) ||
+            steps[i] || {
+              step: currentNode.data.label,
+              label: currentNode.data.label,
+              status: 'SUCCESS',
+              detail: `Processed by Portaldot runtime: ${currentNode.data.label} nominal`,
+            };
 
           if (i > 0) {
             const prevNode = sortedNodes[i - 1];

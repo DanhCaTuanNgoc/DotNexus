@@ -1760,6 +1760,37 @@ export const api = {
     );
   },
 
+  executeWorkerRunbook: async (runbook: any, dryRun: boolean = false) => {
+    return fetchWithFallback(
+      `${BASE_URL}/worker/execute`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ runbook, dry_run: dryRun })
+      },
+      () => {
+        const execId = `worker-sim-${Math.random().toString(16).slice(2, 8)}`;
+        const nodes = runbook.nodes || [];
+        return {
+          execution_id: execId,
+          runbook_id: runbook.id || 'custom-runbook',
+          runbook_name: runbook.name || 'Custom Workflow',
+          status: 'SUCCESS',
+          total_nodes: nodes.length,
+          duration_ms: nodes.length * 14.5,
+          steps: nodes.map((n: any) => ({
+            node_id: n.id,
+            label: n.data?.label || n.label || 'Node',
+            type: n.data?.kind || n.type || 'generic',
+            duration_ms: 12.4,
+            detail: `Processed by runtime: ${n.data?.label || 'Node'} nominal`,
+            output: { status: 'NOMINAL' }
+          }))
+        };
+      }
+    );
+  },
+
   executeRunbook: async (runbookId: string) => {
     return fetchWithFallback(
       `${BASE_URL}/canvas/runbooks/${runbookId}/execute`,

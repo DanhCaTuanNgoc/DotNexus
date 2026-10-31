@@ -14,8 +14,10 @@ import {
   ArrowLeft,
   Bot,
   Activity,
-  Sparkles
+  Sparkles,
+  Edit3
 } from 'lucide-react';
+import { RenameWorkflowModal } from '../components/canvas/RenameWorkflowModal';
 import { RunbookDAG, api, LogItem } from '../services/api';
 import { 
   CanvasEdge, 
@@ -400,11 +402,20 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     });
   };
 
-  // Rename Workflow
-  const handleRenameWorkflow = (workflowId: string, newName: string) => {
+  const [isStudioRenameOpen, setIsStudioRenameOpen] = useState(false);
+
+  // Rename Workflow & Edit Description
+  const handleRenameWorkflow = (workflowId: string, newName: string, newDescription?: string) => {
     if (!newName.trim()) return;
     const updated = workflows.map((w) =>
-      w.id === workflowId ? { ...w, name: newName.trim(), updatedAt: Date.now() } : w
+      w.id === workflowId
+        ? {
+            ...w,
+            name: newName.trim(),
+            description: newDescription !== undefined ? newDescription.trim() : w.description,
+            updatedAt: Date.now(),
+          }
+        : w
     );
     setWorkflows(updated);
     storage.setWorkflowsList(updated);
@@ -413,7 +424,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
       source: 'DAG_ENGINE',
       level: 'INFO',
       time: Date.now() / 1000,
-      text: `Renamed workflow to: "${newName.trim()}"`,
+      text: `Updated workflow: "${newName.trim()}"`,
     });
   };
 
@@ -1013,6 +1024,14 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
             <h2 className="text-xs sm:text-sm font-mono font-bold text-white tracking-wider truncate max-w-xs sm:max-w-md">
               {activeWorkflow.name}
             </h2>
+            <button
+              type="button"
+              onClick={() => setIsStudioRenameOpen(true)}
+              className="p-1 text-zinc-400 hover:text-white hover:bg-[#110C1E] border border-transparent hover:border-[#2E1F4A] transition-colors cursor-pointer"
+              title="Rename & Edit Canvas Details"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+            </button>
             <span className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono uppercase bg-[#0E091B] border border-[#2E1F4A] text-[#C084FC]">
               {activeWorkflow.category}
             </span>
@@ -1242,6 +1261,19 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
           />
         )}
       </div>
+      {/* Studio Rename Workflow Modal */}
+      {isStudioRenameOpen && (
+        <RenameWorkflowModal
+          isOpen={isStudioRenameOpen}
+          currentName={activeWorkflow.name}
+          currentDescription={activeWorkflow.description || ''}
+          onClose={() => setIsStudioRenameOpen(false)}
+          onRename={(newName, newDescription) => {
+            handleRenameWorkflow(activeWorkflow.id, newName, newDescription);
+            setIsStudioRenameOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 };

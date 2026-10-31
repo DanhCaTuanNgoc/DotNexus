@@ -28,7 +28,7 @@ export interface CanvasHubViewProps {
   workflows: CanvasWorkflow[];
   onOpenWorkflow: (workflowId: string) => void;
   onCreateWorkflow: (name: string, mode: 'blank' | 'duplicate' | 'template', templateId?: string) => void;
-  onRenameWorkflow: (workflowId: string, newName: string) => void;
+  onRenameWorkflow: (workflowId: string, newName: string, newDescription?: string) => void;
   onDeleteWorkflow: (workflowId: string) => void;
   onImportWorkflow: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onExportWorkflow: (workflow: CanvasWorkflow) => void;
@@ -353,9 +353,10 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
         <RenameWorkflowModal
           isOpen={!!editingWorkflow}
           currentName={editingWorkflow.name}
+          currentDescription={editingWorkflow.description || ''}
           onClose={() => setEditingWorkflow(null)}
-          onRename={(newName) => {
-            onRenameWorkflow(editingWorkflow.id, newName);
+          onRename={(newName, newDescription) => {
+            onRenameWorkflow(editingWorkflow.id, newName, newDescription);
             setEditingWorkflow(null);
           }}
         />

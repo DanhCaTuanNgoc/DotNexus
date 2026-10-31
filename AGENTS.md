@@ -53,6 +53,10 @@ Installed via `npx skills add vercel-labs/agent-skills`:
 - Automatically stage changed files and generate standard Conventional Commits after tasks are completed and verified.
 - **Mandatory Policy**: The Agent MUST automatically commit all verified changes at the end of every code edit task. The Agent must NEVER run `git push` — pushing is strictly left to the user.
 
+### 🎭 Playwright MCP Browser Testing (`.agents/skills/playwright/`)
+- Microsoft Playwright MCP integration for E2E frontend verification, headless browser testing, and visual regressions.
+- Configured via `mcp_config.json` (`@playwright/mcp@latest`) with Chromium and headless test runners.
+
 ---
 
 ## 3. Engineering & Coding Standards

@@ -387,9 +387,9 @@ const RealCanvasMockupBoard: React.FC<{ onLaunchApp: (tab?: TabType) => void }> 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-white/[0.08] bg-[#05030C]">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-none bg-[#EF4444]" />
-            <span className="w-2.5 h-2.5 rounded-none bg-[#F59E0B]" />
-            <span className="w-2.5 h-2.5 rounded-none bg-[#10B981]" />
+            <span className="w-2.5 h-2.5 rounded bg-[#EF4444]" />
+            <span className="w-2.5 h-2.5 rounded bg-[#F59E0B]" />
+            <span className="w-2.5 h-2.5 rounded bg-[#10B981]" />
           </div>
           <span className="text-zinc-600 text-xs font-mono">|</span>
           <div className="flex items-center gap-2 text-xs font-mono">

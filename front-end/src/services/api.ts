@@ -1234,16 +1234,10 @@ export const DEFAULT_RECENT_BLOCKS: DualBlockConduitItem[] = [
 
 export const DEFAULT_LOGS: LogItem[] = [
   {
-    source: 'DUAL_TRACKER',
+    source: 'NPOS_OPTIMIZER',
     level: 'SUCCESS',
-    time: Math.floor(Date.now() / 1000) - 2,
-    text: 'Dual-VM state verified: Substrate WASM #262,100 <-> EVM #262,100 in 100% lockstep parity.'
-  },
-  {
-    source: 'SLASH_GUARD',
-    level: 'INFO',
-    time: Math.floor(Date.now() / 1000) - 10,
-    text: 'Dead Man\'s Switch ARMED: SlashGuardLeaseRegistry active lease (30.0s TTL).'
+    time: Math.floor(Date.now() / 1000) - 40,
+    text: 'PAO-Phragmén election completed: 16 validators selected | Compounded APY: 16.92%.'
   },
   {
     source: 'RPC_SHIELD',
@@ -1252,10 +1246,16 @@ export const DEFAULT_LOGS: LogItem[] = [
     text: 'Deep Inspection: eth_getLogs 500k span blocked from 194.26.29.11 (Quarantined for 60s).'
   },
   {
-    source: 'NPOS_OPTIMIZER',
+    source: 'SLASH_GUARD',
+    level: 'INFO',
+    time: Math.floor(Date.now() / 1000) - 10,
+    text: 'Dead Man\'s Switch ARMED: SlashGuardLeaseRegistry active lease (30.0s TTL).'
+  },
+  {
+    source: 'DUAL_TRACKER',
     level: 'SUCCESS',
-    time: Math.floor(Date.now() / 1000) - 40,
-    text: 'PAO-Phragmén election completed: 16 validators selected | Compounded APY: 16.92%.'
+    time: Math.floor(Date.now() / 1000) - 2,
+    text: 'Dual-VM state verified: Substrate WASM #262,100 <-> EVM #262,100 in 100% lockstep parity.'
   }
 ];
 
@@ -1511,7 +1511,7 @@ export const api = {
           extrinsic_call: 'author.rotateKeys()'
         };
         dynamicSecurityState.recent_rotations = [newRotation, ...dynamicSecurityState.recent_rotations.slice(0, 4)];
-        dynamicLogs.unshift({
+        dynamicLogs.push({
           source: 'SLASH_GUARD',
           level: 'SUCCESS',
           time: Math.floor(Date.now() / 1000),
@@ -1537,7 +1537,7 @@ export const api = {
       () => {
         dynamicSecurityState.active_node = dynamicSecurityState.active_node === 'PRIMARY' ? 'STANDBY' : 'PRIMARY';
         dynamicSecurityState.fencing_epoch = (dynamicSecurityState.fencing_epoch || 14) + 1;
-        dynamicLogs.unshift({
+        dynamicLogs.push({
           source: 'SLASH_GUARD',
           level: 'WARN',
           time: Math.floor(Date.now() / 1000),
@@ -1561,7 +1561,7 @@ export const api = {
         if (dynamicSecurityState.missed_heartbeats >= 2) {
           dynamicSecurityState.heartbeat.slashing_risk = 'ELEVATED_HEARTBEAT_RISK';
         }
-        dynamicLogs.unshift({
+        dynamicLogs.push({
           source: 'SLASH_GUARD',
           level: 'CRITICAL',
           time: Math.floor(Date.now() / 1000),
@@ -1592,7 +1592,7 @@ export const api = {
         body: JSON.stringify({ stake_pot: stakeAmount })
       },
       () => {
-        dynamicLogs.unshift({
+        dynamicLogs.push({
           source: 'NPOS_OPTIMIZER',
           level: 'SUCCESS',
           time: Math.floor(Date.now() / 1000),
@@ -1622,7 +1622,7 @@ export const api = {
       },
       () => {
         const txHash = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-        dynamicLogs.unshift({
+        dynamicLogs.push({
           source: 'STAKING_VAULT',
           level: 'SUCCESS',
           time: Math.floor(Date.now() / 1000),
@@ -1735,7 +1735,7 @@ export const api = {
             : 'Rate limit burst exceeded: 60 req/min hard ceiling.'
         };
         dynamicShieldStatus.recent_events.unshift(newEvt);
-        dynamicLogs.unshift({
+        dynamicLogs.push({
           source: 'RPC_SHIELD',
           level: 'CRITICAL',
           time: Math.floor(Date.now() / 1000),
@@ -1797,7 +1797,7 @@ export const api = {
       { method: 'POST' },
       () => {
         const execId = `exec-${Math.random().toString(16).slice(2, 8)}`;
-        dynamicLogs.unshift({
+        dynamicLogs.push({
           source: 'DAG_ENGINE',
           level: 'SUCCESS',
           time: Math.floor(Date.now() / 1000),

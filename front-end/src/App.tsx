@@ -138,7 +138,7 @@ export const App: React.FC = () => {
   const [isTerminalOpen, setIsTerminalOpen] = useState<boolean>(() => storage.getTerminalOpen(true));
 
   const handleAppendLog = useCallback((log: any) => {
-    setLogs((prev) => [log, ...prev].slice(0, 100));
+    setLogs((prev) => [...prev, log].slice(-100));
   }, []);
 
   const handleToggleTerminal = useCallback((open: boolean) => {
@@ -179,7 +179,7 @@ export const App: React.FC = () => {
                 if (seen.has(key)) return false;
                 seen.add(key);
                 return true;
-              }).sort((a, b) => b.time - a.time).slice(0, 100);
+              }).sort((a, b) => a.time - b.time).slice(-100);
             });
           }
         }).catch(() => null)

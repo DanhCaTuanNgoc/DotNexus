@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Trash2, Sliders, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { X, Trash2, Sliders, ShieldAlert, CheckCircle2, Download, FileCode2 } from 'lucide-react';
 import { CanvasNode, SafetyIssue } from './types';
 import { CATEGORY_THEMES } from './constants';
 
@@ -9,6 +9,7 @@ interface NodeInspectorProps {
   onClose: () => void;
   onUpdateConfig: (nodeId: string, newConfig: Record<string, any>) => void;
   onDeleteNode: (nodeId: string) => void;
+  onExportCLI?: () => void;
 }
 
 export const NodeInspector: React.FC<NodeInspectorProps> = ({
@@ -17,6 +18,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
   onClose,
   onUpdateConfig,
   onDeleteNode,
+  onExportCLI,
 }) => {
   if (!node) return null;
 
@@ -109,6 +111,27 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           </div>
         </div>
       </div>
+
+        {/* Quick Action for Export CLI Node */}
+        {onExportCLI && (node.data.kind === 'export_cli' || node.data.label.toLowerCase().includes('export')) && (
+          <div className="mt-4 p-3 border border-[#00FF9D]/40 bg-[#0A1F18] space-y-2">
+            <div className="text-xs font-mono font-bold text-[#00FF9D] flex items-center gap-1.5">
+              <FileCode2 className="w-4 h-4 text-[#00FF9D]" />
+              <span>Executable Standalone CLI</span>
+            </div>
+            <p className="text-[10px] text-zinc-300 font-mono leading-normal">
+              Compiles active visual DAG topology into a standalone Linux/Ubuntu Python runner script.
+            </p>
+            <button
+              type="button"
+              onClick={onExportCLI}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-mono font-bold text-black bg-[#00FF9D] hover:bg-[#34D399] transition-colors cursor-pointer shadow-lg"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Export & Download .py Runner</span>
+            </button>
+          </div>
+        )}
 
       {/* Footer Actions */}
       <div className="pt-4 border-t border-[#1C142E]">

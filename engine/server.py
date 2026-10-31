@@ -511,6 +511,8 @@ def run_server():
         logger.warning(f"Initial probe exception: {e}")
     logger.info("Starting background real-time testnet telemetry poller...")
     DUAL_TRACKER.start_background_poller(interval=2.5)
+    logger.info("Starting Headless Worker Daemon 24/7 autonomous runbook scheduler...")
+    WORKER_DAEMON.start_background_scheduler(interval_sec=30.0)
     logger.info(f"Starting Gateway API listener on {CONFIG.engine_host}:{CONFIG.engine_port}...")
     logger.info("=" * 60)
     app.run(host=CONFIG.engine_host, port=CONFIG.engine_port, debug=False, use_reloader=False, threaded=True)

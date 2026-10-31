@@ -8,6 +8,7 @@ import os
 import json
 import time
 import asyncio
+import threading
 import logging
 from typing import Dict, Any, List, Optional
 from collections import defaultdict, deque
@@ -317,6 +318,34 @@ class HeadlessWorkerDaemon:
             details={"title": title, "level": level, "message": message}
         )
         return True
+
+    def start_background_scheduler(self, interval_sec: float = 30.0):
+        """Starts background daemon loop to evaluate and execute active runbooks periodically"""
+        if self.is_running:
+            return
+        self.is_running = True
+
+        def _loop():
+            logger.info(f"HeadlessWorkerDaemon 24/7 background scheduler started (Interval: {interval_sec}s).")
+            time.sleep(5.0)  # Initial grace delay after boot
+            while self.is_running:
+                try:
+                    from engine.dag_engine import DAG_ENGINE
+                    rbs = DAG_ENGINE.get_runbooks()
+                    if rbs:
+                        health_rb = next((r for r in rbs if r.get("id") == "runbook-health-bot"), rbs[0])
+                        self.execute_runbook_pipeline(health_rb, dry_run=False)
+                except Exception as e:
+                    logger.error(f"Error in HeadlessWorkerDaemon background loop: {e}")
+                time.sleep(interval_sec)
+
+        th = threading.Thread(target=_loop, daemon=True, name="DotNexus.WorkerScheduler")
+        th.start()
+
+    def stop_background_scheduler(self):
+        """Stops background scheduler loop"""
+        self.is_running = False
+        logger.info("HeadlessWorkerDaemon background scheduler stopped.")
 
 
 # Global Worker Daemon Instance

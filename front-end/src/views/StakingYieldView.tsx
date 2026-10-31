@@ -43,12 +43,14 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
 
   // Target customization state (selected stash addresses)
   const [selectedTargets, setSelectedTargets] = useState<string[]>(() => {
-    return data.validators.slice(0, 16).map(v => v.stash_address);
+    const liveOnly = data.validators.filter(v => v.is_live_onchain).map(v => v.stash_address);
+    return liveOnly.length > 0 ? liveOnly : data.validators.slice(0, 16).map(v => v.stash_address);
   });
 
   useEffect(() => {
     if (selectedTargets.length === 0) {
-      setSelectedTargets(data.validators.slice(0, 16).map(v => v.stash_address));
+      const liveOnly = data.validators.filter(v => v.is_live_onchain).map(v => v.stash_address);
+      setSelectedTargets(liveOnly.length > 0 ? liveOnly : data.validators.slice(0, 16).map(v => v.stash_address));
     }
   }, [data]);
 

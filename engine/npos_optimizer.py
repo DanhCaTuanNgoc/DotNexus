@@ -798,10 +798,13 @@ class NPoSOptimizer:
         compounded_apy = (math.pow(1.0 + (nominal_r / 1460.0), 1460.0) - 1.0) * 100.0
 
         targets = [v["stash_address"] for v in top_16]
+        live_targets = [v["stash_address"] for v in top_16 if v.get("is_live_onchain")]
 
         return {
             "top_validators_count": len(top_16),
             "target_count": CONFIG.top_validator_count,
+            "live_validators_count": len(live_targets),
+            "live_targets": live_targets,
             "average_nominal_apy": round(avg_apy, 2),
             "auto_compounded_apy": round(compounded_apy, 2),
             "apy_boost_pct": round(compounded_apy - avg_apy, 2),
@@ -827,17 +830,20 @@ class NPoSOptimizer:
             estimated_fee_pot=0.045
         )
 
-        per_validator_stake = round(user_stake_pot / len(recommendation["validators"]), 2) if recommendation["validators"] else 0.0
+        active_targets = recommendation.get("live_targets") or recommendation.get("targets", [])
+        num_targets = len(active_targets) if active_targets else len(recommendation["validators"])
+        per_validator_stake = round(user_stake_pot / num_targets, 2) if num_targets else 0.0
         next_nonce = self.nonce_manager.get_next_nonce(user_address)
 
         return {
             "user_stake_pot": user_stake_pot,
             "token_symbol": CONFIG.token_symbol,
             "allocated_per_validator_pot": per_validator_stake,
-            "selected_validators_count": len(recommendation["validators"]),
+            "selected_validators_count": num_targets,
             "projected_annual_yield_pot": round(user_stake_pot * (recommendation["auto_compounded_apy"] / 100.0), 2),
             "projected_apy_compound": recommendation["auto_compounded_apy"],
-            "targets": recommendation["targets"],
+            "targets": active_targets,
+            "all_simulation_targets": recommendation["targets"],
             "allocated_nonce": next_nonce,
             "pre_flight_check": {
                 "passed": pre_flight_ok,

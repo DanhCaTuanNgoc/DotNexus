@@ -48,6 +48,7 @@ a.txt
 
 # Graphify Cache & Large Artifacts
 graphify-out/cache/
+.playwright-mcp/
 graphify-out/*.sig
 graphify-out/*.pending.json
 

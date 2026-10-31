@@ -80,6 +80,8 @@ class EngineConfig(BaseModel):
 
     # NPoS Staking & Pre-Flight Checks
     top_validator_count: int = 16              # Optimal nomination set size in NPoS
+    primary_validator_address: str = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+    default_validator_address: str = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
     min_validator_uptime: float = 98.0         # 98% uptime threshold for top scoring
     max_acceptable_commission: float = 10.0    # Commission ceiling preference (10%)
     min_profit_fee_multiplier: float = 3.0     # Expected APY gain * Stake must exceed 3x fee

@@ -124,7 +124,7 @@ class StakingKeeperDaemon:
         """
         now = time.time()
         sub_telemetry = NPOS_OPTIMIZER.get_top_16_recommendation()
-        active_era = 142
+        active_era = 74
 
         # Live phase query if Substrate is available
         if SubstrateInterface is not None and self.substrate_url != "ws://127.0.0.1:99999":
@@ -137,6 +137,10 @@ class StakingKeeperDaemon:
                 phase_query = client.query("ElectionProviderMultiPhase", "CurrentPhase")
                 if phase_query and phase_query.value is not None:
                     self.current_election_phase = str(phase_query.value)
+                era_query = client.query("Staking", "ActiveEra")
+                if era_query and era_query.value:
+                    val = era_query.value
+                    active_era = val.get("index", 74) if isinstance(val, dict) else int(val)
             except Exception:
                 pass
 
@@ -236,7 +240,7 @@ class StakingKeeperDaemon:
         Prevents treasury reward expiration by identifying uncollected validator/nominator eras.
         """
         target_validator = validator_stash or getattr(CONFIG, "primary_validator_address", "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
-        current_era = 142
+        current_era = 74
         unclaimed_eras = []
         oldest_unclaimed_era = None
 
@@ -405,7 +409,7 @@ class StakingKeeperDaemon:
             "is_enabled": self.is_enabled,
             "keeper_status": "KEEPER_ACTIVE" if self.is_enabled else "KEEPER_PAUSED",
             "mode": "AUTONOMOUS_ERA_TRIGGERED",
-            "current_era": self.last_checked_era or 142,
+            "current_era": self.last_checked_era or 74,
             "last_checked_era": self.last_checked_era,
             "last_rebalance_time": self.last_rebalance_time,
             "total_rebalances_executed": self.total_rebalances_executed,

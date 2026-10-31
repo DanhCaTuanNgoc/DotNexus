@@ -349,7 +349,7 @@ def bond_extra():
 @app.route("/api/npos/unbonding-queue", methods=["GET"])
 def get_unbonding_queue():
     """Queries active unlocking/unbonding chunks for the default or specified account"""
-    account = request.args.get("account", CONFIG.default_validator_address)
+    account = request.args.get("account") or getattr(CONFIG, "default_validator_address", "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
     data = STAKING_KEEPER.get_unbonding_queue(account)
     return jsonify({"success": True, "data": data})
 

@@ -260,6 +260,34 @@ class TestServerAPIIntegration(unittest.TestCase):
         self.assertIn("mapping_latency_ms", blocks[0])
         self.assertIn("status", blocks[0])
 
+    def test_get_npos_unbonding_queue_endpoint(self):
+        """Verifies GET /api/npos/unbonding-queue returns valid escrow queue structure without error"""
+        res = self.client.get("/api/npos/unbonding-queue")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        inner = data.get("data", {})
+        self.assertIn("controller_stash", inner)
+        self.assertIn("total_unbonding_pot", inner)
+        self.assertIn("unbonding_queue", inner)
+
+    def test_get_npos_keeper_status_endpoint(self):
+        """Verifies GET /api/npos/keeper-status returns keeper operational health"""
+        res = self.client.get("/api/npos/keeper-status")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+        inner = data.get("data", {})
+        self.assertIn("keeper_status", inner)
+        self.assertIn("current_era", inner)
+
+    def test_post_npos_keeper_run_endpoint(self):
+        """Verifies POST /api/npos/keeper-run triggers autonomous rebalance pass"""
+        res = self.client.post("/api/npos/keeper-run", json={"force": True}, headers=self.auth_headers)
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get("success"))
+
     def test_get_recent_dual_blocks_alias_endpoint(self):
         """Verifies GET /api/dual-tracker/recent-blocks alias endpoint responds with HTTP 200"""
         res = self.client.get("/api/dual-tracker/recent-blocks")

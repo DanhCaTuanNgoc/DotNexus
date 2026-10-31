@@ -1673,16 +1673,22 @@ export const api = {
   getUnbondingQueue: async (account?: string): Promise<{ success: boolean; data: any }> => {
     const url = account ? `${BASE_URL}/npos/unbonding-queue?account=${encodeURIComponent(account)}` : `${BASE_URL}/npos/unbonding-queue`;
     return fetchWithFallback(url, undefined, () => ({
-      account: account || '5GXBDoveYazDtNXTTsNSnHToacTyAYtbikRahKoPudpkV9r9',
+      account: account || '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
       unbonding_chunks: [],
       total_unbonding_pot: 0.0,
-      unlocking_era: 45
+      unbonding_queue: [],
+      total_chunks: 0,
+      unbonding_era_duration: 28,
+      current_era: 74
     }));
   },
 
   getKeeperStatus: async (): Promise<{ success: boolean; data: any }> => {
     return fetchWithFallback(`${BASE_URL}/npos/keeper-status`, undefined, () => ({
-      is_running: true,
+      is_enabled: true,
+      keeper_status: 'KEEPER_ACTIVE',
+      current_era: 74,
+      min_apy_delta_rebalance: 0.015,
       last_run_timestamp: Date.now() - 180000,
       auto_rebalance_enabled: true,
       target_vault: '0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A'

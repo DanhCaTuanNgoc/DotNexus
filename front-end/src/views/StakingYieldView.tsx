@@ -407,7 +407,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
             <div className="grid grid-cols-2 gap-2 text-[11px] mb-3">
               <div className="bg-[#05030A] border border-[#1C142E] p-2">
                 <div className="text-zinc-500 text-[10px]">CURRENT ERA</div>
-                <div className="text-white font-bold text-sm">#{keeperStatus?.current_era ?? 142}</div>
+                <div className="text-white font-bold text-sm">#{keeperStatus?.current_era ?? 74}</div>
               </div>
               <div className="bg-[#05030A] border border-[#1C142E] p-2">
                 <div className="text-zinc-500 text-[10px]">MIN APY DELTA REBALANCE</div>

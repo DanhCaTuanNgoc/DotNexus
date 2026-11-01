@@ -116,16 +116,16 @@ class DualEngineTracker:
     def _background_poller_loop(self, interval: float) -> None:
         time.sleep(0.5)
         while self._poller_running:
+            # Renew signing lease at loop start before heavy I/O to guarantee lease validity
+            try:
+                from engine.slash_guard import SLASH_GUARD
+                if not SLASH_GUARD.is_self_fenced and SLASH_GUARD.missed_heartbeats == 0:
+                    SLASH_GUARD.acquire_signing_lease(SLASH_GUARD.node_id)
+            except Exception:
+                pass
             try:
                 self._compute_dual_state()
                 self._refresh_recent_dual_blocks(limit=5)
-                # Keep active validator lease fresh while poller is healthy
-                try:
-                    from engine.slash_guard import SLASH_GUARD
-                    if not SLASH_GUARD.is_self_fenced and SLASH_GUARD.missed_heartbeats == 0:
-                        SLASH_GUARD.acquire_signing_lease(SLASH_GUARD.node_id)
-                except Exception:
-                    pass
             except Exception as e:
                 logger.debug(f"Background poller tick error: {e}")
             time.sleep(interval)

@@ -90,6 +90,27 @@ def check_auth(req) -> bool:
 
 
 
+@app.route("/", methods=["GET", "HEAD"])
+def root_index():
+    return jsonify({
+        "service": "DotNexus Gateway",
+        "status": "ONLINE",
+        "network": "Portaldot Network V3.0",
+        "version": "3.0.0",
+        "health": "OK",
+        "endpoints": {
+            "status": "/api/status",
+            "metrics": "/metrics",
+            "dual_tracker": "/api/dual-tracker"
+        }
+    }), 200
+
+
+@app.route("/health", methods=["GET", "HEAD"])
+def health_probe():
+    return jsonify({"status": "HEALTHY", "service": "DotNexus"}), 200
+
+
 @app.route("/metrics", methods=["GET"])
 
 def get_prometheus_metrics():
@@ -1172,6 +1193,14 @@ def run_server():
     except Exception as e:
 
         logger.warning(f"Initial probe exception: {e}")
+
+    # Synchronize SlashGuard lease timestamp post-probe to prevent false-positive fence
+    try:
+        SLASH_GUARD.acquire_lease("PRIMARY")
+        SLASH_GUARD.last_lease_renew_time = time.time()
+        SLASH_GUARD.is_self_fenced = False
+    except Exception as e:
+        logger.warning(f"Initial lease sync bypassed: {e}")
 
     logger.info("Starting background real-time testnet telemetry poller...")
 

@@ -16,7 +16,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python requirements
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --prefer-binary -r requirements.txt
+
+# Create runtime directories for validator session locks and keystore isolation
+RUN mkdir -p /var/lib/portaldot/chains/portaldot_v3/keystore /app/.dotnexus_data
 
 # Copy application source code
 COPY engine/ ./engine/

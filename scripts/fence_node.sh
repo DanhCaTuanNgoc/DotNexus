@@ -35,6 +35,7 @@ if [ "$ACTION" = "fence" ]; then
 
     # 2. Write fence marker lockfile
     MARKER_DIR=$(dirname "$KEYSTORE_DIR" 2>/dev/null || echo "/tmp")
+    mkdir -p "$MARKER_DIR" 2>/dev/null || true
     MARKER_FILE="${MARKER_DIR}/.dotnexus_fenced.lock"
     cat <<EOF > "$MARKER_FILE" 2>/dev/null || true
 STATUS=FENCED

@@ -1172,35 +1172,28 @@ def run_server():
 
     logger.info(f"EVM JSON-RPC: {CONFIG.evm_rpc_url} (Chain ID: {CONFIG.evm_chain_id})")
 
-    logger.info("Initializing pre-flight telemetry probe...")
+    # Non-blocking preflight probe to allow Gateway API listener to open port 10000 instantly (<1s)
+    def _async_preflight_probe():
+        try:
+            dual_state = DUAL_TRACKER.get_dual_state()
+            sub_status = "ONLINE (LIVE)" if dual_state["substrate"].get("is_live_chain") else "SIMULATED / OFFLINE"
+            evm_status = "ONLINE (LIVE)" if dual_state["evm"].get("is_live_chain") else "SIMULATED / OFFLINE"
+            sub_block = dual_state["substrate"].get("best_block", "N/A")
+            evm_block = dual_state["evm"].get("block_number", "N/A")
+            logger.info(f"Substrate State: [{sub_status}] - Block #{sub_block}")
+            logger.info(f"EVM State:       [{evm_status}] - Block #{evm_block}")
+        except Exception as ex:
+            logger.warning(f"Background preflight probe exception: {ex}")
 
-    try:
-
-        dual_state = DUAL_TRACKER.get_dual_state()
-
-        sub_status = "ONLINE (LIVE)" if dual_state["substrate"].get("is_live_chain") else "SIMULATED / OFFLINE"
-
-        evm_status = "ONLINE (LIVE)" if dual_state["evm"].get("is_live_chain") else "SIMULATED / OFFLINE"
-
-        sub_block = dual_state["substrate"].get("best_block", "N/A")
-
-        evm_block = dual_state["evm"].get("block_number", "N/A")
-
-        logger.info(f"Substrate State: [{sub_status}] - Block #{sub_block}")
-
-        logger.info(f"EVM State:       [{evm_status}] - Block #{evm_block}")
-
-    except Exception as e:
-
-        logger.warning(f"Initial probe exception: {e}")
-
-    # Synchronize SlashGuard lease timestamp post-probe to prevent false-positive fence
     try:
         SLASH_GUARD.acquire_signing_lease("PRIMARY")
         SLASH_GUARD.last_lease_renew_time = time.time()
         SLASH_GUARD.is_self_fenced = False
     except Exception as e:
         logger.warning(f"Initial lease sync bypassed: {e}")
+
+    import threading
+    threading.Thread(target=_async_preflight_probe, daemon=True, name="DotNexusPreflight").start()
 
     logger.info("Starting background real-time testnet telemetry poller...")
 

@@ -16,6 +16,7 @@ services:
       - PORTALDOT_EVM_URL=https://test-evm-rpc-v3.portaldot.dev
       - PORTALDOT_CHAIN_ID=420420777
       - PYTHONUNBUFFERED=1
+      - PORT=5050
       - DOTNEXUS_AUTH_TOKEN=nexus-ops-secret-key-2026
     restart: unless-stopped
     healthcheck:

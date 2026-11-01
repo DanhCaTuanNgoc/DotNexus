@@ -29,9 +29,9 @@ COPY scripts/ ./scripts/
 
 # Default environment configuration
 ENV PYTHONUNBUFFERED=1
-ENV PORT=5050
+ENV PORT=10000
 
-EXPOSE 5050
+EXPOSE 10000 5050
 
 # Run Flask Gateway API
 CMD ["python", "-m", "engine.server"]

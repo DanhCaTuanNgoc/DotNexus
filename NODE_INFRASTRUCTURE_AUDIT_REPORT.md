@@ -332,19 +332,19 @@ Dưới đây là mô hình triển khai thực tế chuẩn Enterprise cho DotN
 ## 6. LỘ TRÌNH GIA CỐ & TRIỂN KHAI THỰC CHIẾN (ACTIONABLE IMPLEMENTATION ROADMAP)
 
 ### Giai Đoạn 1: Vá Khẩn Cấp Các Lỗ Hổng Bảo Mật (Trong Vòng 24 Giờ)
-- [ ] **Sửa `engine/server.py`**: Loại bỏ hoàn toàn `return True` khi thiếu token xác thực. Trả về `401 Unauthorized` ngay lập tức.
-- [ ] **Sửa `engine/slash_guard.py`**: Xóa bỏ đoạn sinh hex ngẫu nhiên `secrets.token_hex(32)` trong `rotate_session_keys()`. Ném ngoại lệ cứng nếu RPC thất bại.
-- [ ] **Sửa `engine/dual_tracker.py`**: Thêm cờ `--production-strict` để vô hiệu hóa hoàn toàn việc tự động nhảy block giả lập (`_mock_substrate_block`). Node mất kết nối phải báo `CRITICAL_OFFLINE`.
+- [x] **Sửa `engine/server.py`**: Loại bỏ hoàn toàn `return True` khi thiếu token xác thực. Trả về `401 Unauthorized` ngay lập tức.
+- [x] **Sửa `engine/slash_guard.py`**: Xóa bỏ đoạn sinh hex ngẫu nhiên `secrets.token_hex(32)` trong `rotate_session_keys()`. Ném ngoại lệ cứng nếu RPC thất bại.
+- [x] **Sửa `engine/dual_tracker.py`**: Thêm cờ `--production-strict` để vô hiệu hóa hoàn toàn việc tự động nhảy block giả lập (`_mock_substrate_block`). Node mất kết nối phải báo `CRITICAL_OFFLINE`.
 
 ### Giai Đoạn 2: Chuẩn Hóa Hạ Tầng Node & Đồng Thuận (Tuần 1 - Tuần 2)
-- [ ] **Tích hợp OS-Level Fencing**: Viết script gọi Systemd D-Bus (`systemctl stop portaldot`) và thu hồi quyền thư mục Keystore (`chmod 000`) khi Dead Man's Switch kích hoạt.
-- [ ] **Xây dựng Nginx Reverse Proxy Config**: Viết file cấu hình Nginx mẫu đặt trước cổng 8545 và 9944 để thực thi giới hạn 256KB và lọc `eth_getLogs` thật sự ở tầng socket.
-- [ ] **NTP Clock Drift Watchdog**: Tích hợp kiểm tra độ lệch đồng hồ hệ thống định kỳ từ `chrony` và cảnh báo khi offset $> 50\text{ms}$.
+- [x] **Tích hợp OS-Level Fencing**: Viết script gọi Systemd D-Bus (`systemctl stop portaldot`) và thu hồi quyền thư mục Keystore (`chmod 000`) khi Dead Man's Switch kích hoạt.
+- [x] **Xây dựng Nginx Reverse Proxy Config**: Viết file cấu hình Nginx mẫu đặt trước cổng 8545 và 9944 để thực thi giới hạn 256KB và lọc `eth_getLogs` thật sự ở tầng socket.
+- [x] **NTP Clock Drift Watchdog**: Tích hợp kiểm tra độ lệch đồng hồ hệ thống định kỳ từ `chrony` và cảnh báo khi offset $> 50\text{ms}$.
 
 ### Giai Đoạn 3: Nâng Cấp Tự Động Hóa & Trải Nghiệm Vận Hành (Tuần 3 - Tuần 4)
-- [ ] **Đồng bộ song song Kahn's Tiers**: Nâng cấp `worker_daemon.py` sử dụng `asyncio.gather` để thực thi song song các node độc lập.
-- [ ] **Real Webhook Dispatcher**: Tích hợp module gửi tin nhắn cảnh báo thật sự tới Discord và Telegram Webhook bằng `httpx`.
-- [ ] **Tích hợp Prometheus Substrate Native**: Đọc trực tiếp các metric từ cổng `9615` của Substrate để hiển thị biểu đồ CPU, RAM, Disk I/O và Peer Connectivity trực quan trên DotNexus Dashboard.
+- [x] **Đồng bộ song song Kahn's Tiers**: Nâng cấp `worker_daemon.py` sử dụng `asyncio.gather` để thực thi song song các node độc lập.
+- [x] **Real Webhook Dispatcher**: Tích hợp module gửi tin nhắn cảnh báo thật sự tới Discord và Telegram Webhook bằng `httpx`.
+- [x] **Tích hợp Prometheus Substrate Native**: Đọc trực tiếp các metric từ cổng `9615` của Substrate để hiển thị biểu đồ CPU, RAM, Disk I/O và Peer Connectivity trực quan trên DotNexus Dashboard.
 
 ---
 

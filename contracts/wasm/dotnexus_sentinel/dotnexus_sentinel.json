@@ -1,0 +1,85 @@
+{
+  "source": {
+    "hash": "0x89d2c1402a5a1f6a152e92ec4eb0429a8a3ceb1625f9b4c0de84091a03e1e621",
+    "language": "ink! 5.0.0",
+    "compiler": "rustc 1.82.0",
+    "wasm": "0x0061736d01000000"
+  },
+  "contract": {
+    "name": "dotnexus_sentinel",
+    "version": "0.1.0",
+    "authors": ["DotNexus Team <ops@dotnexus.io>"]
+  },
+  "spec": {
+    "constructors": [
+      {
+        "args": [],
+        "docs": ["Constructor initializing the Sentinel registry"],
+        "label": "new",
+        "payable": false,
+        "returnType": null,
+        "selector": "0x9bae9d5e"
+      }
+    ],
+    "docs": [],
+    "events": [
+      {
+        "args": [
+          { "docs": [], "indexed": true, "label": "validator", "type": { "displayName": ["AccountId"], "type": 0 } },
+          { "docs": [], "indexed": false, "label": "era", "type": { "displayName": ["u32"], "type": 1 } },
+          { "docs": [], "indexed": false, "label": "block_number", "type": { "displayName": ["u64"], "type": 2 } },
+          { "docs": [], "indexed": false, "label": "timestamp", "type": { "displayName": ["u64"], "type": 2 } }
+        ],
+        "docs": ["Event emitted when an active validator node records an on-chain heartbeat"],
+        "label": "HeartbeatWitnessed"
+      }
+    ],
+    "messages": [
+      {
+        "args": [
+          { "label": "era", "type": { "displayName": ["u32"], "type": 1 } },
+          { "label": "block_number", "type": { "displayName": ["u64"], "type": 2 } }
+        ],
+        "docs": ["Records an on-chain heartbeat from the calling validator node"],
+        "label": "record_heartbeat",
+        "mutates": true,
+        "payable": false,
+        "returnType": { "displayName": ["Result"], "type": 3 },
+        "selector": "0x789c6d12"
+      },
+      {
+        "args": [
+          { "label": "stash", "type": { "displayName": ["AccountId"], "type": 0 } }
+        ],
+        "docs": ["Queries the latest liveness telemetry for a given validator stash"],
+        "label": "get_validator_liveness",
+        "mutates": false,
+        "payable": false,
+        "returnType": { "displayName": ["Option"], "type": 4 },
+        "selector": "0x4b7f920a"
+      },
+      {
+        "args": [
+          { "label": "stash", "type": { "displayName": ["AccountId"], "type": 0 } },
+          { "label": "current_block", "type": { "displayName": ["u64"], "type": 2 } },
+          { "label": "max_block_tolerance", "type": { "displayName": ["u64"], "type": 2 } }
+        ],
+        "docs": ["Returns true if the validator has submitted a heartbeat within the specified block threshold"],
+        "label": "is_validator_healthy",
+        "mutates": false,
+        "payable": false,
+        "returnType": { "displayName": ["bool"], "type": 5 },
+        "selector": "0x3344b1c2"
+      },
+      {
+        "args": [],
+        "docs": ["Returns total count of heartbeats witnessed on WASM layer"],
+        "label": "get_total_heartbeats",
+        "mutates": false,
+        "payable": false,
+        "returnType": { "displayName": ["u64"], "type": 2 },
+        "selector": "0x0d2838ec"
+      }
+    ]
+  }
+}

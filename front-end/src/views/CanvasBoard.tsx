@@ -15,7 +15,9 @@ import {
   Bot,
   Activity,
   Sparkles,
-  Edit3
+  Edit3,
+  Wallet,
+  ExternalLink
 } from 'lucide-react';
 import { RenameWorkflowModal } from '../components/canvas/RenameWorkflowModal';
 import { RunbookDAG, api, LogItem } from '../services/api';
@@ -176,6 +178,11 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   // Multi-Workflow State
   const [initialData] = useState(() => loadInitialWorkflows());
   const [workflows, setWorkflows] = useState<CanvasWorkflow[]>(initialData.workflows);
+  // Web3 On-Chain Wallet Dispatch State
+  const [isWeb3Dispatching, setIsWeb3Dispatching] = useState<boolean>(false);
+  const [onChainTxHash, setOnChainTxHash] = useState<string | null>(null);
+  const [walletAccount, setWalletAccount] = useState<string | null>(null);
+
   const [activeWorkflowId, setActiveWorkflowId] = useState<string>(() => {
     if (subRoute && initialData.workflows.some((w) => w.id === subRoute)) {
       return subRoute;
@@ -836,6 +843,135 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  // On-Chain Web3 Dispatch (MetaMask / SubWallet -> SlashGuardLeaseRegistry)
+  const handleOnChainDispatch = async () => {
+    if (isWeb3Dispatching) return;
+    setIsWeb3Dispatching(true);
+    setOnChainTxHash(null);
+    onRequestOpenTerminal?.();
+
+    onLog?.({
+      source: 'WEB3_DISPATCH',
+      level: 'INFO',
+      time: Date.now() / 1000,
+      text: 'Initiating Web3 On-Chain Dispatch to Portaldot Testnet V3 (pallet-revive)...',
+    });
+
+    const anyWindow = window as any;
+    if (!anyWindow.ethereum) {
+      onLog?.({
+        source: 'WEB3_DISPATCH',
+        level: 'WARN',
+        time: Date.now() / 1000,
+        text: 'No EIP-1193 Web3 provider found. Please install MetaMask or SubWallet browser extension.',
+      });
+      alert('No Web3 wallet extension detected in browser. Please install MetaMask or SubWallet to sign on-chain transactions.');
+      setIsWeb3Dispatching(false);
+      return;
+    }
+
+    try {
+      // 1. Request account access
+      const accounts: string[] = await anyWindow.ethereum.request({ method: 'eth_requestAccounts' });
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No accounts authorized by user');
+      }
+      const account = accounts[0];
+      setWalletAccount(account);
+
+      onLog?.({
+        source: 'WEB3_DISPATCH',
+        level: 'INFO',
+        time: Date.now() / 1000,
+        text: `Connected Web3 account: ${account.slice(0, 8)}...${account.slice(-6)}`,
+      });
+
+      // 2. Switch / Add Portaldot Network V3 (Chain ID: 420420777 = 0x190ef0a9)
+      const portaldotChainIdHex = '0x190ef0a9';
+      try {
+        await anyWindow.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: portaldotChainIdHex }],
+        });
+      } catch (switchError: any) {
+        if (switchError?.code === 4902 || switchError?.message?.includes('Unrecognized chain')) {
+          await anyWindow.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: portaldotChainIdHex,
+                chainName: 'Portaldot Testnet V3',
+                rpcUrls: ['https://test-evm-rpc-v3.portaldot.dev'],
+                nativeCurrency: { name: 'POT', symbol: 'POT', decimals: 18 },
+                blockExplorerUrls: ['https://node-console.portaldot.dev'],
+              },
+            ],
+          });
+        }
+      }
+
+      // 3. Prepare SlashGuardLeaseRegistry.renewLease(address operator, uint256 epoch, uint256 additionalBlocks)
+      // Contract: 0xba114d21CC41a30880CcfA53673B743316387355, Selector: 0x4606186c
+      const contractAddress = '0xba114d21CC41a30880CcfA53673B743316387355';
+      const cleanAccount = account.toLowerCase().replace('0x', '').padStart(64, '0');
+      const epochHex = (1).toString(16).padStart(64, '0');
+      const blocksHex = (100).toString(16).padStart(64, '0');
+      const calldata = `0x4606186c${cleanAccount}${epochHex}${blocksHex}`;
+
+      onLog?.({
+        source: 'WEB3_DISPATCH',
+        level: 'INFO',
+        time: Date.now() / 1000,
+        text: `Prompting wallet signature for renewLease() on SlashGuardLeaseRegistry (${contractAddress})...`,
+      });
+
+      // 4. Send transaction
+      const txHash: string = await anyWindow.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            from: account,
+            to: contractAddress,
+            data: calldata,
+            gas: '0x493e0',
+          },
+        ],
+      });
+
+      setOnChainTxHash(txHash);
+      onLog?.({
+        source: 'WEB3_DISPATCH',
+        level: 'INFO',
+        time: Date.now() / 1000,
+        text: `SUCCESS: On-Chain Extrinsic Dispatched! Tx Hash: ${txHash}`,
+      });
+      onLog?.({
+        source: 'WEB3_DISPATCH',
+        level: 'INFO',
+        time: Date.now() / 1000,
+        text: `Substrate Explorer: https://node-console.portaldot.dev/#/explorer/query/${txHash}`,
+      });
+
+      // Highlight active lease nodes on canvas as on-chain verified
+      setNodes((prev) =>
+        prev.map((n) =>
+          n.data.label.toLowerCase().includes('lease') || n.data.label.toLowerCase().includes('failover')
+            ? { ...n, data: { ...n.data, status: 'success' } }
+            : n
+        )
+      );
+    } catch (err: any) {
+      onLog?.({
+        source: 'WEB3_DISPATCH',
+        level: 'ERROR',
+        time: Date.now() / 1000,
+        text: `Web3 On-Chain Dispatch aborted: ${err?.message || err}`,
+      });
+    } finally {
+      setIsWeb3Dispatching(false);
+    }
+  };
+
   // Execute Pipeline
   const handleExecute = async () => {
     if (hasCritical || executing || nodes.length === 0) return;
@@ -1127,6 +1263,37 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
               <Zap className="w-3.5 h-3.5 fill-current" />
               <span>Auto-Fix</span>
             </button>
+          )}
+
+          {/* On-Chain Web3 Dispatch */}
+          <button
+            onClick={handleOnChainDispatch}
+            disabled={isWeb3Dispatching}
+            title="Connect MetaMask / SubWallet and dispatch on-chain renewLease transaction to Testnet V3"
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-[background-color,border-color,color,box-shadow] duration-150 cursor-pointer ${
+              isWeb3Dispatching
+                ? 'bg-emerald-950/60 border border-emerald-500/80 text-emerald-300 animate-pulse cursor-wait'
+                : 'border border-emerald-500/60 bg-emerald-950/30 hover:bg-emerald-900/50 hover:border-emerald-400 text-emerald-300 shadow-sm shadow-emerald-500/20'
+            }`}
+          >
+            <Wallet className="w-3.5 h-3.5" />
+            <span>{isWeb3Dispatching ? 'Signing On-Chain...' : 'On-Chain Dispatch'}</span>
+          </button>
+
+          {onChainTxHash && (
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/70 border border-emerald-500/50 text-[11px] font-mono text-emerald-300 rounded-none">
+              <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+              <a
+                href={`https://node-console.portaldot.dev/#/explorer/query/${onChainTxHash}`}
+                target="_blank"
+                rel="noreferrer"
+                className="underline hover:text-white flex items-center gap-1 truncate max-w-[140px]"
+                title="View on Substrate Node Console"
+              >
+                {onChainTxHash.slice(0, 8)}...
+                <ExternalLink className="w-2.5 h-2.5 inline shrink-0" />
+              </a>
+            </div>
           )}
 
           {/* Execute Pipeline */}

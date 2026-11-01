@@ -1,0 +1,45 @@
+version: '3.8'
+
+# DotNexus Full-Stack Production Container Orchestration
+# Network: Portaldot Network V3.0 (Substrate WASM + EVM Dual-VM)
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dotnexus-backend
+    ports:
+      - "5050:5050"
+    environment:
+      - PORTALDOT_WS_URL=wss://test-node-v3.portaldot.dev
+      - PORTALDOT_EVM_URL=https://test-evm-rpc-v3.portaldot.dev
+      - PORTALDOT_CHAIN_ID=420420777
+      - PYTHONUNBUFFERED=1
+      - DOTNEXUS_AUTH_TOKEN=nexus-ops-secret-key-2026
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/api/status"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - dotnexus-net
+
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+    container_name: dotnexus-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - dotnexus-net
+
+networks:
+  dotnexus-net:
+    driver: bridge

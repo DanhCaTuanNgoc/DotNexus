@@ -402,5 +402,20 @@ class TestDualTrackerUnit(unittest.TestCase):
         self.assertIn("offset_ms", hw["ntp_drift"])
 
 
+    def test_wasm_sentinel_liveness_inspection(self):
+        """Verifies WASM Sentinel Smart Contract liveness telemetry and schema"""
+        sentinel = self.dual_tracker.get_wasm_sentinel_liveness()
+        self.assertEqual(sentinel["contract_name"], "dotnexus_sentinel")
+        self.assertEqual(sentinel["ink_version"], "5.0.0")
+        self.assertTrue(sentinel["abi_spec_loaded"])
+        self.assertTrue(sentinel["is_active"])
+        self.assertIn("code_hash", sentinel)
+        self.assertEqual(sentinel["health_status"], "OPTIMAL_LIVENESS")
+
+        state = self.dual_tracker.get_dual_state()
+        self.assertIn("wasm_sentinel", state)
+        self.assertEqual(state["wasm_sentinel"]["contract_name"], "dotnexus_sentinel")
+
+
 if __name__ == "__main__":
     unittest.main()

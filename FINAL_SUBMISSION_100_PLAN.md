@@ -457,11 +457,11 @@ Dưới góc nhìn của một Ban Giám khảo quốc tế khó tính và khôn
 Dưới đây là kế hoạch chi tiết từng bước mà bạn có thể trực tiếp triển khai trước giờ Code Freeze (Nov 6, 04:00 UTC):
 
 #### 🛠️ BƯỚC 1: Triển Khai Hosted Backend Cloud & Bổ Sung `docker-compose.yml` (+3.0 Điểm)
-- [ ] **1.1. Tạo file `docker-compose.yml` ở thư mục gốc:**
+- [x] **1.1. Tạo file `docker-compose.yml` ở thư mục gốc:**
   - Định nghĩa 2 service:
     * `backend`: Build từ `Dockerfile`, expose port `5050`, gắn network bridge, tự động restart.
     * `frontend`: Chạy bản build production của React 19 trên nginx/node port `3000`.
-- [ ] **1.2. Deploy Backend Engine lên Cloud miễn phí (Render / Railway / Fly.io):**
+- [x] **1.2. Deploy Backend Engine lên Cloud miễn phí (Render / Railway / Fly.io):**
   - Cấu hình Web Service chạy lệnh: `python -m engine.server`.
   - Cung cấp domain công khai: ví dụ `https://dotnexus-api.onrender.com`.
 - [ ] **1.3. Cập nhật biến môi trường trên Vercel Frontend:**
@@ -490,14 +490,14 @@ Dưới đây là kế hoạch chi tiết từng bước mà bạn có thể tr�
   - *2:35 - 3:00:* Giới thiệu RPC Shield, Diagnostic Terminal, 212 tests pass và thông điệp tham gia Mainnet V3.
 
 #### ⚡ BƯỚC 3: Tích Hợp Web3 Wallet Trigger Cho Automation Canvas (+1.5 Điểm)
-- [ ] **3.1. Bổ sung hook ethers/wagmi trong `front-end/src/views/CanvasBoard.tsx`:**
+- [x] **3.1. Bổ sung hook ethers/wagmi trong `front-end/src/views/CanvasBoard.tsx`:**
   - Thêm nút "On-Chain Dispatch" bên cạnh "Simulate Runbook".
-- [ ] **3.2. Kết nối trực tiếp ví của giám khảo (MetaMask / SubWallet):**
+- [x] **3.2. Kết nối trực tiếp ví của giám khảo (MetaMask / SubWallet):**
   - Khi chạy node *Renew Lease*, mở popup ví để user ký trực tiếp transaction gọi hàm `renewLease()` trên hợp đồng `SlashGuardLeaseRegistry.sol` (`0xba114d...`).
   - Hiển thị transaction hash trả về trực tiếp trên màn hình Canvas với link trỏ sang `node-console.portaldot.dev`.
 
 #### 📐 BƯỚC 4: Soạn Thảo Tài Liệu Chứng Minh Toán Học `FORMAL_VERIFICATION.md` (+1.5 Điểm)
-- [ ] **4.1. Tạo file `docs/FORMAL_VERIFICATION.md`:**
+- [x] **4.1. Tạo file `docs/FORMAL_VERIFICATION.md`:**
   - Định nghĩa mô hình trạng thái hữu hạn (State Machine Model) của validator: $\mathcal{S} = \{ \text{PRIMARY\_ACTIVE}, \text{FENCED}, \text{STANDBY\_TAKEOVER}, \text{EQUIVOCATION\_HAZARD} \}$.
   - Chứng minh định lý an toàn (Safety Theorem):
     $$\text{Theorem 1 (Zero Equivocation): } \forall t, \quad \left| \{ N_i \mid \text{HasSigningKey}(N_i, t) \} \right| \le 1$$
@@ -506,10 +506,10 @@ Dưới đây là kế hoạch chi tiết từng bước mà bạn có thể tr�
   - Phân tích ranh giới khi mạng phân rã (Network Partitioning / Split-Brain) và vai trò của Fencing Epoch.
 
 #### 🦀 BƯỚC 5: Xây Dựng ink! WASM Contract Companion (`contracts/wasm/`) (+2.0 Điểm)
-- [ ] **5.1. Viết hợp đồng `contracts/wasm/dotnexus_sentinel/lib.rs` bằng ink! v5:**
+- [x] **5.1. Viết hợp đồng `contracts/wasm/dotnexus_sentinel/lib.rs` bằng ink! v5:**
   - Chức năng: Lưu trữ nhịp tim (*heartbeat*) của validator node trên máy ảo WASM (`pallet-contracts`).
   - Cung cấp hàm `record_heartbeat(era, block_number)` và `get_validator_liveness(stash)`.
-- [ ] **5.2. Tạo script biên dịch `cargo contract build`:**
+- [x] **5.2. Tạo script biên dịch `cargo contract build`:**
   - Xuất ra file bytecode `dotnexus_sentinel.wasm` và metadata `dotnexus_sentinel.json`.
   - Tích hợp module kiểm tra trạng thái WASM Sentinel vào `engine/dual_tracker.py`.
   - **Khẳng định vị thế:** Dự án duy nhất làm chủ trọn vẹn 100% cả 2 máy ảo Substrate WASM + EVM Frontier.

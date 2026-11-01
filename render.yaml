@@ -8,8 +8,6 @@ services:
     dockerContext: .
     healthCheckPath: /api/status
     envVars:
-      - key: PORT
-        value: "5050"
       - key: PORTALDOT_WS_URL
         value: wss://test-node-v3.portaldot.dev
       - key: PORTALDOT_EVM_URL

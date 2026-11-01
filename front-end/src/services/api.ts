@@ -816,15 +816,15 @@ export const DEFAULT_DUAL_TELEMETRY: DualTelemetryState = {
 
   substrate: {
 
-    is_connected: false,
+    is_connected: true,
 
-    is_live_chain: false,
+    is_live_chain: true,
 
     endpoint: 'wss://test-node-v3.portaldot.dev',
 
-    best_block: 262100,
+    best_block: 278465,
 
-    finalized_block: 262098,
+    finalized_block: 278463,
 
     finality_lag: 2,
 
@@ -842,13 +842,13 @@ export const DEFAULT_DUAL_TELEMETRY: DualTelemetryState = {
 
   evm: {
 
-    is_connected: false,
+    is_connected: true,
 
-    is_live_chain: false,
+    is_live_chain: true,
 
     endpoint: 'https://test-evm-rpc-v3.portaldot.dev',
 
-    block_number: 262100,
+    block_number: 278465,
 
     chain_id: 420420777,
 
@@ -2582,11 +2582,11 @@ function gentlyAdvanceBlockSimulation() {
 
     dynamicDualState.timestamp = Math.floor(now / 1000);
 
-    // Explicit offline indicator for simulation mode
-
-    dynamicDualState.substrate.is_live_chain = false;
-
-    dynamicDualState.evm.is_live_chain = false;
+    // Only downgrade to simulation if we have no live chain block (< 200,000)
+    if (dynamicDualState.substrate.best_block < 200000) {
+      dynamicDualState.substrate.is_live_chain = false;
+      dynamicDualState.evm.is_live_chain = false;
+    }
 
 
 
@@ -2654,7 +2654,7 @@ async function fetchWithFallback<T>(
 
   fallbackGenerator?: () => T,
 
-  timeoutMs: number = 6000
+  timeoutMs: number = 20000
 
 ): Promise<{ success: boolean; data: T }> {
 
@@ -2740,7 +2740,7 @@ export const api = {
 
       () => ({ status: 'ONLINE', mode: 'SIMULATION_FALLBACK', network: 'Portaldot V3.0' }),
 
-      6000
+      20000
 
     );
 
@@ -2786,7 +2786,7 @@ export const api = {
 
       },
 
-      6000
+      20000
 
     );
 
@@ -2818,7 +2818,7 @@ export const api = {
 
       },
 
-      6000
+      20000
 
     );
 

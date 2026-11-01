@@ -1196,7 +1196,7 @@ def run_server():
 
     # Synchronize SlashGuard lease timestamp post-probe to prevent false-positive fence
     try:
-        SLASH_GUARD.acquire_lease("PRIMARY")
+        SLASH_GUARD.acquire_signing_lease("PRIMARY")
         SLASH_GUARD.last_lease_renew_time = time.time()
         SLASH_GUARD.is_self_fenced = False
     except Exception as e:

@@ -219,25 +219,26 @@ class SlashingGuard:
         elapsed = now - self.last_lease_renew_time
 
         if self.active_node == "PRIMARY" and elapsed > CONFIG.primary_self_fence_timeout:
-            self.is_self_fenced = True
-            logger.critical(
-                f"DEAD MAN'S SWITCH TRIGGERED: Lease lost for {round(elapsed, 1)}s "
-                f"(> {CONFIG.primary_self_fence_timeout}s timeout). Primary Keystore FENCED/ISOLATED!"
-            )
-            # Execute OS-level keystore isolation script if present
-            fence_script = Path(__file__).resolve().parent.parent / "scripts" / "fence_node.sh"
-            if fence_script.exists() and os.name != "nt":
-                try:
-                    subprocess.run(["bash", str(fence_script), "fence"], timeout=5, check=False)
-                    logger.info(f"OS-level keystore fencing script executed: {fence_script}")
-                except Exception as ex:
-                    logger.warning(f"OS fence script execution bypassed: {ex}")
+            if not self.is_self_fenced:
+                self.is_self_fenced = True
+                logger.critical(
+                    f"DEAD MAN'S SWITCH TRIGGERED: Lease lost for {round(elapsed, 1)}s "
+                    f"(> {CONFIG.primary_self_fence_timeout}s timeout). Primary Keystore FENCED/ISOLATED!"
+                )
+                # Execute OS-level keystore isolation script if present
+                fence_script = Path(__file__).resolve().parent.parent / "scripts" / "fence_node.sh"
+                if fence_script.exists() and os.name != "nt":
+                    try:
+                        subprocess.run(["bash", str(fence_script), "fence"], timeout=5, check=False)
+                        logger.info(f"OS-level keystore fencing script executed: {fence_script}")
+                    except Exception as ex:
+                        logger.warning(f"OS fence script execution bypassed: {ex}")
 
-            self._record_event(
-                level="CRITICAL_SAFETY_FENCE",
-                title="Primary Self-Fencing Executed",
-                message=f"Primary isolated itself after {round(elapsed, 1)}s without lease renewal. Equivocation prevented."
-            )
+                self._record_event(
+                    level="CRITICAL_SAFETY_FENCE",
+                    title="Primary Self-Fencing Executed",
+                    message=f"Primary isolated itself after {round(elapsed, 1)}s without lease renewal. Equivocation prevented."
+                )
             return {
                 "self_fenced": True,
                 "elapsed_seconds": elapsed,
@@ -710,8 +711,15 @@ class SlashingGuard:
         }
 
 
+    def acquire_lease(self, candidate_node: str, force_takeover: bool = False) -> Dict[str, Any]:
+        """Alias for acquire_signing_lease"""
+        return self.acquire_signing_lease(candidate_node, force_takeover)
+
+
 # Global Slashing Guard Instance
 SLASH_GUARD = SlashingGuard()
+
+
 
 if __name__ == "__main__":
     print("Testing Slashing Guard with Dead Man's Switch...")

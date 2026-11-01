@@ -6,7 +6,7 @@ services:
     region: singapore
     dockerfilePath: Dockerfile
     dockerContext: .
-    healthCheckPath: /api/status
+    healthCheckPath: /health
     envVars:
       - key: PORTALDOT_WS_URL
         value: wss://test-node-v3.portaldot.dev

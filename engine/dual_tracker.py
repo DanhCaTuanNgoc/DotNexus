@@ -844,12 +844,12 @@ class DualEngineTracker:
         and decimal mapping normalization.
         Uses thread-safe cached telemetry with Stale-While-Revalidate for sub-millisecond response time.
         """
-        now = time.time()
-        if not force_refresh and self._dual_state_cache is not None and (now - self._dual_state_cache_time < self._dual_state_cache_ttl):
+        # True non-blocking Stale-While-Revalidate: Return hot cache instantly (<0.1ms) without blocking web requests
+        if not force_refresh and self._dual_state_cache is not None:
             return self._dual_state_cache
 
         with self._cache_lock:
-            if not force_refresh and self._dual_state_cache is not None and (now - self._dual_state_cache_time < self._dual_state_cache_ttl):
+            if not force_refresh and self._dual_state_cache is not None:
                 return self._dual_state_cache
             return self._compute_dual_state()
 
@@ -1243,22 +1243,12 @@ class DualEngineTracker:
         """
         limit = max(1, min(limit, 10))
 
-        now = time.time()
-        if (
-            not force_refresh
-            and self._recent_blocks_cache
-            and len(self._recent_blocks_cache) >= limit
-            and (now - self._recent_blocks_cache_time < self._recent_blocks_cache_ttl)
-        ):
+        # True non-blocking Stale-While-Revalidate: Return hot cache instantly without blocking caller
+        if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
             return self._recent_blocks_cache[:limit]
 
         with self._cache_lock:
-            if (
-                not force_refresh
-                and self._recent_blocks_cache
-                and len(self._recent_blocks_cache) >= limit
-                and (now - self._recent_blocks_cache_time < self._recent_blocks_cache_ttl)
-            ):
+            if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
                 return self._recent_blocks_cache[:limit]
             return self._refresh_recent_dual_blocks(limit=limit)
 

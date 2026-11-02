@@ -31,12 +31,7 @@ import {
   DualTelemetryState, 
   SecurityDashboardState, 
   NPoSRecommendation, 
-  ShieldStatus,
-  DEFAULT_DUAL_TELEMETRY,
-  DEFAULT_SECURITY_STATE,
-  DEFAULT_NPOS_DATA,
-  DEFAULT_SHIELD_STATUS,
-  DEFAULT_LOGS
+  ShieldStatus
 } from './services/api';
 import { storage, TabType } from './services/storage';
 import { parseCurrentRoute, navigateTo, RouteState } from './services/router';
@@ -128,12 +123,12 @@ export const App: React.FC = () => {
     });
   };
 
-  // States - initialized with high-fidelity deterministic defaults to prevent infinite loading on Vercel
+  // States - DualVM initialized with persistent cache; specialized tab data initialized null to eliminate fake mockups
   const [dualData, setDualData] = useState<DualTelemetryState>(() => api.getCachedDualState());
-  const [secData, setSecData] = useState<SecurityDashboardState>(() => DEFAULT_SECURITY_STATE);
-  const [nposData, setNposData] = useState<NPoSRecommendation>(() => DEFAULT_NPOS_DATA);
-  const [shieldData, setShieldData] = useState<ShieldStatus>(() => DEFAULT_SHIELD_STATUS);
-  const [logs, setLogs] = useState<any[]>(() => DEFAULT_LOGS);
+  const [secData, setSecData] = useState<SecurityDashboardState | null>(null);
+  const [nposData, setNposData] = useState<NPoSRecommendation | null>(null);
+  const [shieldData, setShieldData] = useState<ShieldStatus | null>(null);
+  const [logs, setLogs] = useState<any[]>([]);
   const [selectedCanvasNodeId, setSelectedCanvasNodeId] = useState<string | null>(null);
   const [isTerminalOpen, setIsTerminalOpen] = useState<boolean>(() => storage.getTerminalOpen(true));
   const lastClearedTimeRef = useRef<number>(0);
@@ -173,62 +168,117 @@ export const App: React.FC = () => {
     storage.setTerminalOpen(open);
   }, []);
 
-  const fetchAllData = async () => {
+  const fetchDualData = useCallback(async () => {
+    try {
+      const [res] = await Promise.all([
+        api.getDualTracker(),
+        api.getRecentDualBlocks(5).catch(() => null)
+      ]);
+      if (res?.success && res.data) {
+        setDualData(res.data);
+      }
+    } catch (e) {
+      console.warn('DualTracker fetch failed:', e);
+    }
+  }, []);
+
+  const fetchSlashGuard = useCallback(async () => {
+    try {
+      const res = await api.getSlashGuard();
+      if (res?.success && res.data) {
+        setSecData(res.data);
+      }
+    } catch (e) {
+      console.warn('SlashGuard fetch failed:', e);
+    }
+  }, []);
+
+  const fetchStakingData = useCallback(async () => {
+    try {
+      const res = await api.getTop16Validators();
+      if (res?.success && res.data) {
+        setNposData(res.data);
+      }
+    } catch (e) {
+      console.warn('Staking fetch failed:', e);
+    }
+  }, []);
+
+  const fetchShieldData = useCallback(async () => {
+    try {
+      const res = await api.getRpcShield();
+      if (res?.success && res.data) {
+        setShieldData(res.data);
+      }
+    } catch (e) {
+      console.warn('Shield fetch failed:', e);
+    }
+  }, []);
+
+  const fetchLogs = useCallback(async () => {
+    try {
+      const logsRes = await api.getLogs();
+      if (logsRes?.success && logsRes.logs) {
+        setLogs((prev) => {
+          const dagLogs = prev.filter((l) => l.source === 'DAG_ENGINE' || l.source === 'RUNBOOK');
+          const merged = [...dagLogs, ...logsRes.logs].filter((l) => l.time > lastClearedTimeRef.current);
+          const seen = new Set();
+          return merged.filter((item) => {
+            const key = `${item.time}-${item.source}-${item.text}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          }).sort((a, b) => a.time - b.time).slice(-100);
+        });
+      }
+    } catch (e) {
+      console.warn('Logs fetch failed:', e);
+    }
+  }, []);
+
+  // On-demand Active Tab Dispatcher - Only fetch active view data to eliminate premature mockup data
+  const fetchActiveTabData = useCallback(async (tab: TabType) => {
     setIsLoading(true);
     try {
-      await Promise.allSettled([
-        api.getDualTracker().then(res => {
-          if (res?.success && res.data) setDualData(res.data);
-        }).catch(() => null),
+      const tasks: Promise<any>[] = [fetchDualData()];
+      if (tab === 'slashing') tasks.push(fetchSlashGuard());
+      else if (tab === 'staking') tasks.push(fetchStakingData());
+      else if (tab === 'shield') tasks.push(fetchShieldData());
 
-        api.getRecentDualBlocks(5).catch(() => null),
-
-        api.getSlashGuard().then(res => {
-          if (res?.success && res.data) setSecData(res.data);
-        }).catch(() => null),
-
-        api.getTop16Validators().then(res => {
-          if (res?.success && res.data) setNposData(res.data);
-        }).catch(() => null),
-
-        api.getRpcShield().then(res => {
-          if (res?.success && res.data) setShieldData(res.data);
-        }).catch(() => null),
-
-        api.getLogs().then(logsRes => {
-          if (logsRes?.success) {
-            setLogs((prev) => {
-              const dagLogs = prev.filter((l) => l.source === 'DAG_ENGINE' || l.source === 'RUNBOOK');
-              const merged = [...dagLogs, ...logsRes.logs].filter((l) => l.time > lastClearedTimeRef.current);
-              const seen = new Set();
-              return merged.filter((item) => {
-                const key = `${item.time}-${item.source}-${item.text}`;
-                if (seen.has(key)) return false;
-                seen.add(key);
-                return true;
-              }).sort((a, b) => a.time - b.time).slice(-100);
-            });
-          }
-        }).catch(() => null)
-      ]);
+      if (isTerminalOpen) tasks.push(fetchLogs());
+      await Promise.allSettled(tasks);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fetchDualData, fetchSlashGuard, fetchStakingData, fetchShieldData, fetchLogs, isTerminalOpen]);
 
+  // Tab switch on-demand trigger: fetch immediately when navigating to an uninitialized tab
   useEffect(() => {
-    fetchAllData();
-    // Solution 5: Throttle polling when tab is hidden to prevent request storms against cloud backend
+    if (viewMode === 'console') {
+      if (activeTab === 'slashing' && !secData) {
+        fetchSlashGuard();
+      } else if (activeTab === 'staking' && !nposData) {
+        fetchStakingData();
+      } else if (activeTab === 'shield' && !shieldData) {
+        fetchShieldData();
+      }
+    }
+  }, [activeTab, viewMode, secData, nposData, shieldData, fetchSlashGuard, fetchStakingData, fetchShieldData]);
+
+  // Periodic polling tailored to the active tab
+  useEffect(() => {
+    fetchActiveTabData(activeTab);
+
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) {
         return;
       }
-      fetchAllData();
+      fetchActiveTabData(activeTab);
     }, 5000);
 
     const handleVisibilityChange = () => {
       if (typeof document !== 'undefined' && !document.hidden) {
-        fetchAllData();
+        fetchActiveTabData(activeTab);
       }
     };
 
@@ -242,7 +292,7 @@ export const App: React.FC = () => {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
       }
     };
-  }, []);
+  }, [activeTab, fetchActiveTabData]);
 
   const navItems = [
     { id: 'dual-vm' as TabType, label: 'Dual-VM Telemetry', shortLabel: 'Dual-VM', icon: Layers },
@@ -417,16 +467,28 @@ export const App: React.FC = () => {
         >
           <React.Suspense fallback={<ViewLoadingFallback />}>
             {activeTab === 'dual-vm' && (
-              <DualEngineView data={dualData} onRefresh={fetchAllData} isLoading={isLoading} />
+              <DualEngineView data={dualData} onRefresh={fetchDualData} isLoading={isLoading} />
             )}
             {activeTab === 'slashing' && (
-              <SecurityGuardView data={secData} onRefresh={fetchAllData} />
+              secData ? (
+                <SecurityGuardView data={secData} onRefresh={fetchSlashGuard} />
+              ) : (
+                <ViewLoadingFallback message="Querying Live SlashGuard Leases & Anti-Equivocation Locks..." />
+              )
             )}
             {activeTab === 'staking' && (
-              <StakingYieldView data={nposData} onRefresh={fetchAllData} />
+              nposData ? (
+                <StakingYieldView data={nposData} onRefresh={fetchStakingData} />
+              ) : (
+                <ViewLoadingFallback message="Querying Live Portaldot NPoS Validators & APY Matrix..." />
+              )
             )}
             {activeTab === 'shield' && (
-              <TopologyRadarView data={shieldData} onRefresh={fetchAllData} />
+              shieldData ? (
+                <TopologyRadarView data={shieldData} onRefresh={fetchShieldData} />
+              ) : (
+                <ViewLoadingFallback message="Querying Live RPC Shield Firewall & Topology Radar..." />
+              )
             )}
             {activeTab === 'canvas' && (
               <ErrorBoundary fallbackTitle="Visual DAG Canvas Interrupted">
@@ -437,7 +499,7 @@ export const App: React.FC = () => {
                   onRequestOpenTerminal={() => handleToggleTerminal(true)}
                   subRoute={routeState.subRoute}
                   onNavigateSubRoute={(sub) => navigateTo('console', 'canvas', sub)}
-                  bestBlock={dualData.substrate.best_block}
+                  bestBlock={dualData?.substrate?.best_block || 292900}
                 />
               </ErrorBoundary>
             )}

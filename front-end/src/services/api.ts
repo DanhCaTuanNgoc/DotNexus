@@ -822,9 +822,9 @@ export const DEFAULT_DUAL_TELEMETRY: DualTelemetryState = {
 
     endpoint: 'wss://test-node-v3.portaldot.dev',
 
-    best_block: 278465,
+    best_block: 292900,
 
-    finalized_block: 278463,
+    finalized_block: 292898,
 
     finality_lag: 2,
 
@@ -848,7 +848,7 @@ export const DEFAULT_DUAL_TELEMETRY: DualTelemetryState = {
 
     endpoint: 'https://test-evm-rpc-v3.portaldot.dev',
 
-    block_number: 278465,
+    block_number: 292900,
 
     chain_id: 420420777,
 
@@ -2396,9 +2396,9 @@ export const DEFAULT_RECENT_BLOCKS: DualBlockConduitItem[] = [
 
   {
 
-    block_number_wasm: 262100,
+    block_number_wasm: 292900,
 
-    block_number_evm: 262100,
+    block_number_evm: 292900,
 
     hash_wasm: '0x1c7d3066e78a208ae74c341f750aa6dd1446388a2f15b1554ae6f183e958c213',
 
@@ -2426,9 +2426,9 @@ export const DEFAULT_RECENT_BLOCKS: DualBlockConduitItem[] = [
 
   {
 
-    block_number_wasm: 262099,
+    block_number_wasm: 292899,
 
-    block_number_evm: 262099,
+    block_number_evm: 292899,
 
     hash_wasm: '0x2a8e45b1289cf0123456789abcdef0123456789abcdef0123456789abcdef012',
 
@@ -2456,9 +2456,9 @@ export const DEFAULT_RECENT_BLOCKS: DualBlockConduitItem[] = [
 
   {
 
-    block_number_wasm: 262098,
+    block_number_wasm: 292898,
 
-    block_number_evm: 262098,
+    block_number_evm: 292898,
 
     hash_wasm: '0x3b9f56c2390de123456789abcdef0123456789abcdef0123456789abcdef013',
 
@@ -2542,9 +2542,39 @@ export const DEFAULT_LOGS: LogItem[] = [
 
 
 
-// In-Memory Stateful Simulation Store for Offline Session Persistence
+// LocalStorage-backed Persistence to eliminate stale flash on page reload (F5)
+function getSavedDualState(): DualTelemetryState {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const saved = localStorage.getItem('dotnexus_cached_dual_state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.substrate?.best_block && parsed.substrate.best_block > 200000) {
+          return parsed;
+        }
+      }
+    } catch {}
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_DUAL_TELEMETRY));
+}
 
-let dynamicDualState: DualTelemetryState = JSON.parse(JSON.stringify(DEFAULT_DUAL_TELEMETRY));
+function getSavedRecentBlocks(): DualBlockConduitItem[] {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const saved = localStorage.getItem('dotnexus_cached_recent_blocks');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.block_number_wasm > 200000) {
+          return parsed;
+        }
+      }
+    } catch {}
+  }
+  return [...DEFAULT_RECENT_BLOCKS];
+}
+
+// In-Memory Stateful Simulation Store for Offline Session Persistence
+let dynamicDualState: DualTelemetryState = getSavedDualState();
 
 let dynamicSecurityState: SecurityDashboardState = JSON.parse(JSON.stringify(DEFAULT_SECURITY_STATE));
 
@@ -2554,9 +2584,9 @@ let dynamicShieldStatus: ShieldStatus = JSON.parse(JSON.stringify(DEFAULT_SHIELD
 
 let dynamicLogs: LogItem[] = [...DEFAULT_LOGS];
 
-let dynamicRecentBlocks: DualBlockConduitItem[] = [...DEFAULT_RECENT_BLOCKS];
+let dynamicRecentBlocks: DualBlockConduitItem[] = getSavedRecentBlocks();
 
-let cachedRecentBlocks: DualBlockConduitItem[] = [...DEFAULT_RECENT_BLOCKS];
+let cachedRecentBlocks: DualBlockConduitItem[] = getSavedRecentBlocks();
 
 
 
@@ -2748,10 +2778,12 @@ export const api = {
 
 
 
+  getCachedDualState: (): DualTelemetryState => {
+    return dynamicDualState;
+  },
+
   getCachedRecentBlocks: (): DualBlockConduitItem[] => {
-
     return cachedRecentBlocks;
-
   },
 
 
@@ -2791,9 +2823,12 @@ export const api = {
     );
 
     if (res.success && res.data) {
-
       dynamicDualState = res.data;
-
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          localStorage.setItem('dotnexus_cached_dual_state', JSON.stringify(res.data));
+        } catch {}
+      }
     }
 
     return res;
@@ -2823,11 +2858,13 @@ export const api = {
     );
 
     if (res.success && res.data && res.data.length > 0) {
-
       cachedRecentBlocks = res.data;
-
       dynamicRecentBlocks = res.data;
-
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          localStorage.setItem('dotnexus_cached_recent_blocks', JSON.stringify(res.data));
+        } catch {}
+      }
     }
 
     return res;

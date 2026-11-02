@@ -129,7 +129,7 @@ export const App: React.FC = () => {
   };
 
   // States - initialized with high-fidelity deterministic defaults to prevent infinite loading on Vercel
-  const [dualData, setDualData] = useState<DualTelemetryState>(() => DEFAULT_DUAL_TELEMETRY);
+  const [dualData, setDualData] = useState<DualTelemetryState>(() => api.getCachedDualState());
   const [secData, setSecData] = useState<SecurityDashboardState>(() => DEFAULT_SECURITY_STATE);
   const [nposData, setNposData] = useState<NPoSRecommendation>(() => DEFAULT_NPOS_DATA);
   const [shieldData, setShieldData] = useState<ShieldStatus>(() => DEFAULT_SHIELD_STATUS);

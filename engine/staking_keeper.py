@@ -35,6 +35,8 @@ class StakingKeeperDaemon:
         self.min_apy_delta_rebalance: float = 0.015
         self.last_evaluation: Optional[Dict[str, Any]] = None
         self.keeper_action_history: List[Dict[str, Any]] = []
+        self._unbonding_cache: Dict[str, Any] = {}
+        self._unclaimed_payouts_cache: Dict[str, Any] = {}
 
     def get_unbonding_queue(self, account_address: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -42,17 +44,27 @@ class StakingKeeperDaemon:
         Calculates remaining eras, estimated time to unlock, and status.
         """
         target_account = account_address or getattr(CONFIG, "primary_validator_address", "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
+        now = time.time()
+        cache_key = target_account
+        if hasattr(self, "_unbonding_cache") and cache_key in self._unbonding_cache:
+            cached_data, cached_ts = self._unbonding_cache[cache_key]
+            if (now - cached_ts) < 15.0:
+                return cached_data
+
         unlocking_chunks = []
         total_unbonding_planck = 0
         current_era = 0
 
-        if SubstrateInterface is not None and self.substrate_url != "ws://127.0.0.1:99999":
+        client = None
+        if self.substrate_url != "ws://127.0.0.1:99999":
             try:
-                client = SubstrateInterface(
-                    url=self.substrate_url,
-                    ss58_format=CONFIG.ss58_format,
-                    type_registry_preset='substrate-node-template'
-                )
+                from engine.dual_tracker import DUAL_TRACKER
+                client = DUAL_TRACKER.get_substrate_client()
+            except Exception:
+                client = None
+
+        if client is not None:
+            try:
                 active_era_query = client.query("Staking", "ActiveEra")
                 if active_era_query and active_era_query.value:
                     val = active_era_query.value
@@ -95,7 +107,7 @@ class StakingKeeperDaemon:
             for idx, c in enumerate(unlocking_chunks)
         ]
 
-        return {
+        res = {
             "account": target_account,
             "controller_stash": target_account,
             "current_era": current_era,
@@ -109,6 +121,10 @@ class StakingKeeperDaemon:
             "standard_bonding_duration_eras": 28,
             "slashing_insurance_buffer_pot": 250.0
         }
+        if not hasattr(self, "_unbonding_cache"):
+            self._unbonding_cache = {}
+        self._unbonding_cache[cache_key] = (res, now)
+        return res
 
     def evaluate_and_execute_era_rebalance(
         self,
@@ -126,21 +142,19 @@ class StakingKeeperDaemon:
         sub_telemetry = NPOS_OPTIMIZER.get_top_16_recommendation()
         active_era = 74
 
-        # Live phase query if Substrate is available
-        if SubstrateInterface is not None and self.substrate_url != "ws://127.0.0.1:99999":
+        # Live phase query via shared singleton client
+        if self.substrate_url != "ws://127.0.0.1:99999":
             try:
-                client = SubstrateInterface(
-                    url=self.substrate_url,
-                    ss58_format=CONFIG.ss58_format,
-                    type_registry_preset='substrate-node-template'
-                )
-                phase_query = client.query("ElectionProviderMultiPhase", "CurrentPhase")
-                if phase_query and phase_query.value is not None:
-                    self.current_election_phase = str(phase_query.value)
-                era_query = client.query("Staking", "ActiveEra")
-                if era_query and era_query.value:
-                    val = era_query.value
-                    active_era = val.get("index", 74) if isinstance(val, dict) else int(val)
+                from engine.dual_tracker import DUAL_TRACKER
+                client = DUAL_TRACKER.get_substrate_client()
+                if client is not None:
+                    phase_query = client.query("ElectionProviderMultiPhase", "CurrentPhase")
+                    if phase_query and phase_query.value is not None:
+                        self.current_election_phase = str(phase_query.value)
+                    era_query = client.query("Staking", "ActiveEra")
+                    if era_query and era_query.value:
+                        val = era_query.value
+                        active_era = val.get("index", 74) if isinstance(val, dict) else int(val)
             except Exception:
                 pass
 
@@ -240,17 +254,27 @@ class StakingKeeperDaemon:
         Prevents treasury reward expiration by identifying uncollected validator/nominator eras.
         """
         target_validator = validator_stash or getattr(CONFIG, "primary_validator_address", "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
+        now = time.time()
+        cache_key = f"{target_validator}_{max_lookback_eras}"
+        if hasattr(self, "_unclaimed_payouts_cache") and cache_key in self._unclaimed_payouts_cache:
+            cached_data, cached_ts = self._unclaimed_payouts_cache[cache_key]
+            if (now - cached_ts) < 15.0:
+                return cached_data
+
         current_era = 74
         unclaimed_eras = []
         oldest_unclaimed_era = None
 
-        if SubstrateInterface is not None and self.substrate_url != "ws://127.0.0.1:99999":
+        client = None
+        if self.substrate_url != "ws://127.0.0.1:99999":
             try:
-                client = SubstrateInterface(
-                    url=self.substrate_url,
-                    ss58_format=CONFIG.ss58_format,
-                    type_registry_preset='substrate-node-template'
-                )
+                from engine.dual_tracker import DUAL_TRACKER
+                client = DUAL_TRACKER.get_substrate_client()
+            except Exception:
+                client = None
+
+        if client is not None:
+            try:
                 active_era_query = client.query("Staking", "ActiveEra")
                 if active_era_query and active_era_query.value:
                     val = active_era_query.value
@@ -294,7 +318,7 @@ class StakingKeeperDaemon:
 
         eras_until_permanent_burn = max(0, 84 - (current_era - (oldest_unclaimed_era or current_era)))
 
-        return {
+        res = {
             "validator_stash": target_validator,
             "current_era": current_era,
             "max_history_depth_eras": max_lookback_eras,
@@ -305,6 +329,10 @@ class StakingKeeperDaemon:
             "urgency_level": "CRITICAL" if eras_until_permanent_burn <= 7 else ("WARNING" if eras_until_permanent_burn <= 20 else "NORMAL"),
             "target_call": "staking.payoutStakersByPage"
         }
+        if not hasattr(self, "_unclaimed_payouts_cache"):
+            self._unclaimed_payouts_cache = {}
+        self._unclaimed_payouts_cache[cache_key] = (res, now)
+        return res
 
     def sweep_unclaimed_payouts(
         self,

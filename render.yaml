@@ -18,5 +18,9 @@ services:
         value: "420420777"
       - key: PYTHONUNBUFFERED
         value: "1"
+      - key: MALLOC_ARENA_MAX
+        value: "2"
+      - key: PYTHONMALLOC
+        value: malloc
       - key: DOTNEXUS_AUTH_TOKEN
         value: nexus-ops-secret-key-2026

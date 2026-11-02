@@ -27,11 +27,13 @@ COPY contracts/ ./contracts/
 COPY dashboards/ ./dashboards/
 COPY scripts/ ./scripts/
 
-# Default environment configuration
+# Default environment configuration & Linux Glibc memory tuning for 512MB RAM container
 ENV PYTHONUNBUFFERED=1
+ENV MALLOC_ARENA_MAX=2
+ENV PYTHONMALLOC=malloc
 ENV PORT=10000
 
 EXPOSE 10000 5050
 
-# Solution 5: Run production WSGI server with Gunicorn (1 worker, 4 threads for concurrency without OOM)
-CMD ["sh", "-c", "gunicorn -w 1 --threads 4 -b 0.0.0.0:${PORT:-10000} --timeout 120 engine.server:app"]
+# Gunicorn WSGI: 1 worker, 2 threads (balanced for 512MB ceiling) with auto-recycle every 500 requests to purge fragmentation
+CMD ["sh", "-c", "gunicorn -w 1 --threads 2 --max-requests 500 --max-requests-jitter 50 -b 0.0.0.0:${PORT:-10000} --timeout 120 engine.server:app"]

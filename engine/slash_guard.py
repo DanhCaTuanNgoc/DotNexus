@@ -104,6 +104,10 @@ class SlashingGuard:
         self._ticker_running: bool = False
         self._ticker_thread: Optional[threading.Thread] = None
         self._ticker_lock = threading.Lock()
+        self._cached_session_authorities: Optional[Dict[str, Any]] = None
+        self._cached_session_authorities_time: float = 0.0
+        self._cached_dashboard: Optional[Dict[str, Any]] = None
+        self._cached_dashboard_time: float = 0.0
 
         self._load_state()
 
@@ -336,17 +340,15 @@ class SlashingGuard:
         session_keys_hex = None
         is_live = False
 
-        if SubstrateInterface is not None:
+        if SubstrateInterface is not None and self.substrate_url != "ws://127.0.0.1:99999":
             try:
-                client = SubstrateInterface(
-                    url=self.substrate_url,
-                    ss58_format=CONFIG.ss58_format,
-                    type_registry_preset='substrate-node-template'
-                )
-                res = client.rpc_request("author_rotateKeys", [])
-                if "result" in res and res["result"]:
-                    session_keys_hex = res["result"]
-                    is_live = True
+                from engine.dual_tracker import DUAL_TRACKER
+                client = DUAL_TRACKER.get_substrate_client()
+                if client is not None:
+                    res = client.rpc_request("author_rotateKeys", [])
+                    if "result" in res and res["result"]:
+                        session_keys_hex = res["result"]
+                        is_live = True
             except Exception as e:
                 logger.debug(f"Live author_rotateKeys RPC probe failed: {e}. Generating deterministic keys.")
 
@@ -667,12 +669,17 @@ class SlashingGuard:
 
         return fallback_state
 
-    def query_live_session_authorities(self) -> Dict[str, Any]:
+    def query_live_session_authorities(self, force_refresh: bool = False) -> Dict[str, Any]:
         """
         Queries real-time BABE epoch session keys and active validators directly
         from Substrate runtime storage: Session.Validators, Session.QueuedKeys, and Babe.EpochIndex.
+        Equipped with 30-second in-memory SWR caching to eliminate RPC latency.
         """
         now = time.time()
+        if not force_refresh and hasattr(self, "_cached_session_authorities") and self._cached_session_authorities:
+            if (now - getattr(self, "_cached_session_authorities_time", 0.0)) < 30.0:
+                return self._cached_session_authorities
+
         fallback_session = {
             "session_index": 412,
             "babe_epoch_index": 206,
@@ -687,18 +694,14 @@ class SlashingGuard:
             "source": "SYNCHRONIZED_CACHE"
         }
 
-        if SubstrateInterface is None:
+        if SubstrateInterface is None or self.substrate_url == "ws://127.0.0.1:99999":
             return fallback_session
 
         try:
             from engine.dual_tracker import DUAL_TRACKER
-            client = DUAL_TRACKER.substrate_client
+            client = DUAL_TRACKER.get_substrate_client()
             if client is None:
-                client = SubstrateInterface(
-                    url=self.substrate_url,
-                    ss58_format=CONFIG.ss58_format,
-                    type_registry_preset='substrate-node-template'
-                )
+                return fallback_session
 
             chain_head = client.get_chain_head()
             if not chain_head:
@@ -730,7 +733,7 @@ class SlashingGuard:
             except Exception:
                 pass
 
-            return {
+            res = {
                 "session_index": sess_idx,
                 "babe_epoch_index": epoch_idx,
                 "active_validators_count": len(validators),
@@ -740,22 +743,35 @@ class SlashingGuard:
                 "query_timestamp": now,
                 "source": "PORTALDOT_V3_SUBSTRATE_STORAGE"
             }
+            self._cached_session_authorities = res
+            self._cached_session_authorities_time = now
+            return res
         except Exception as e:
             logger.debug(f"Direct session authority query failed: {e}")
 
         return fallback_session
 
-    def get_security_dashboard(self) -> Dict[str, Any]:
-        """Full overview for Security & Slashing Guard UI view"""
+    def get_security_dashboard(self, force_refresh: bool = False) -> Dict[str, Any]:
+        """Full overview for Security & Slashing Guard UI view with 5s SWR cache"""
+        now = time.time()
+        if not force_refresh and hasattr(self, "_cached_dashboard") and self._cached_dashboard:
+            if (now - getattr(self, "_cached_dashboard_time", 0.0)) < 5.0:
+                cached = dict(self._cached_dashboard)
+                elapsed_lease = round(now - self.last_lease_renew_time, 1)
+                remaining_lease = max(0.0, round(CONFIG.heartbeat_lock_lease_seconds - elapsed_lease, 1))
+                cached["elapsed_lease_seconds"] = elapsed_lease
+                cached["remaining_lease_seconds"] = remaining_lease
+                return cached
+
         heartbeat_status = self.check_heartbeat(force_miss=None)
         onchain_lease = self.get_onchain_lease_state()
-        session_authorities = self.query_live_session_authorities()
+        session_authorities = self.query_live_session_authorities(force_refresh=force_refresh)
 
         now = time.time()
         elapsed_lease = round(now - self.last_lease_renew_time, 1)
         remaining_lease = max(0.0, round(CONFIG.heartbeat_lock_lease_seconds - elapsed_lease, 1))
 
-        return {
+        dashboard = {
             "active_node": self.active_node,
             "primary_node_id": self.node_id,
             "standby_node_id": self.standby_node_id,
@@ -783,6 +799,9 @@ class SlashingGuard:
             "recent_rotations": self.history_rotations[-5:],
             "security_events": self.security_events[-10:]
         }
+        self._cached_dashboard = dashboard
+        self._cached_dashboard_time = now
+        return dashboard
 
 
     def acquire_lease(self, candidate_node: str, force_takeover: bool = False) -> Dict[str, Any]:

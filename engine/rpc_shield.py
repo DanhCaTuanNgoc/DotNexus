@@ -50,6 +50,8 @@ class RPCShield:
 
         # Peer topology data
         self.peer_topology = self._init_p2p_topology()
+        self._cached_shield_status: Optional[Dict[str, Any]] = None
+        self._cached_shield_time: float = 0.0
 
     def _init_p2p_topology(self) -> List[Dict[str, Any]]:
         """
@@ -659,11 +661,14 @@ class RPCShield:
         ]
         return "\n".join(lines)
 
-    def get_shield_status(self) -> Dict[str, Any]:
-        """Returns aggregated metrics for Frontend Radar & Shield panel"""
-        avg_overhead = (self.total_overhead_ms / self.total_inspected) if self.total_inspected > 0 else 0.25
-
+    def get_shield_status(self, force_refresh: bool = False) -> Dict[str, Any]:
+        """Returns aggregated metrics for Frontend Radar & Shield panel with 5s SWR cache"""
         now = time.time()
+        if not force_refresh and hasattr(self, "_cached_shield_status") and self._cached_shield_status:
+            if (now - getattr(self, "_cached_shield_time", 0.0)) < 5.0:
+                return self._cached_shield_status
+
+        avg_overhead = (self.total_overhead_ms / self.total_inspected) if self.total_inspected > 0 else 0.25
         # Prune expired bans
         for ip, exp in list(self.blocked_ips.items()):
             if exp <= now:
@@ -711,7 +716,7 @@ class RPCShield:
         scores = [r["score"] for r in self.ip_reputation.values()] if self.ip_reputation else [100.0]
         avg_score = round(sum(scores) / len(scores), 1) if scores else 100.0
 
-        return {
+        res = {
             "total_inspected": self.total_inspected,
             "total_allowed": self.total_allowed,
             "total_blocked": self.total_blocked,
@@ -727,6 +732,9 @@ class RPCShield:
             "recent_events": self.shield_logs[-15:],
             "p2p_topology": topology
         }
+        self._cached_shield_status = res
+        self._cached_shield_time = now
+        return res
 
 
 # Global Shield Instance

@@ -166,6 +166,30 @@ class DualEngineTracker:
             self.substrate_client = None
             return False
 
+    def get_substrate_client(self) -> Optional[Any]:
+        """
+        Strict Singleton Provider for SubstrateInterface.
+        Ensures exactly ONE Substrate connection is maintained across all engine modules,
+        preventing duplicate Type Registry loading and saving ~150MB+ RAM.
+        """
+        if self.substrate_client is not None:
+            return self.substrate_client
+        with self._cache_lock:
+            if self.substrate_client is not None:
+                return self.substrate_client
+            self._init_substrate()
+            return self.substrate_client
+
+    def get_web3_client(self) -> Optional[Any]:
+        """Strict Singleton Provider for Web3 client."""
+        if self.web3_client is not None:
+            return self.web3_client
+        with self._cache_lock:
+            if self.web3_client is not None:
+                return self.web3_client
+            self._init_evm()
+            return self.web3_client
+
     def _init_evm(self) -> bool:
         if self.web3_client is not None:
             return True

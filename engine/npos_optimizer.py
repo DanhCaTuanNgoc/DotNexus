@@ -56,6 +56,8 @@ class NPoSOptimizer:
         self.validators_cache: List[Dict[str, Any]] = []
         self.last_scan_time: float = 0
         self.nonce_manager = AsyncNonceManager()
+        self._cached_top_16: Optional[Dict[str, Any]] = None
+        self._cached_top_16_time: float = 0.0
 
     def get_token_decimals(self, client: Optional[Any] = None) -> int:
         """Dynamically resolves token decimals from chain metadata to prevent hardcoded 10^12 vs 10^14 errors"""
@@ -196,24 +198,17 @@ class NPoSOptimizer:
 
         # Try live query via Substrate pallet_staking & pallet_session
         candidate_pool: List[Dict[str, Any]] = []
-        if SubstrateInterface is not None:
+        if SubstrateInterface is not None and self.substrate_url != "ws://127.0.0.1:99999":
             try:
                 from engine.dual_tracker import DUAL_TRACKER
-                if DUAL_TRACKER.substrate_client is None:
-                    DUAL_TRACKER._init_substrate()
-                client = DUAL_TRACKER.substrate_client
-                if client is None:
-                    client = SubstrateInterface(
-                        url=self.substrate_url,
-                        ss58_format=CONFIG.ss58_format,
-                        type_registry_preset='substrate-node-template'
-                    )
-                chain_head = client.get_chain_head()
-                if chain_head:
-                    live_vals = self._fetch_live_validators_from_chain(client, chain_head)
-                    if live_vals:
-                        candidate_pool = live_vals
-                        logger.info(f"Loaded {len(live_vals)} live validators directly from Portaldot chain storage.")
+                client = DUAL_TRACKER.get_substrate_client()
+                if client is not None:
+                    chain_head = client.get_chain_head()
+                    if chain_head:
+                        live_vals = self._fetch_live_validators_from_chain(client, chain_head)
+                        if live_vals:
+                            candidate_pool = live_vals
+                            logger.info(f"Loaded {len(live_vals)} live validators directly from Portaldot chain storage.")
             except Exception as e:
                 logger.debug(f"Substrate staking live query failed: {e}. Falling back to sample validator set.")
 
@@ -784,12 +779,18 @@ class NPoSOptimizer:
 
         return True, "Pre-flight checks passed: Election window is Off, profit exceeds fee threshold."
 
-    def get_top_16_recommendation(self) -> Dict[str, Any]:
+    def get_top_16_recommendation(self, force_refresh: bool = False) -> Dict[str, Any]:
         """
         Runs Client-Side Sequential Phragmén Simulation to extract optimal Top 16 Validators
         for staking.nominate(targets: Vec<AccountId>).
+        Equipped with 30-second SWR caching to eliminate CPU spikes on concurrent requests.
         """
-        all_vals = self.scan_validators()
+        now = time.time()
+        if not force_refresh and hasattr(self, "_cached_top_16") and self._cached_top_16:
+            if (now - getattr(self, "_cached_top_16_time", 0.0)) < 30.0:
+                return self._cached_top_16
+
+        all_vals = self.scan_validators(force_refresh=force_refresh)
         top_16 = self.simulate_phragmen_election(all_vals, target_seats=CONFIG.top_validator_count)
 
         avg_apy = sum(v["estimated_apy"] for v in top_16) / len(top_16) if top_16 else 0.0
@@ -800,7 +801,7 @@ class NPoSOptimizer:
         targets = [v["stash_address"] for v in top_16]
         live_targets = [v["stash_address"] for v in top_16 if v.get("is_live_onchain")]
 
-        return {
+        res = {
             "top_validators_count": len(top_16),
             "target_count": CONFIG.top_validator_count,
             "live_validators_count": len(live_targets),
@@ -815,6 +816,9 @@ class NPoSOptimizer:
             "pao_algorithm_name": "Predictive Anti-Oversubscription Phragmén (PAO-Phragmén)",
             "extrinsic_call": f"staking.nominate(targets={targets[:3]}... [{len(targets)} total])"
         }
+        self._cached_top_16 = res
+        self._cached_top_16_time = now
+        return res
 
     def generate_rebalance_payload(self, user_stake_pot: float = 10000.0, user_address: str = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY") -> Dict[str, Any]:
         """
@@ -871,15 +875,9 @@ class NPoSOptimizer:
             raise RuntimeError("substrateinterface library is required for on-chain dispatch.")
 
         from engine.dual_tracker import DUAL_TRACKER
-        if DUAL_TRACKER.substrate_client is None:
-            DUAL_TRACKER._init_substrate()
-        client = DUAL_TRACKER.substrate_client
+        client = DUAL_TRACKER.get_substrate_client()
         if client is None:
-            client = SubstrateInterface(
-                url=self.substrate_url,
-                ss58_format=CONFIG.ss58_format,
-                type_registry_preset='substrate-node-template'
-            )
+            raise RuntimeError("Substrate client is unavailable. Check RPC connection.")
 
         from substrateinterface import Keypair
         clean_key = (signer_key or "//Alice").strip()
@@ -996,15 +994,9 @@ class NPoSOptimizer:
             raise RuntimeError("substrateinterface library is required for on-chain dispatch.")
 
         from engine.dual_tracker import DUAL_TRACKER
-        if DUAL_TRACKER.substrate_client is None:
-            DUAL_TRACKER._init_substrate()
-        client = DUAL_TRACKER.substrate_client
+        client = DUAL_TRACKER.get_substrate_client()
         if client is None:
-            client = SubstrateInterface(
-                url=self.substrate_url,
-                ss58_format=CONFIG.ss58_format,
-                type_registry_preset='substrate-node-template'
-            )
+            raise RuntimeError("Substrate client is unavailable. Check RPC connection.")
 
         from substrateinterface import Keypair
         clean_key = (signer_key or "//Alice").strip()

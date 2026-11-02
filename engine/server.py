@@ -17,6 +17,7 @@ import json
 import psutil
 
 import logging
+import threading
 
 from flask import Flask, jsonify, request, Response
 
@@ -49,6 +50,40 @@ logger = logging.getLogger("DotNexus.Server")
 
 
 app = Flask("DotNexusGateway")
+
+_services_initialized = False
+_init_lock = threading.Lock()
+
+def init_background_services():
+    global _services_initialized
+    with _init_lock:
+        if _services_initialized or app.config.get("TESTING"):
+            return
+        _services_initialized = True
+
+        try:
+            SLASH_GUARD.acquire_signing_lease("PRIMARY")
+            SLASH_GUARD.last_lease_renew_time = time.time()
+            SLASH_GUARD.is_self_fenced = False
+        except Exception as e:
+            logger.warning(f"Initial lease sync bypassed: {e}")
+
+        # Solution 3: Dedicated isolated lease heartbeat ticker (runs every 2.0s without I/O overhead)
+        SLASH_GUARD.start_lease_heartbeat_ticker(interval=2.0)
+
+        # Real-time background testnet poller
+        DUAL_TRACKER.start_background_poller(interval=2.5)
+
+        # Headless worker daemon runbook scheduler
+        WORKER_DAEMON.start_background_scheduler(interval_sec=30.0)
+
+        logger.info("DotNexus background autonomous engines initialized.")
+
+@app.before_request
+def _ensure_services():
+    if not _services_initialized and not app.config.get("TESTING"):
+        init_background_services()
+
 
 CORS(app, origins="*")
 
@@ -401,6 +436,17 @@ def get_recent_dual_blocks():
 
 
 
+
+
+@app.route("/api/unfence", methods=["POST"])
+def api_unfence():
+    """Restores primary validator signing authority and clears self-fencing lock"""
+    try:
+        res = SLASH_GUARD.unfence_node()
+        DUAL_TRACKER._dual_state_cache = None
+        return jsonify({"success": True, "data": res, "timestamp": time.time()})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e), "timestamp": time.time()}), 500
 
 @app.route("/api/dual-tracker/remediate", methods=["POST"])
 
@@ -1192,23 +1238,9 @@ def run_server():
         except Exception as ex:
             logger.warning(f"Background preflight probe exception: {ex}")
 
-    try:
-        SLASH_GUARD.acquire_signing_lease("PRIMARY")
-        SLASH_GUARD.last_lease_renew_time = time.time()
-        SLASH_GUARD.is_self_fenced = False
-    except Exception as e:
-        logger.warning(f"Initial lease sync bypassed: {e}")
+    init_background_services()
 
-    import threading
     threading.Thread(target=_async_preflight_probe, daemon=True, name="DotNexusPreflight").start()
-
-    logger.info("Starting background real-time testnet telemetry poller...")
-
-    DUAL_TRACKER.start_background_poller(interval=2.5)
-
-    logger.info("Starting Headless Worker Daemon 24/7 autonomous runbook scheduler...")
-
-    WORKER_DAEMON.start_background_scheduler(interval_sec=30.0)
 
     logger.info(f"Starting Gateway API listener on {CONFIG.engine_host}:{CONFIG.engine_port}...")
 

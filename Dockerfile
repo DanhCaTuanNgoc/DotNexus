@@ -33,5 +33,5 @@ ENV PORT=10000
 
 EXPOSE 10000 5050
 
-# Run Flask Gateway API
-CMD ["python", "-m", "engine.server"]
+# Solution 5: Run production WSGI server with Gunicorn (1 worker, 4 threads for concurrency without OOM)
+CMD ["sh", "-c", "gunicorn -w 1 --threads 4 -b 0.0.0.0:${PORT:-10000} --timeout 120 engine.server:app"]

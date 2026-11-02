@@ -13,6 +13,7 @@ import secrets
 import hashlib
 import logging
 import subprocess
+import threading
 from typing import Dict, Any, Optional
 from pathlib import Path
 from engine.config import CONFIG, LOCK_FILE, FAILOVER_STATE_FILE, LEASE_STORE_FILE, AUDIT_LOG_FILE
@@ -99,6 +100,10 @@ class SlashingGuard:
 
         self.history_rotations: list[Dict[str, Any]] = []
         self.security_events: list[Dict[str, Any]] = []
+
+        self._ticker_running: bool = False
+        self._ticker_thread: Optional[threading.Thread] = None
+        self._ticker_lock = threading.Lock()
 
         self._load_state()
 
@@ -208,6 +213,75 @@ class SlashingGuard:
             "expires_at": lease_data["expires_at"],
             "fence_token": fence_token
         }
+
+    def start_lease_heartbeat_ticker(self, interval: float = 2.0) -> None:
+        """
+        Starts an isolated, dedicated background ticker thread (DotNexusLeaseHeartbeatTicker).
+        This thread ONLY renews in-memory / local lock leases every 2.0s (<0.1ms).
+        Completely immune to heavy network I/O, Substrate scale compilation, or RPC delays.
+        """
+        with self._ticker_lock:
+            if self._ticker_running:
+                return
+            self._ticker_running = True
+            self._ticker_thread = threading.Thread(
+                target=self._lease_ticker_loop,
+                args=(interval,),
+                daemon=True,
+                name="DotNexusLeaseHeartbeatTicker"
+            )
+            self._ticker_thread.start()
+            logger.info(f"DotNexusLeaseHeartbeatTicker started (Interval: {interval:.1f}s).")
+
+    def stop_lease_heartbeat_ticker(self) -> None:
+        """Stops the isolated lease heartbeat ticker"""
+        with self._ticker_lock:
+            self._ticker_running = False
+
+    def _lease_ticker_loop(self, interval: float = 2.0) -> None:
+        while self._ticker_running:
+            try:
+                if not self.is_self_fenced and self.active_node == "PRIMARY":
+                    self.acquire_signing_lease(self.node_id)
+            except Exception as e:
+                logger.debug(f"Lease heartbeat ticker tick error: {e}")
+            time.sleep(interval)
+
+    def unfence_node(self, node_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Unfences and restores validator signing authority after an isolation incident.
+        Cleans up .dotnexus_fenced.lock, restores keystore file permissions, and resets timers.
+        """
+        self.is_self_fenced = False
+        self.last_lease_renew_time = time.time()
+        self.missed_heartbeats = 0
+
+        # Unfence lockfile cleanup
+        fenced_lock = Path("/var/lib/portaldot/chains/portaldot_v3/.dotnexus_fenced.lock")
+        if fenced_lock.exists():
+            try:
+                fenced_lock.unlink()
+            except Exception as e:
+                logger.warning(f"Failed to remove fence lockfile: {e}")
+
+        # Execute OS unfence script if present
+        unfence_script = Path(__file__).resolve().parent.parent / "scripts" / "fence_node.sh"
+        if unfence_script.exists() and os.name != "nt":
+            try:
+                subprocess.run(["bash", str(unfence_script), "unfence"], timeout=5, check=False)
+            except Exception as ex:
+                logger.warning(f"OS unfence script bypassed: {ex}")
+
+        # Re-acquire signing lease immediately
+        self.acquire_signing_lease(self.node_id)
+
+        self._record_event(
+            level="SECURITY_AUDIT",
+            title="Validator Signing Unfenced",
+            message=f"Node {self.node_id} was successfully restored and unfenced."
+        )
+        logger.info(f"Validator {self.node_id} successfully unfenced and lease renewed.")
+        return {"success": True, "is_self_fenced": False, "node_id": self.node_id}
 
     def check_self_fence(self) -> Dict[str, Any]:
         """

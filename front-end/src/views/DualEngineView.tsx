@@ -68,8 +68,14 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
   }, []);
 
   useEffect(() => {
-    fetchRecentBlocks(false);
-  }, [data.substrate.best_block, data.evm.block_number]);
+    // Solution 5: Read cached recent blocks from App.tsx polling instead of firing duplicate network requests
+    const cached = api.getCachedRecentBlocks();
+    if (cached && cached.length > 0) {
+      setRecentBlocks(cached);
+    } else {
+      fetchRecentBlocks(false);
+    }
+  }, [data.substrate.best_block, data.evm.block_number, fetchRecentBlocks]);
 
   const handleRemediate = async (action: string) => {
     setIsRemediating(true);

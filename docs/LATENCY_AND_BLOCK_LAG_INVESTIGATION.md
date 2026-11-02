@@ -458,3 +458,197 @@ Recent 5 correlated blocks (fetched in 0.93s):
   WASM #292752 <-> EVM #292752 | Author: 5F4ZyJ...BfYY | Latency: 41.7ms | Status: LOCKSTEP
   WASM #292751 <-> EVM #292751 | Author: 5Grj5u...hwjk | Latency: 41.7ms | Status: LOCKSTEP
 ```
+
+
+---
+
+## 8. BÁO CÁO TOÀN CẢNH GRAPHIFY & CHIẾN LƯỢC TỐI ƯU HÓA TẢI TRỌNG RAM RENDER (< 512MB) CHO DEMO VERCEL MƯỢT MÀ NHƯ LOCALHOST
+
+> **Mục tiêu tối thượng**: Đảm bảo toàn bộ luồng truyền dẫn từ Vercel Frontend $\leftrightarrow$ Render Backend $\leftrightarrow$ Portaldot Network V3.0 vận hành trơn tru, ổn định tuyệt đối trong suốt quá trình demo trực tiếp, loại bỏ 100% nguy cơ lỗi Timeout (504), Sập máy chủ (503), hay tràn bộ nhớ (OOM Kill), đồng thời bảo toàn độ trung thực của dữ liệu on-chain.
+
+---
+
+### 8.1. Quan sát toàn cảnh kiến trúc dự án qua Graphify (Graphify Architectural Overview)
+
+Sử dụng công cụ **Graphify Knowledge Graph** phân tích đồ thị phụ thuộc dự án (7.866 nodes, độ sâu BFS $d=2$), luồng dữ liệu toàn diện giữa Frontend (Vercel) và Backend (Render) được bóc tách chi tiết:
+
+```mermaid
+flowchart TD
+    subgraph VercelFrontend["Frontend (Vercel - Client SPA)"]
+        UI_App["App.tsx (Root Controller)"]
+        UI_Dual["DualEngineView.tsx"]
+        UI_Slash["SecurityGuardView.tsx"]
+        UI_Staking["StakingYieldView.tsx"]
+        UI_Shield["TopologyRadarView.tsx"]
+        UI_Canvas["CanvasBoard.tsx"]
+        API_Client["services/api.ts (Universal Client)"]
+    end
+
+    subgraph NetworkTransit["Đường truyền mạng Cloud"]
+        Vercel_Req["HTTPS Fetch (Vercel -> Render)"]
+        Render_Proxy["Cloudflare / Render Reverse Proxy (15-30s Timeout)"]
+    end
+
+    subgraph RenderBackend["Backend Engine (Render - Docker Linux Container: 512Mi Limit)"]
+        WSGI["Gunicorn WSGI (-w 1 --threads 4)"]
+        Server["engine/server.py (Flask Gateway)"]
+        
+        subgraph CoreEngines["Core Processing Engines"]
+            DT["engine/dual_tracker.py (SWR Cache Poller)"]
+            SG["engine/slash_guard.py (Lease & Fencing)"]
+            NP["engine/npos_optimizer.py (Phragmén APY)"]
+            RS["engine/rpc_shield.py (WAF & P2P Filter)"]
+            WD["engine/worker_daemon.py (Scheduler)"]
+            DG["engine/dag_engine.py (Automation Engine)"]
+        end
+    end
+
+    subgraph PortaldotTestnet["Portaldot Network V3.0 (On-Chain RPC)"]
+        EVM_RPC["Frontier EVM JSON-RPC (:8545 HTTP) - 600ms RTT"]
+        SUB_WS["Substrate WASM WebSocket (:9944 WS) - 7.000ms RTT"]
+    end
+
+    UI_App --> API_Client
+    UI_Dual --> API_Client
+    UI_Slash --> API_Client
+    UI_Staking --> API_Client
+    UI_Shield --> API_Client
+    UI_Canvas --> API_Client
+
+    API_Client --> Vercel_Req
+    Vercel_Req --> Render_Proxy
+    Render_Proxy --> WSGI
+    WSGI --> Server
+
+    Server --> DT
+    Server --> SG
+    Server --> NP
+    Server --> RS
+    Server --> WD
+    Server --> DG
+
+    DT --> EVM_RPC
+    DT --> SUB_WS
+    SG --> EVM_RPC
+    SG -.->|Duplicate Client Risk| SUB_WS
+    NP -.->|Duplicate Client Risk| SUB_WS
+```
+
+#### Ma trận Phụ thuộc & Mức tiêu hao RAM của các Endpoint API:
+
+| Endpoint API | Màn hình Frontend gọi | Tần suất gọi | Dịch vụ Backend xử lý | Tiêu thụ RAM ước tính | Đánh giá rủi ro OOM |
+| :--- | :--- | :---: | :--- | :---: | :---: |
+| `/api/dual-tracker` | App Header & Dual-VM View | 5.0s (Polled) | `DUAL_TRACKER` | ~5 MB (RAM Cache) | **AN TOÀN** (SWR) |
+| `/api/telemetry/dual/recent-blocks` | Dual-VM View (Conduit) | 5.0s (Polled) | `DUAL_TRACKER` | ~2 MB (FIFO Blocks) | **AN TOÀN** |
+| `/api/dual-tracker/contract-audit` | Dual-VM View (Tab Audit) | On-mount / Click | `DUAL_TRACKER` (EVM) | ~8 MB (Bytecode parse) | **AN TOÀN** |
+| `/api/slash-guard/onchain-lease` | SecurityGuardView | On-mount / Click | `SLASH_GUARD` (Web3 EVM) | ~6 MB | **AN TOÀN** |
+| `/api/slash-guard` | SecurityGuardView & App | 5.0s (Polled) | `SLASH_GUARD` (Substrate) | **~140 - 200 MB** *(nếu tạo mới Client)* | 🚨 **RỦI RO CAO** |
+| `/api/npos/top-16` | StakingYieldView & App | 5.0s (Polled) | `NPOS_OPTIMIZER` (Substrate) | **~150 - 220 MB** *(nếu tạo mới Client)* | 🚨 **RỦI RO CAO** |
+| `/api/npos/keeper-status` | StakingYieldView | On-mount / Click | `STAKING_KEEPER` | ~2 MB | **AN TOÀN** |
+| `/api/rpc-shield` | TopologyRadarView & App | 5.0s (Polled) | `RPC_SHIELD` (P2P WS) | **~40 - 80 MB** | ⚠️ **CẦN TỐI ƯU** |
+| `/api/rpc-shield/quarantined-ips` | TopologyRadarView | On-mount / Click | `RPC_SHIELD` (CIDR table) | ~1 MB | **AN TOÀN** |
+| `/api/logs` & `/audit-log` | Terminal Drawer & App | 5.0s (Polled) | `server.py` & `AUDIT_LOG_FILE` | ~4 MB (Bound array) | **AN TOÀN** |
+
+---
+
+### 8.2. Chẩn đoán Chi tiết Sự kiện OOM (Out Of Memory) trên Render
+
+Theo dữ liệu event log thu thập từ Render Management API (`srv-dbj1j6nlk1mc7380ue1g`):
+```json
+{
+  "timestamp": "2026-11-02T14:21:25.260862Z",
+  "type": "server_failed",
+  "details": {
+    "instanceID": "srv-dbj1j6nlk1mc7380ue1g-whjf4",
+    "reason": { "evicted": false, "oomKilled": { "memoryLimit": "512Mi" } }
+  }
+}
+```
+
+#### Cơ chế hình thành "Điểm gãy bộ nhớ" (Memory Spike Mechanics):
+1. **Khởi tạo chồng chéo `SubstrateInterface`**:
+   - `py-substrate-interface` khi khởi tạo sẽ tải Type Registry V14 và giải mã Scale Metadata toàn chuỗi, chiếm từ **130 MB đến 180 MB**.
+   - Trong `engine/npos_optimizer.py` và `engine/slash_guard.py`, khi kết nối gặp độ trễ cao hoặc chưa kịp khởi tạo xong, code có fallback:
+     ```python
+     if client is None:
+         client = SubstrateInterface(...)
+     ```
+   - Việc sinh ra thêm 1 hoặc 2 instance song song lập tức đẩy RAM tăng đột biến thêm **260 MB – 360 MB**.
+2. **Gunicorn 4 Threads Concurrent Spikes**:
+   - Gunicorn đang chạy 4 threads đồng thời. Khi Frontend Vercel gửi đồng loạt 6 request trong `Promise.allSettled()`, cả 4 threads cùng xử lý JSON payload lớn và thực hiện truy vấn mạng cùng lúc, nhân bản bộ nhớ tạm (stack/heap buffer) của tiến trình.
+3. **Phân mảnh bộ nhớ Linux Glibc Allocator**:
+   - Mặc định Linux Glibc Malloc chia bộ nhớ thành nhiều "Memory Arenas" ($8 \times \text{cores}$). Khi các chuỗi JSON hoặc Scale Codec được giải phóng trong Python, Glibc không hoàn trả ngay RAM cho kernel mà giữ lại trong arena, làm tăng chỉ số Resident Set Size (RSS) đo bởi Render cgroups, dẫn đến việc container bị hạ gục dù dung lượng thực tế đang rảnh.
+
+---
+
+### 8.3. Chiến lược Tối ưu Hóa RAM Hợp lý và Chừng mực (Balanced Strategy)
+
+> [!TIP]
+> **Nguyên tắc cốt lõi**: Không hy sinh tính năng, không cắt giảm độ sâu dữ liệu, không rewrite phức tạp. Tối ưu dựa trên **kỷ luật quản lý tài nguyên (Resource Discipline)** để app duy trì mượt mà ở mức **320 MB – 360 MB**, để lại **~160 MB (32%) dư dả an toàn**.
+
+```mermaid
+flowchart LR
+    subgraph Current["Hiện trạng (Dễ vọt qua 512MB)"]
+        C1["SubstrateInterface bị tạo mới nhiều nơi (x2, x3 = 300MB+)"]
+        C2["Gunicorn 4 threads x concurrent request buffers"]
+        C3["Glibc giữ lại RAM trong memory arenas"]
+        C4["Polling dồn dập khi demo"]
+    end
+
+    subgraph Optimized["Sau khi Tối ưu Chừng mực (~330MB)"]
+        O1["Strict Singleton Client duy nhất (Cố định ~140MB)"]
+        O2["Gunicorn 2 threads + --max-requests auto-recycle"]
+        O3["MALLOC_ARENA_MAX=2 (Hoàn trả RAM lập tức)"]
+        O4["In-Memory SWR Cache cho toàn bộ GET APIs (<5ms)"]
+    end
+
+    C1 --> O1
+    C2 --> O2
+    C3 --> O3
+    C4 --> O4
+```
+
+#### 1. Áp dụng cơ chế "Strict Singleton" cho kết nối Substrate
+- **Hành động**: Đảm bảo **duy nhất 1 kết nối `SubstrateInterface`** được khởi tạo và quản lý tập trung tại `engine/dual_tracker.py`.
+- **Triệt tiêu**: Xóa bỏ hoàn toàn nhánh khởi tạo dự phòng độc lập `SubstrateInterface(...)` trong `slash_guard.py` và `npos_optimizer.py`. Mọi module con bắt buộc dùng chung instance singleton này.
+- **Tiết kiệm**: Giảm ngay lập tức **150 MB – 250 MB** RAM bị lãng phí do tạo instance trùng lặp.
+
+#### 2. Cân đối Gunicorn Concurrency cho môi trường 512MB RAM
+- **Hành động**:
+  - Giảm số luồng từ 4 xuống **2 threads** (`-w 1 --threads 2`).
+  - Bổ sung cơ chế tự làm sạch bộ nhớ định kỳ: `--max-requests 500 --max-requests-jitter 50`.
+  - Cứ sau mỗi 500 requests, Gunicorn sẽ nhẹ nhàng khởi tạo worker mới và hủy worker cũ trong 0.1 giây mà không gián đoạn bất kỳ request nào của người dùng.
+- **Tiết kiệm**: Tiết kiệm **~40 MB** RAM và triệt tiêu 100% hiện tượng rò rỉ bộ nhớ vi mô (micro-leaks) khi chạy demo dài ngày.
+
+#### 3. Cấu hình biến môi trường khống chế phân mảnh bộ nhớ OS
+- **Hành động**: Bổ sung 2 biến môi trường chuẩn của hệ điều hành Linux vào `render.yaml` và `Dockerfile`:
+  ```env
+  MALLOC_ARENA_MAX=2
+  PYTHONMALLOC=malloc
+  ```
+- **Tác dụng**: Ép buộc Glibc giải phóng các block bộ nhớ rác trả về hệ điều hành ngay khi Python kết thúc hàm, ngăn chặn tình trạng "RAM ảo phình to" khiến Render kill nhầm container.
+- **Tiết kiệm**: Giảm **~60 MB – 80 MB** RSS footprint.
+
+#### 4. Chuẩn hóa mô hình SWR Cache cho Slashing Guard & NPoS Staking
+- **Hành động**:
+  - Tương tự như `dual_tracker`, các dữ liệu nặng của `slash_guard` (`session_authorities`, `active_validators`) và `npos_optimizer` (`top_16_recommendation`) được cập nhật định kỳ bởi background thread (chu kỳ 10s - 15s) vào bộ nhớ đệm.
+  - Các route HTTP GET từ Vercel khi gọi tới chỉ đọc từ biến đệm RAM trong **< 5ms**.
+- **Tác dụng**: Vercel nhận phản hồi ngay lập tức như localhost, không bao giờ bị timeout 503/504, và không kích hoạt thêm luồng xử lý nặng trên backend.
+
+#### 5. Điều hòa chu kỳ Polling phía Vercel Frontend
+- **Hành động**:
+  - Giữ nguyên chu kỳ 5.0 giây khi người dùng đang thao tác trên tab console.
+  - Khi tab bị ẩn (`document.hidden`), giãn chu kỳ lên 15.0 giây hoặc tạm dừng để không lãng phí tài nguyên của Render khi người thuyết trình đang chuyển đổi slide/màn hình trình chiếu.
+
+---
+
+### 8.4. Tiêu chí Nghiệm thu Kỹ thuật (Acceptance Criteria cho Demo Vercel)
+
+Sau khi triển khai các biện pháp tối ưu trên:
+1. **Dung lượng RAM thực tế**: Dao động ổn định trong khoảng **300 MB – 360 MB** (ngưỡng an toàn tuyệt đối < 512 MB).
+2. **Số lần sập / OOM Kill**: **0 lần (Zero OOM / 100% Uptime)**.
+3. **Tốc độ phản hồi API trên domain Vercel**:
+   - `dual-tracker`, `recent-blocks`: **< 50 ms**
+   - `slash-guard`, `npos/top-16`, `rpc-shield`: **< 100 ms** (nhờ SWR Cache)
+   - `contract-audit`: **< 500 ms**
+4. **Trải nghiệm Demo**: Mọi thao tác chuyển tab trên Vercel phản hồi mượt mà, tức thì, dữ liệu hiển thị là data thật on-chain từ chuỗi Portaldot Network V3.0 mà không gặp bất kỳ lỗi màu đỏ nào trong Console/Network DevTools.

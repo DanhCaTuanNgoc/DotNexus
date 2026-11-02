@@ -2564,8 +2564,13 @@ function getSavedRecentBlocks(): DualBlockConduitItem[] {
       const saved = localStorage.getItem('dotnexus_cached_recent_blocks');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.block_number_wasm > 200000) {
-          return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Discard simulated mock authors from previous fallback sessions
+          const mockNames = ['Alice (Primary)', 'Bob (Core #1)', 'Charlie (Zero-SLA)', 'Dave (Pool)', 'Eve (Hub)'];
+          const hasMockAuthor = parsed.some(b => mockNames.includes(b.babe_author));
+          if (!hasMockAuthor && parsed[0]?.block_number_wasm > 200000) {
+            return parsed;
+          }
         }
       }
     } catch {}
@@ -2600,7 +2605,7 @@ function gentlyAdvanceBlockSimulation() {
 
   if (now - lastBlockAdvanceTime > 6000) {
 
-    const elapsedSlots = Math.floor((now - lastBlockAdvanceTime) / 6000);
+    const elapsedSlots = Math.min(1, Math.floor((now - lastBlockAdvanceTime) / 6000));
 
     lastBlockAdvanceTime = now;
 
@@ -2612,11 +2617,9 @@ function gentlyAdvanceBlockSimulation() {
 
     dynamicDualState.timestamp = Math.floor(now / 1000);
 
-    // Only downgrade to simulation if we have no live chain block (< 200,000)
-    if (dynamicDualState.substrate.best_block < 200000) {
-      dynamicDualState.substrate.is_live_chain = false;
-      dynamicDualState.evm.is_live_chain = false;
-    }
+    // When running fallback simulation, strictly flag as simulation
+    dynamicDualState.substrate.is_live_chain = false;
+    dynamicDualState.evm.is_live_chain = false;
 
 
 
@@ -2746,11 +2749,11 @@ async function fetchWithFallback<T>(
 
     if (fallbackGenerator) {
 
-      return { success: true, data: fallbackGenerator() };
+      return { success: true, data: fallbackGenerator(), isFallback: true } as any;
 
     }
 
-    return { success: false, data: undefined as any };
+    return { success: false, data: undefined as any, isFallback: true } as any;
 
   }
 
@@ -2818,11 +2821,11 @@ export const api = {
 
       },
 
-      20000
+      6000
 
     );
 
-    if (res.success && res.data) {
+    if (res.success && !(res as any).isFallback && res.data) {
       dynamicDualState = res.data;
       if (typeof window !== 'undefined' && window.localStorage) {
         try {
@@ -2853,11 +2856,11 @@ export const api = {
 
       },
 
-      20000
+      6000
 
     );
 
-    if (res.success && res.data && res.data.length > 0) {
+    if (res.success && !(res as any).isFallback && res.data && res.data.length > 0) {
       cachedRecentBlocks = res.data;
       dynamicRecentBlocks = res.data;
       if (typeof window !== 'undefined' && window.localStorage) {

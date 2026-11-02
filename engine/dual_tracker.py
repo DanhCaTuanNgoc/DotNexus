@@ -98,6 +98,14 @@ class DualEngineTracker:
         self._cached_hardware_time: float = 0.0
         self._cached_hardware_ttl: float = 15.0
         self._cache_lock = threading.Lock()
+        self._compute_lock = threading.Lock()
+        self._blocks_lock = threading.Lock()
+        self._ws_lock = threading.Lock()
+
+        # Alice on-chain account balance cache (60s TTL to prevent per-tick SCALE queries)
+        self._cached_alice_balance: Optional[tuple[int, int]] = None
+        self._cached_alice_balance_time: float = 0.0
+        self._cached_alice_balance_ttl: float = 60.0
 
         # Background Poller State
         self._poller_thread: Optional[threading.Thread] = None
@@ -236,7 +244,8 @@ class DualEngineTracker:
             try:
                 # Solution 2: Isolate RPC network latency measurement from heavy client/metadata initialization
                 t_rpc_start = time.perf_counter()
-                head_res = self.substrate_client.rpc_request("chain_getHeader", [])
+                with self._ws_lock:
+                    head_res = self.substrate_client.rpc_request("chain_getHeader", [])
                 latency_ms = round((time.perf_counter() - t_rpc_start) * 1000, 2)
                 self._last_sub_latency = latency_ms
 
@@ -259,7 +268,8 @@ class DualEngineTracker:
                 is_syncing = False
                 peers_count = 1
                 try:
-                    health_res = self.substrate_client.rpc_request("system_health", [])
+                    with self._ws_lock:
+                        health_res = self.substrate_client.rpc_request("system_health", [])
                     health = health_res.get('result', {}) if health_res else {}
                     peers_count = max(1, health.get('peers', 1))
                     is_syncing = bool(health.get('isSyncing', False))
@@ -748,24 +758,31 @@ class DualEngineTracker:
         actual_wei = 100 * (10 ** CONFIG.evm_standard_decimals)
         inspected_account = f"{alice_stash[:8]}...{alice_stash[-4:]} (Alice Genesis Validator)"
 
-        if self.substrate_client is not None:
-            try:
-                acc_info = self.substrate_client.query("System", "Account", [alice_stash])
-                if acc_info and acc_info.value:
-                    free_bal = int(acc_info.value.get("data", {}).get("free", 0))
-                    if free_bal > 0:
-                        actual_planck = free_bal
-                        actual_wei = free_bal * CONFIG.decimal_scale_multiplier
-            except Exception:
-                pass
+        now_ts = time.time()
+        if self._cached_alice_balance is not None and (now_ts - self._cached_alice_balance_time) < self._cached_alice_balance_ttl:
+            actual_planck, actual_wei = self._cached_alice_balance
+        else:
+            if self.substrate_client is not None:
+                try:
+                    with self._ws_lock:
+                        acc_info = self.substrate_client.query("System", "Account", [alice_stash])
+                    if acc_info and acc_info.value:
+                        free_bal = int(acc_info.value.get("data", {}).get("free", 0))
+                        if free_bal > 0:
+                            actual_planck = free_bal
+                            actual_wei = free_bal * CONFIG.decimal_scale_multiplier
+                except Exception:
+                    pass
 
-        if self.web3_client is not None:
-            try:
-                evm_bal = self.web3_client.eth.get_balance(self.web3_client.to_checksum_address(alice_evm))
-                if evm_bal > 0:
-                    actual_wei = evm_bal
-            except Exception:
-                pass
+            if self.web3_client is not None:
+                try:
+                    evm_bal = self.web3_client.eth.get_balance(self.web3_client.to_checksum_address(alice_evm))
+                    if evm_bal > 0:
+                        actual_wei = evm_bal
+                except Exception:
+                    pass
+            self._cached_alice_balance = (actual_planck, actual_wei)
+            self._cached_alice_balance_time = now_ts
 
         decimal_norm = self.normalize_pot_balance(actual_planck, actual_wei, inspected_account=inspected_account)
 
@@ -843,18 +860,14 @@ class DualEngineTracker:
 
     def get_dual_state(self, force_refresh: bool = False) -> Dict[str, Any]:
         """
-        Solution 1: Calculates synchronicity delta, mempool distribution, 3-tier root-cause diagnosis,
-        and decimal mapping normalization.
-        Uses thread-safe cached telemetry with strict TTL validation and Stale-While-Revalidate.
+        Pure Lock-Free SWR: Serves instant response (<0.1ms) from hot in-memory cache.
+        Background poller daemon keeps cache fresh every 2.5s without blocking HTTP worker threads.
         """
-        now = time.time()
-        # Fast path: hot cache within TTL -> instant response (<0.1ms)
-        if not force_refresh and self._dual_state_cache is not None and (now - self._dual_state_cache_time) < self._dual_state_cache_ttl:
+        if not force_refresh and self._dual_state_cache is not None:
             return self._dual_state_cache
 
-        with self._cache_lock:
-            now = time.time()
-            if not force_refresh and self._dual_state_cache is not None and (now - self._dual_state_cache_time) < self._dual_state_cache_ttl:
+        with self._compute_lock:
+            if not force_refresh and self._dual_state_cache is not None:
                 return self._dual_state_cache
             return self._compute_dual_state()
 
@@ -1036,7 +1049,8 @@ class DualEngineTracker:
 
         if self.substrate_client is not None:
             try:
-                val_res = self.substrate_client.query("Session", "Validators")
+                with self._ws_lock:
+                    val_res = self.substrate_client.query("Session", "Validators")
                 if val_res and val_res.value:
                     self._cached_session_validators = [str(v) for v in val_res.value]
                     self._cached_session_validators_time = now
@@ -1265,21 +1279,16 @@ class DualEngineTracker:
 
     def get_recent_dual_blocks(self, limit: int = 5, force_refresh: bool = False) -> List[Dict[str, Any]]:
         """
-        Solution 1: Retrieves real-time correlated block feed between Substrate WASM and Frontier EVM.
-        Uses historical LRU block cache with strict TTL validation for sub-millisecond responses.
+        Pure Lock-Free SWR: Serves instant response (<0.1ms) from hot in-memory cache.
+        Background poller daemon keeps recent blocks fresh every 2.5s without blocking HTTP threads.
         """
         limit = max(1, min(limit, 10))
-        now = time.time()
-
         if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
-            if (now - self._recent_blocks_cache_time) < self._recent_blocks_cache_ttl:
-                return self._recent_blocks_cache[:limit]
+            return self._recent_blocks_cache[:limit]
 
-        with self._cache_lock:
-            now = time.time()
+        with self._blocks_lock:
             if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
-                if (now - self._recent_blocks_cache_time) < self._recent_blocks_cache_ttl:
-                    return self._recent_blocks_cache[:limit]
+                return self._recent_blocks_cache[:limit]
             return self._refresh_recent_dual_blocks(limit=limit)
 
 

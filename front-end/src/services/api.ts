@@ -10,7 +10,8 @@
 
 
 
-// Dynamic API endpoint: Uses VITE_API_BASE_URL if configured, otherwise falls back to relative '/api' proxy
+// Dynamic API endpoint: Uses VITE_API_BASE_URL if configured, otherwise falls back to production Render backend or relative '/api' proxy
+export const DEFAULT_REMOTE_BACKEND = 'https://dotnexus-1.onrender.com';
 
 const RAW_API_URL = (
   import.meta.env.VITE_API_BASE_URL ||
@@ -21,7 +22,18 @@ const RAW_API_URL = (
 ).trim();
 const normalizedUrl = RAW_API_URL.replace(/\/+$/, '');
 
-const BASE_URL = normalizedUrl ? (normalizedUrl.endsWith('/api') ? normalizedUrl : `${normalizedUrl}/api`) : '/api';
+const BASE_URL = (() => {
+  if (normalizedUrl) {
+    return normalizedUrl.endsWith('/api') ? normalizedUrl : `${normalizedUrl}/api`;
+  }
+  if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+    const host = window.location.hostname.toLowerCase();
+    if (host !== 'localhost' && host !== '127.0.0.1' && !host.startsWith('192.168.') && !host.startsWith('10.')) {
+      return `${DEFAULT_REMOTE_BACKEND}/api`;
+    }
+  }
+  return '/api';
+})();
 
 
 
@@ -2722,9 +2734,23 @@ async function fetchWithFallback<T>(
     const contentType = res.headers.get('content-type') || '';
 
     if (!contentType.includes('application/json')) {
-
+      if (url.startsWith('/api') && typeof window !== 'undefined') {
+        try {
+          const directRes = await fetch(`${DEFAULT_REMOTE_BACKEND}${url}`, { ...options, signal: controller.signal });
+          if (directRes.ok && (directRes.headers.get('content-type') || '').includes('application/json')) {
+            const directPayload = await directRes.json();
+            if (directPayload && typeof directPayload === 'object') {
+              if ('success' in directPayload && 'data' in directPayload) {
+                return directPayload as { success: boolean; data: T };
+              }
+              return { success: true, data: directPayload as T };
+            }
+          }
+        } catch {
+          // continue to throw
+        }
+      }
       throw new Error('Not JSON response');
-
     }
 
 

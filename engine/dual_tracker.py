@@ -860,15 +860,19 @@ class DualEngineTracker:
 
     def get_dual_state(self, force_refresh: bool = False) -> Dict[str, Any]:
         """
-        Pure Lock-Free SWR: Serves instant response (<0.1ms) from hot in-memory cache.
-        Background poller daemon keeps cache fresh every 2.5s without blocking HTTP worker threads.
+        Enforced SWR Cache with strict TTL validation (3.0 seconds).
+        Serves instant response (<0.1ms) when fresh; recomputes on demand when stale.
         """
+        now = time.time()
         if not force_refresh and self._dual_state_cache is not None:
-            return self._dual_state_cache
+            if (now - self._dual_state_cache_time) < self._dual_state_cache_ttl:
+                return self._dual_state_cache
 
         with self._compute_lock:
+            now = time.time()
             if not force_refresh and self._dual_state_cache is not None:
-                return self._dual_state_cache
+                if (now - self._dual_state_cache_time) < self._dual_state_cache_ttl:
+                    return self._dual_state_cache
             return self._compute_dual_state()
 
     def toggle_circuit_breaker(self, enabled: Optional[bool] = None) -> Dict[str, Any]:
@@ -1117,7 +1121,8 @@ class DualEngineTracker:
 
             if has_sub and has_evm and self.substrate_client and self.web3_client:
                 # Query current best blocks
-                head_res = self.substrate_client.rpc_request("chain_getHeader", [])
+                with self._ws_lock:
+                    head_res = self.substrate_client.rpc_request("chain_getHeader", [])
                 if head_res and head_res.get("result") and "number" in head_res["result"]:
                     wasm_best = int(head_res["result"]["number"], 16)
                 else:
@@ -1140,11 +1145,13 @@ class DualEngineTracker:
                         continue
 
                     # Fetch Substrate block info
-                    h_res = self.substrate_client.rpc_request("chain_getBlockHash", [w_num])
+                    with self._ws_lock:
+                        h_res = self.substrate_client.rpc_request("chain_getBlockHash", [w_num])
                     w_hash = h_res.get("result") if h_res else None
                     exts_count = 1
                     if w_hash:
-                        b_res = self.substrate_client.rpc_request("chain_getBlock", [w_hash])
+                        with self._ws_lock:
+                            b_res = self.substrate_client.rpc_request("chain_getBlock", [w_hash])
                         block_data = b_res.get("result", {}).get("block", {}) if b_res else {}
                         exts_count = max(1, len(block_data.get("extrinsics", [])))
                     else:
@@ -1279,16 +1286,20 @@ class DualEngineTracker:
 
     def get_recent_dual_blocks(self, limit: int = 5, force_refresh: bool = False) -> List[Dict[str, Any]]:
         """
-        Pure Lock-Free SWR: Serves instant response (<0.1ms) from hot in-memory cache.
-        Background poller daemon keeps recent blocks fresh every 2.5s without blocking HTTP threads.
+        Enforced SWR Cache with strict TTL validation (3.0 seconds).
+        Serves instant response (<0.1ms) when fresh; re-queries correlated blocks when stale.
         """
         limit = max(1, min(limit, 10))
+        now = time.time()
         if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
-            return self._recent_blocks_cache[:limit]
+            if (now - self._recent_blocks_cache_time) < self._recent_blocks_cache_ttl:
+                return self._recent_blocks_cache[:limit]
 
         with self._blocks_lock:
+            now = time.time()
             if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
-                return self._recent_blocks_cache[:limit]
+                if (now - self._recent_blocks_cache_time) < self._recent_blocks_cache_ttl:
+                    return self._recent_blocks_cache[:limit]
             return self._refresh_recent_dual_blocks(limit=limit)
 
 

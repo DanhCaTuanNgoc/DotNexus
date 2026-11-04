@@ -56,6 +56,7 @@ Installed via `npx skills add vercel-labs/agent-skills`:
 ### 🎭 Playwright MCP Browser Testing (`.agents/skills/playwright/`)
 - Microsoft Playwright MCP integration for E2E frontend verification, headless browser testing, and visual regressions.
 - Configured via `mcp_config.json` (`@playwright/mcp@latest`) with Chromium and headless test runners.
+- **Mandatory Token-Optimization Protocol**: Prefer script-based execution (`node tests/e2e/...`) over multi-step MCP loops; use targeted `browser_evaluate` instead of full-page DOM dumps (`browser_snapshot`); only capture screenshots when explicitly requested; recommend `/compact` after heavy test sessions to preserve weekly token allowances.
 
 ---
 

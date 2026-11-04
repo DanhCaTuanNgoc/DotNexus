@@ -4008,7 +4008,7 @@ export const api = {
     return { success: true };
   },
 
-  executeDiagnosticCommand: async (rawCommand: string): Promise<{ success: boolean; output: string; source?: string; level?: string }> => {
+  executeDiagnosticCommand: async (rawCommand: string): Promise<{ success: boolean; output: string; source?: string; level?: string; action?: string }> => {
     const trimmed = rawCommand.trim();
     if (!trimmed) return { success: true, output: '' };
 
@@ -4133,6 +4133,7 @@ export const api = {
     } else if (cmd === 'clear') {
       await api.clearLogs();
       return {
+        action: 'clear',
         success: true,
         source: 'SYSTEM',
         level: 'INFO',

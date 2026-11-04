@@ -220,11 +220,11 @@ export const App: React.FC = () => {
       const logsRes = await api.getLogs();
       if (logsRes?.success && logsRes.logs) {
         setLogs((prev) => {
-          const dagLogs = prev.filter((l) => l.source === 'DAG_ENGINE' || l.source === 'RUNBOOK');
-          const merged = [...dagLogs, ...logsRes.logs].filter((l) => l.time > lastClearedTimeRef.current);
+          // Preserve client-side CLI and diagnostic events along with server event stream
+          const merged = [...prev, ...logsRes.logs].filter((l) => l.time > lastClearedTimeRef.current);
           const seen = new Set();
           return merged.filter((item) => {
-            const key = `${item.time}-${item.source}-${item.text}`;
+            const key = `${Math.floor(item.time)}-${item.source}-${item.text}`;
             if (seen.has(key)) return false;
             seen.add(key);
             return true;

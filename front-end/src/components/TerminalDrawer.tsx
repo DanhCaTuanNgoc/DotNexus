@@ -170,8 +170,8 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
         return false;
       }
 
-      // 2. Node filter (Strict isolation when selected on Canvas)
-      if (selectedNodeId && log.nodeId !== selectedNodeId) {
+      // 2. Node filter (Strict isolation when selected on Canvas, preserving CLI commands and global diagnostic events)
+      if (selectedNodeId && log.nodeId && log.nodeId !== selectedNodeId) {
         return false;
       }
 
@@ -296,7 +296,7 @@ export const TerminalDrawer: React.FC<TerminalDrawerProps> = ({
 
   return (
     <div 
-      className={`fixed bottom-14 md:bottom-0 left-0 right-0 z-40 border-t border-[#261B42] bg-[#080512]/95 backdrop-blur-md shadow-2xl shadow-black/80 transition-shadow ${
+      className={`fixed bottom-0 left-0 right-0 z-40 border-t border-[#261B42] bg-[#080512]/95 backdrop-blur-md shadow-2xl shadow-black/80 transition-shadow ${
         isResizing ? 'select-none pointer-events-auto' : ''
       }`}
     >

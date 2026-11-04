@@ -46,6 +46,10 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
 
   // Dual-VM Realtime Block Lockstep Stream
   const [recentBlocks, setRecentBlocks] = useState<DualBlockConduitItem[]>(() => api.getCachedRecentBlocks());
+  const [liveDualState, setLiveDualState] = useState<DualTelemetryState | null>(() => {
+    const cached = api.getCachedDualState();
+    return cached?.substrate?.is_live_chain ? cached : null;
+  });
   const [isConduitLoading, setIsConduitLoading] = useState(false);
 
   const fetchRecentBlocks = useCallback(async (isInitial = false) => {
@@ -67,10 +71,13 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
   useEffect(() => {
     fetchRecentBlocks(true);
     // Realtime Direct Client-Side WebSocket & RPC Probe (NodeScope Pattern)
-    const unsubscribe = subscribeClientDualProbe((items) => {
+    const unsubscribe = subscribeClientDualProbe((items, liveTelemetry) => {
       if (items && items.length > 0) {
         setRecentBlocks(items);
         api.setCachedRecentBlocks(items);
+      }
+      if (liveTelemetry && liveTelemetry.substrate?.is_live_chain) {
+        setLiveDualState(liveTelemetry);
       }
     });
     return () => {
@@ -135,7 +142,8 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
     setTimeout(() => setCopiedCmd(null), 2000);
   };
 
-  const { substrate, evm, sync, mempool, root_cause_diagnosis, decimal_normalization, hardware } = data;
+  const activeDisplayData = liveDualState || data;
+  const { substrate, evm, sync, mempool, root_cause_diagnosis, decimal_normalization, hardware } = activeDisplayData;
   const isHealthy = sync.is_synced;
   const delta = sync.delta_blocks;
 

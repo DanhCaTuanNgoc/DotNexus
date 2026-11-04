@@ -175,7 +175,12 @@ export const App: React.FC = () => {
         api.getRecentDualBlocks(5).catch(() => null)
       ]);
       if (res?.success && res.data) {
-        setDualData(res.data);
+        const cachedLive = api.getCachedDualState();
+        if ((res as any).isFallback && cachedLive?.substrate?.is_live_chain) {
+          setDualData(cachedLive);
+        } else {
+          setDualData(res.data);
+        }
       }
     } catch (e) {
       console.warn('DualTracker fetch failed:', e);

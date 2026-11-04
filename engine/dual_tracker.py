@@ -136,7 +136,8 @@ class DualEngineTracker:
         while self._poller_running:
             try:
                 self._compute_dual_state()
-                self._refresh_recent_dual_blocks(limit=5)
+                with self._blocks_lock:
+                    self._refresh_recent_dual_blocks(limit=5)
             except Exception as e:
                 logger.debug(f"Background poller tick error: {e}")
             time.sleep(interval)
@@ -860,19 +861,16 @@ class DualEngineTracker:
 
     def get_dual_state(self, force_refresh: bool = False) -> Dict[str, Any]:
         """
-        Enforced SWR Cache with strict TTL validation (3.0 seconds).
-        Serves instant response (<0.1ms) when fresh; recomputes on demand when stale.
+        Pure Non-Blocking SWR Cache.
+        Returns immediate cached state (<0.1ms). Background poller updates it asynchronously.
+        Cold-boot compute only if cache is None or force_refresh is True.
         """
-        now = time.time()
         if not force_refresh and self._dual_state_cache is not None:
-            if (now - self._dual_state_cache_time) < self._dual_state_cache_ttl:
-                return self._dual_state_cache
+            return self._dual_state_cache
 
         with self._compute_lock:
-            now = time.time()
             if not force_refresh and self._dual_state_cache is not None:
-                if (now - self._dual_state_cache_time) < self._dual_state_cache_ttl:
-                    return self._dual_state_cache
+                return self._dual_state_cache
             return self._compute_dual_state()
 
     def toggle_circuit_breaker(self, enabled: Optional[bool] = None) -> Dict[str, Any]:
@@ -1163,12 +1161,16 @@ class DualEngineTracker:
                         e_hash = "0x" + eb.hash.hex().lstrip("0x")
                         tx_count = len(eb.transactions)
                         gas_used = eb.gasUsed
-                        base_fee = round(eb.get("baseFeePerGas", 18000000000) / 10**9, 2)
+                        raw_base_fee = eb.get("baseFeePerGas", 18000000000)
+                        base_fee_val = raw_base_fee / 10**9
+                        base_fee = round(base_fee_val, 6) if base_fee_val < 0.01 else round(base_fee_val, 2)
+                        block_timestamp = int(getattr(eb, "timestamp", now - (i * 6.0)))
                     except Exception:
                         e_hash = "0x" + hashlib.sha256(f"evm-{e_num}".encode()).hexdigest()
                         tx_count = 0
                         gas_used = 21000
                         base_fee = 18.0
+                        block_timestamp = now - (i * 6.0)
 
                     # Derive realistic mapping latency (12ms - 18ms baseline, with index variance)
                     # Calculate real mapping latency from observed RPC connection latencies
@@ -1196,7 +1198,7 @@ class DualEngineTracker:
                         "mapping_latency_ms": mapping_latency,
                         "delta_blocks": delta,
                         "status": status,
-                        "timestamp": now - (i * 6.0)
+                        "timestamp": block_timestamp
                     }
 
                     # Cache historical block (never changes once produced)
@@ -1286,20 +1288,18 @@ class DualEngineTracker:
 
     def get_recent_dual_blocks(self, limit: int = 5, force_refresh: bool = False) -> List[Dict[str, Any]]:
         """
-        Enforced SWR Cache with strict TTL validation (3.0 seconds).
-        Serves instant response (<0.1ms) when fresh; re-queries correlated blocks when stale.
+        Pure Non-Blocking SWR Cache.
+        Serves instant response (<0.1ms) when cache is populated.
+        Background poller updates it asynchronously every interval.
+        Cold-boot fallback only if cache is empty or force_refresh is True.
         """
         limit = max(1, min(limit, 10))
-        now = time.time()
         if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
-            if (now - self._recent_blocks_cache_time) < self._recent_blocks_cache_ttl:
-                return self._recent_blocks_cache[:limit]
+            return self._recent_blocks_cache[:limit]
 
         with self._blocks_lock:
-            now = time.time()
             if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
-                if (now - self._recent_blocks_cache_time) < self._recent_blocks_cache_ttl:
-                    return self._recent_blocks_cache[:limit]
+                return self._recent_blocks_cache[:limit]
             return self._refresh_recent_dual_blocks(limit=limit)
 
 

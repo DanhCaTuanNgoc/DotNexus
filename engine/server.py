@@ -142,6 +142,9 @@ def root_index():
 
 
 @app.route("/health", methods=["GET", "HEAD"])
+@app.route("/health/", methods=["GET", "HEAD"])
+@app.route("/api/health", methods=["GET", "HEAD"])
+@app.route("/api/health/", methods=["GET", "HEAD"])
 def health_probe():
     return jsonify({"status": "HEALTHY", "service": "DotNexus"}), 200
 

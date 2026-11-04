@@ -36,4 +36,4 @@ ENV PORT=10000
 EXPOSE 10000 5050
 
 # Gunicorn WSGI: 1 worker, 2 threads (balanced for 512MB ceiling) with auto-recycle every 500 requests to purge fragmentation
-CMD ["sh", "-c", "gunicorn -w 1 --threads 4 --max-requests 500 --max-requests-jitter 50 -b 0.0.0.0:${PORT:-10000} --timeout 120 engine.server:app"]
+CMD ["sh", "-c", "gunicorn -w 1 --threads 2 --max-requests 500 --max-requests-jitter 50 -b 0.0.0.0:${PORT:-10000} --timeout 120 engine.server:app"]

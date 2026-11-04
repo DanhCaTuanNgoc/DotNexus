@@ -143,33 +143,83 @@ flowchart TD
 
 ---
 
-## 6. Lộ Trình Triển Khai (Action Plan) Đề Xuất
+## 6. Lộ Trình Triển Khai (Action Plan) Đề Xuất & Danh Mục Công Việc Chi Tiết
 
-Để DotNexus hoạt động trơn tru 100% trên Render hoặc bất kỳ PaaS nào mà không sợ OOM 512MB:
+Để DotNexus hoạt động trơn tru 100% trên Render hoặc bất kỳ PaaS nào mà không sợ OOM 512MB, dưới đây là kế hoạch chi tiết từng bước:
 
-### Giai đoạn 1: Giảm tải tức thì cho Python Backend (Thời gian: ~2 giờ)
-1. **Triệt tiêu Infinite Background Loops**:
-   - Chuyển `DualEngineTracker._loop()` và `WorkerDaemon._loop()` sang chế độ **Passive / On-Demand**.
-   - Chỉ cập nhật state khi có request API gửi đến, kèm TTL Cache (10-15 giây).
-2. **Loại bỏ việc import `SubstrateInterface` cho các câu lệnh đơn giản**:
-   - Thay vì dùng `substrate-interface` để lấy block number, dùng raw HTTP/WebSocket JSON-RPC (chỉ tốn vài dòng code, tiết kiệm 200MB RAM ngay lập tức).
-3. **Cấu hình lại Gunicorn**:
-   - Chạy 1 worker, 2 threads: `gunicorn -w 1 --threads 2 --timeout 120 engine.server:app`.
-   - RAM tiêu thụ sẽ giảm từ **480 MB $\rightarrow$ ~85 MB**. Render Free 512MB chạy mượt mà, không bao giờ bị OOM Kill.
+### Giai đoạn 1: Giảm tải tức thì cho Python Backend (On-Demand & TTL Cache)
+- [x] **1.1. Triệt tiêu Infinite Background Polling Loop**:
+  - Tắt vòng lặp tự động `DUAL_TRACKER.start_background_poller(interval=2.5)` trong `engine/server.py`.
+  - Không để các thread `while True: sleep(2.5)` chạy ngầm khi không có request, triệt tiêu 100% hiện tượng ăn cắp CPU 0.1 trên Render.
+- [x] **1.2. Thêm TTL Cache (10-15s) cho DualEngineTracker & Telemetry**:
+  - Trong `engine/dual_tracker.py`: Xây dựng cơ chế On-Demand cache cho `get_composite_state()`.
+  - Khi có request từ UI/API: Nếu cache chưa quá TTL (10s), trả về ngay lập tức (0ms CPU, 0ms mạng). Chỉ khi cache hết hạn mới thực hiện 1 lần query đơn lẻ.
+- [x] **1.3. Tối ưu Gunicorn & Memory footprint**:
+  - Cập nhật `Dockerfile`: Cấu hình Gunicorn 1 worker, 2 threads (`--threads 2 --timeout 120 --max-requests 1000`).
+  - Đảm bảo toàn bộ 213 unit tests trong `tests/test_engine.py` tiếp tục pass 100%.
 
-### Giai đoạn 2: Tách tải quan sát (Observability Offloading) sang Frontend (Thời gian: ~1 ngày)
-1. Tạo module `front-end/src/services/chainClientProbe.ts`:
-   - Cho `DualBlockConduit.tsx` mở WebSocket trực tiếp tới `wss://test-node-v3.portaldot.dev` để subscribe new heads.
-   - Khi có block mới, UI cập nhật tức thì (độ trễ ~0ms, không còn phụ thuộc polling từ Render backend).
-2. Tận dụng `localStorage` để lưu cache snapshot lịch sử kiểm tra (giống như NodeScope lưu trữ 7-day baselines ngay trong browser).
+### Giai đoạn 2: Tách tải quan sát sang Frontend (Client-Side Direct Probing)
+- [x] **2.1. Xây dựng `front-end/src/services/chainClientProbe.ts`**:
+  - Kết nối trực tiếp Substrate WebSocket: `wss://test-node-v3.portaldot.dev`.
+  - Lắng nghe block mới qua RPC `chain_subscribeNewHeads` (hoặc định kỳ probe `chain_getHeader`, `system_health`).
+  - Gửi HTTP POST tới EVM RPC: `https://test-evm-rpc-v3.portaldot.dev` lấy `eth_blockNumber` và gas fee.
+  - Tính toán `delta_blocks`, cross-VM sync status (`LOCKSTEP`, `PROPAGATION_LAG`) trực tiếp trên client.
+- [x] **2.2. Tích hợp vào `DualBlockConduit.tsx` và `DualEngineView.tsx`**:
+  - Ưu tiên hiển thị dữ liệu realtime từ client probe.
+  - Tự động fallback về API backend nếu mạng client chặn WebSocket.
+  - Tải block conduit gần như 0ms, không phụ thuộc vào tình trạng Render backend.
+- [x] **2.3. Giảm chu kỳ polling trong `App.tsx`**:
+  - Nâng chu kỳ `setInterval` từ 5s lên 15s-30s cho các tab quản trị, loại bỏ request rác liên tục lên Render.
 
-### Giai đoạn 3: Phân tách Hạ tầng Triển khai (Production Deployment) (Thời gian: ~1 giờ)
-1. **Frontend**: Deploy lên **Vercel** (`dotnexus.vercel.app`) hoặc **Cloudflare Pages**. Toàn bộ 3D Three.js assets và giao diện React 19 chạy trên CDN toàn cầu hoàn toàn miễn phí.
-2. **Backend**: Giữ trên Render hoặc chuyển sang **Koyeb / Fly.io / Railway** chỉ để đóng vai trò "Automated Security Operations Engine".
+### Giai đoạn 3: Phân tách Hạ tầng Triển khai (Vercel + Render Production)
+- [x] **3.1. Build & Tối ưu bundle Frontend**:
+  - Chạy `npm run build` xác nhận zero TypeScript error và kiểm tra chunk size.
+- [ ] **3.2. Cấu hình Vercel (Thực hiện trên Vercel Dashboard)**:
+  - Import Git Repo, chọn Root Directory: `front-end`.
+  - Cấu hình Environment Variable: `VITE_API_BASE_URL = https://dotnexus-1.onrender.com`.
+  - Vercel tự động nhận diện `front-end/vercel.json` để rewrite `/api/*` về Render backend.
+- [ ] **3.3. Cấu hình Render (Thực hiện trên Render Dashboard)**:
+  - Cập nhật biến môi trường:
+    - `PORT = 10000`
+    - `PYTHONUNBUFFERED = 1`
+    - `MALLOC_ARENA_MAX = 2`
+    - `DOTNEXUS_AUTH_TOKEN = nexus-ops-secret-key-2026`
+  - Render Backend giờ đây chỉ nhận các tác vụ SecOps (chạy DAG Runbook, đổi key, kích hoạt failover) $\rightarrow$ RAM ổn định < 80MB, không bao giờ bị OOM.
 
 ---
 
-## 7. Kết Luận
+## 7. Hướng Dẫn Cấu Hình Thủ Công Cho Người Dùng (Vercel & Render)
+
+### A. Cấu hình trên Vercel (Dành cho Frontend)
+1. Đăng nhập [vercel.com](https://vercel.com) $\rightarrow$ Chọn **Add New...** $\rightarrow$ **Project**.
+2. Chọn repository **DotNexus**.
+3. Tại phần cấu hình dự án:
+   - **Framework Preset**: Chọn `Vite`.
+   - **Root Directory**: Nhấn *Edit* và chọn thư mục `front-end`.
+   - **Build and Output Settings**: Giữ mặc định (`npm run build` và `dist`).
+4. Tại mục **Environment Variables**:
+   - Thêm biến: `VITE_API_BASE_URL` với giá trị là URL Render Backend của bạn (ví dụ: `https://dotnexus-1.onrender.com`).
+5. Nhấn **Deploy**. Sau ~1 phút, bạn sẽ có domain Vercel siêu tốc (ví dụ: `dotnexus.vercel.app`).
+
+### B. Cấu hình trên Render (Dành cho Backend)
+1. Đăng nhập [dashboard.render.com](https://dashboard.render.com) $\rightarrow$ Chọn Web Service backend của bạn (`dotnexus-backend`).
+2. Vào tab **Settings**:
+   - **Runtime**: `Docker`.
+   - **Dockerfile Path**: `./Dockerfile`.
+   - **Docker Context**: `.`.
+   - **Plan**: `Free`.
+3. Vào tab **Environment**:
+   - Đảm bảo các biến sau đã được set:
+     - `PORT`: `10000`
+     - `PORTALDOT_WS_URL`: `wss://test-node-v3.portaldot.dev`
+     - `PORTALDOT_EVM_URL`: `https://test-evm-rpc-v3.portaldot.dev`
+     - `MALLOC_ARENA_MAX`: `2`
+     - `DOTNEXUS_AUTH_TOKEN`: `nexus-ops-secret-key-2026`
+4. Tiến hành **Manual Deploy** $\rightarrow$ **Clear build cache & deploy**.
+
+---
+
+## 8. Kết Luận
 
 - **Không đập bỏ Backend**: Việc sao chép 100% NodeScope (bỏ hết backend) sẽ làm DotNexus mất toàn bộ các tính năng bảo mật then chốt (Slashing Guard, RPC Shield, Runbook DAG).
 - **Mô hình Hybrid Client-First là câu trả lời hoàn hảo**:

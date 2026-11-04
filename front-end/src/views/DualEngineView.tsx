@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { api, DualTelemetryState, ContractAuditResult, DualBlockConduitItem } from '../services/api';
 import { DualBlockConduit } from '../components/DualBlockConduit';
+import { subscribeClientDualProbe, runClientDualProbe } from '../services/chainClientProbe';
 
 interface DualEngineViewProps {
   data: DualTelemetryState;
@@ -65,6 +66,16 @@ export const DualEngineView: React.FC<DualEngineViewProps> = ({ data, onRefresh,
 
   useEffect(() => {
     fetchRecentBlocks(true);
+    // Realtime Direct Client-Side WebSocket & RPC Probe (NodeScope Pattern)
+    const unsubscribe = subscribeClientDualProbe((items) => {
+      if (items && items.length > 0) {
+        setRecentBlocks(items);
+        api.setCachedRecentBlocks(items);
+      }
+    });
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

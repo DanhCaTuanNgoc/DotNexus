@@ -80,13 +80,13 @@ class DualEngineTracker:
         # Dual-VM Realtime Block Lockstep Stream Caches
         self._recent_blocks_cache: List[Dict[str, Any]] = []
         self._recent_blocks_cache_time: float = 0.0
-        self._recent_blocks_cache_ttl: float = 3.0
+        self._recent_blocks_cache_ttl: float = 10.0
         self._historical_blocks_cache: Dict[int, Dict[str, Any]] = {}
 
         # Telemetry State Cache (sub-millisecond instant responses)
         self._dual_state_cache: Optional[Dict[str, Any]] = None
         self._dual_state_cache_time: float = 0.0
-        self._dual_state_cache_ttl: float = 3.0
+        self._dual_state_cache_ttl: float = 10.0
 
         # Solution 4: Session validators caching (eliminates per-block Session.Validators queries)
         self._cached_session_validators: list[str] = []
@@ -861,16 +861,20 @@ class DualEngineTracker:
 
     def get_dual_state(self, force_refresh: bool = False) -> Dict[str, Any]:
         """
-        Pure Non-Blocking SWR Cache.
-        Returns immediate cached state (<0.1ms). Background poller updates it asynchronously.
-        Cold-boot compute only if cache is None or force_refresh is True.
+        On-demand Lazy Cache with TTL.
+        Returns immediate cached state (<0.1ms) if within TTL.
+        Computes fresh dual state on-demand when cache expires or on force_refresh.
         """
+        now = time.time()
         if not force_refresh and self._dual_state_cache is not None:
-            return self._dual_state_cache
+            if (now - self._dual_state_cache_time) < self._dual_state_cache_ttl:
+                return self._dual_state_cache
 
         with self._compute_lock:
+            now = time.time()
             if not force_refresh and self._dual_state_cache is not None:
-                return self._dual_state_cache
+                if (now - self._dual_state_cache_time) < self._dual_state_cache_ttl:
+                    return self._dual_state_cache
             return self._compute_dual_state()
 
     def toggle_circuit_breaker(self, enabled: Optional[bool] = None) -> Dict[str, Any]:
@@ -1288,18 +1292,21 @@ class DualEngineTracker:
 
     def get_recent_dual_blocks(self, limit: int = 5, force_refresh: bool = False) -> List[Dict[str, Any]]:
         """
-        Pure Non-Blocking SWR Cache.
-        Serves instant response (<0.1ms) when cache is populated.
-        Background poller updates it asynchronously every interval.
-        Cold-boot fallback only if cache is empty or force_refresh is True.
+        On-demand Lazy Cache with TTL.
+        Serves instant response (<0.1ms) when cache is fresh within TTL.
+        Re-fetches on-demand when cache expires or on force_refresh.
         """
         limit = max(1, min(limit, 10))
+        now = time.time()
         if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
-            return self._recent_blocks_cache[:limit]
+            if (now - self._recent_blocks_cache_time) < self._recent_blocks_cache_ttl:
+                return self._recent_blocks_cache[:limit]
 
         with self._blocks_lock:
+            now = time.time()
             if not force_refresh and self._recent_blocks_cache and len(self._recent_blocks_cache) >= limit:
-                return self._recent_blocks_cache[:limit]
+                if (now - self._recent_blocks_cache_time) < self._recent_blocks_cache_ttl:
+                    return self._recent_blocks_cache[:limit]
             return self._refresh_recent_dual_blocks(limit=limit)
 
 

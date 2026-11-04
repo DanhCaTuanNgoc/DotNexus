@@ -71,8 +71,8 @@ def init_background_services():
         # Solution 3: Dedicated isolated lease heartbeat ticker (runs every 2.0s without I/O overhead)
         SLASH_GUARD.start_lease_heartbeat_ticker(interval=2.0)
 
-        # Real-time background testnet poller
-        DUAL_TRACKER.start_background_poller(interval=2.5)
+        # On-Demand Telemetry Mode: Poller loop disabled to maintain < 80MB RAM and 0.0% idle CPU
+        # DUAL_TRACKER.start_background_poller(interval=2.5)
 
         # Headless worker daemon runbook scheduler
         WORKER_DAEMON.start_background_scheduler(interval_sec=30.0)

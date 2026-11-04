@@ -274,7 +274,7 @@ export const App: React.FC = () => {
         return;
       }
       fetchActiveTabData(activeTab);
-    }, 5000);
+    }, 12000);
 
     const handleVisibilityChange = () => {
       if (typeof document !== 'undefined' && !document.hidden) {

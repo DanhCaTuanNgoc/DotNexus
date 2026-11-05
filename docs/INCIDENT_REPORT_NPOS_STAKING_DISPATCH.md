@@ -138,3 +138,30 @@ flowchart TD
   2. **Nhánh MetaMask EVM**: Kích hoạt MetaMask ký hàm `DotNexusStakingVault.withdrawUnbonded()`. Smart contract sẽ chuyển POT thẳng về địa chỉ ví EVM của user.
   3. Reset trạng thái hàng đợi và cập nhật số dư ví tức thì trên giao diện.
 
+---
+
+## 6. Kết quả Kiểm thử Thực tế Toàn diện bằng Playwright E2E & Bắt Quả Tang 8 Lỗi Bất Cập Hệ Thống
+
+Vào lúc **03:12 AM ngày 06/11/2026 (UTC+7)**, kịch bản Playwright E2E độc lập ([`tests/e2e/test_system_audit.mjs`](file:///d:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/tests/e2e/test_system_audit.mjs)) đã được kích hoạt trực tiếp trên trình duyệt Chromium sống, rà soát toàn bộ 5 màn hình và Bottom Terminal Drawer:
+
+### Bảng Kết quả Kiểm thử Trực tiếp (Playwright Runtime Audit Table)
+
+| STT | Màn hình | Nút / Chức năng | Trạng thái Thực tế | Mã HTTP & Cơ chế Phản hồi | Phân loại Lỗi |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | **Slashing Guard** | Nút `EMERGENCY FAILOVER` | ❌ **FAIL** (Nuốt lỗi ngầm) | HTTP 401 Unauthorized $\rightarrow$ Rơi vào fallback | Thiếu `X-DotNexus-Auth` tại [`api.ts:3274`](file:///d:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/front-end/src/services/api.ts#L3274) |
+| **2** | **NPoS Staking** | Nút `SIMULATE & SIGN NOMINATE` | ❌ **FAIL** (Nuốt lỗi ngầm) | HTTP 401 Unauthorized $\rightarrow$ Rơi vào fallback | Thiếu `X-DotNexus-Auth` tại [`api.ts:3393`](file:///d:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/front-end/src/services/api.ts#L3393) |
+| **3** | **NPoS Staking** | Nút `SIMULATE & RUN KEEPER PASS` | ❌ **FAIL** (Nuốt lỗi ngầm) | HTTP 401 Unauthorized $\rightarrow$ Rơi vào fallback | Thiếu `X-DotNexus-Auth` tại [`api.ts:3617`](file:///d:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/front-end/src/services/api.ts#L3617) |
+| **4** | **NPoS Staking** | Nút `CONFIRM & BROADCAST ON-CHAIN` | ❌ **FAIL** (Hash giả mạo) | HTTP 401 Unauthorized $\rightarrow$ Sinh hash random `0x...` | Thiếu `X-DotNexus-Auth` tại [`api.ts:3500`](file:///d:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/front-end/src/services/api.ts#L3500) |
+| **5** | **NPoS Staking** | Nút `TEST AUTO-COMPOUND (BOND EXTRA)` | ❌ **FAIL** (Nuốt lỗi ngầm) | HTTP 401 Unauthorized $\rightarrow$ Rơi vào fallback | Thiếu `X-DotNexus-Auth` tại [`api.ts:3523`](file:///d:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/front-end/src/services/api.ts#L3523) |
+| **6** | **NPoS Staking** | Tab `MetaMask EVM (Revive Precompile)` | ❌ **FAIL** (Không mở MetaMask) | Form hiển thị fixed `<select>` Substrate `//Alice` | Thiếu nhánh Web3 Provider trong modal Staking |
+| **7** | **Automation Canvas** | Nút `Run Pipeline` (Worker Daemon) | ❌ **FAIL** (Nuốt lỗi ngầm) | HTTP 401 Unauthorized $\rightarrow$ Báo giả "Executed in 164.2ms" | Thiếu `X-DotNexus-Auth` tại [`api.ts:3952`](file:///d:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/front-end/src/services/api.ts#L3952) |
+| **8** | **Automation Canvas** | Chạy Runbook qua ID (`executeRunbook`) | ❌ **FAIL** (Nuốt lỗi ngầm) | HTTP 401 Unauthorized $\rightarrow$ Báo giả log DAG | Thiếu `X-DotNexus-Auth` tại [`api.ts:4004`](file:///d:/Coding/Portaldot%20Hacker%20house%202026/DotNexus/front-end/src/services/api.ts#L4004) |
+
+### 🔍 Tổng kết Phân tích Kỹ thuật
+Toàn bộ 8 lỗi trên đều tuân theo đúng một **quy luật nguy hiểm**:
+- Backend Python đã cài đặt bảo vệ nghiêm ngặt bằng token `X-DotNexus-Auth`.
+- Frontend vô tình gọi POST mà quên truyền header xác thực này.
+- Thay vì hiển thị thông báo lỗi `Unauthorized (401)`, cơ chế `fetchWithFallback` của frontend đã **tự ý che đậy sự cố bằng các hàm mock/random data**, khiến cả người dùng lẫn công cụ phân tích tĩnh (Graphify) lầm tưởng rằng hệ thống đã hoàn toàn hoạt động.
+- Nhờ việc chạy kịch bản Playwright E2E này, toàn bộ 8 điểm nghẽn đã được phơi bày cụ thể tới từng dòng code trước khi bước vào nộp bài.
+
+

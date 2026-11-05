@@ -21,7 +21,9 @@ import {
   Clock,
   Play,
   Layers,
-  Zap
+  Zap,
+  AlertTriangle,
+  ArrowDownCircle
 } from 'lucide-react';
 import { NPoSRecommendation, api, OnchainDispatchResult } from '../services/api';
 import { storage } from '../services/storage';
@@ -64,6 +66,17 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
   const [dispatchError, setDispatchError] = useState<string | null>(null);
   const [isBondingExtra, setIsBondingExtra] = useState<boolean>(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  // EVM MetaMask Provider state
+  const [evmConnectedAddress, setEvmConnectedAddress] = useState<string | null>(null);
+  const [isConnectingEvm, setIsConnectingEvm] = useState(false);
+
+  // Unbonding & Withdraw Modal state
+  const [isUnbondModalOpen, setIsUnbondModalOpen] = useState(false);
+  const [unbondAmountPot, setUnbondAmountPot] = useState<number>(5.0);
+  const [isUnbondingActive, setIsUnbondingActive] = useState(false);
+  const [isWithdrawingActive, setIsWithdrawingActive] = useState(false);
+  const [escrowMessage, setEscrowMessage] = useState<string | null>(null);
 
   // Staking Keeper & Unbonding Queue state
   const [keeperStatus, setKeeperStatus] = useState<any | null>(null);
@@ -127,6 +140,115 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
     setSelectedTargets([]);
   };
 
+  const handleConnectMetaMask = async () => {
+    setIsConnectingEvm(true);
+    setDispatchError(null);
+    try {
+      const anyWindow = window as any;
+      if (!anyWindow.ethereum) {
+        throw new Error('MetaMask or Web3 extension not found in browser. Please install MetaMask to interact with Pallet-Revive EVM.');
+      }
+      const accounts: string[] = await anyWindow.ethereum.request({ method: 'eth_requestAccounts' });
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No EVM account authorized by user.');
+      }
+      setEvmConnectedAddress(accounts[0]);
+      const portaldotChainIdHex = '0x190ef0a9';
+      try {
+        await anyWindow.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: portaldotChainIdHex }]
+        });
+      } catch (switchError: any) {
+        if (switchError?.code === 4902 || switchError?.message?.includes('Unrecognized chain')) {
+          await anyWindow.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: portaldotChainIdHex,
+              chainName: 'Portaldot Testnet V3',
+              rpcUrls: ['https://test-evm-rpc-v3.portaldot.dev'],
+              nativeCurrency: { name: 'POT', symbol: 'POT', decimals: 18 },
+              blockExplorerUrls: ['https://node-console.portaldot.dev']
+            }]
+          });
+        }
+      }
+    } catch (err: any) {
+      setDispatchError(err?.message || 'Failed to connect MetaMask');
+    } finally {
+      setIsConnectingEvm(false);
+    }
+  };
+
+  const handleUnbondSubmit = async () => {
+    setIsUnbondingActive(true);
+    setEscrowMessage(null);
+    try {
+      if (walletMode === 'evm' && (window as any).ethereum) {
+        const anyWindow = window as any;
+        const accounts: string[] = await anyWindow.ethereum.request({ method: 'eth_requestAccounts' });
+        const vaultAddress = '0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A';
+        const weiBigInt = BigInt(Math.floor(unbondAmountPot * 1000000)) * BigInt(1000000000000);
+        const amountParam = weiBigInt.toString(16).padStart(64, '0');
+        const calldata = `0x2ec33e14${amountParam}`;
+        const txHash: string = await anyWindow.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: accounts[0],
+            to: vaultAddress,
+            data: calldata,
+          }]
+        });
+        setEscrowMessage(`EVM Unbonding queued! Tx: ${txHash.slice(0, 14)}... (28 Eras lock)`);
+      } else {
+        const res = await api.dispatchUnbondOnchain(unbondAmountPot, signerKey);
+        if (res.success) {
+          setEscrowMessage(`Extrinsic staking.unbond (${unbondAmountPot} POT) placed into 28-era queue!`);
+        }
+      }
+      const q = await api.getUnbondingQueue();
+      if (q && q.success) setUnbondingData(q.data);
+      setIsUnbondModalOpen(false);
+    } catch (err: any) {
+      setEscrowMessage(`Unbond failed: ${err?.message || 'Error'}`);
+    } finally {
+      setIsUnbondingActive(false);
+    }
+  };
+
+  const handleWithdrawUnbonded = async () => {
+    setIsWithdrawingActive(true);
+    setEscrowMessage(null);
+    try {
+      if (walletMode === 'evm' && (window as any).ethereum) {
+        const anyWindow = window as any;
+        const accounts: string[] = await anyWindow.ethereum.request({ method: 'eth_requestAccounts' });
+        const vaultAddress = '0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A';
+        const txHash: string = await anyWindow.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: accounts[0],
+            to: vaultAddress,
+            data: '0x6e373bef',
+          }]
+        });
+        setEscrowMessage(`EVM Unbonded POT withdrawn to wallet! Tx: ${txHash.slice(0, 14)}...`);
+      } else {
+        const res = await api.dispatchWithdrawUnbondedOnchain(signerKey, 0);
+        if (res.success) {
+          setEscrowMessage(`Extrinsic staking.withdraw_unbonded claimed matured POT to free balance!`);
+        }
+      }
+      const q = await api.getUnbondingQueue();
+      if (q && q.success) setUnbondingData(q.data);
+      onRefresh();
+    } catch (err: any) {
+      setEscrowMessage(`Withdraw failed: ${err?.message || 'Error'}`);
+    } finally {
+      setIsWithdrawingActive(false);
+    }
+  };
+
   const handleRebalance = async () => {
     setIsCalculating(true);
     try {
@@ -144,6 +266,79 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
     setBroadcastStatus('broadcasting');
     setDispatchError(null);
     setOnchainReceipt(null);
+
+    if (walletMode === 'evm') {
+      try {
+        const anyWindow = window as any;
+        if (!anyWindow.ethereum) {
+          throw new Error('MetaMask or Web3 extension not detected. Please install MetaMask to interact with Portaldot EVM.');
+        }
+        let account = evmConnectedAddress;
+        if (!account) {
+          const accounts: string[] = await anyWindow.ethereum.request({ method: 'eth_requestAccounts' });
+          if (!accounts || accounts.length === 0) {
+            throw new Error('No EVM accounts authorized by user.');
+          }
+          account = accounts[0];
+          setEvmConnectedAddress(account);
+        }
+
+        const portaldotChainIdHex = '0x190ef0a9';
+        try {
+          await anyWindow.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: portaldotChainIdHex }]
+          });
+        } catch (switchError: any) {
+          if (switchError?.code === 4902 || switchError?.message?.includes('Unrecognized chain')) {
+            await anyWindow.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: portaldotChainIdHex,
+                chainName: 'Portaldot Testnet V3',
+                rpcUrls: ['https://test-evm-rpc-v3.portaldot.dev'],
+                nativeCurrency: { name: 'POT', symbol: 'POT', decimals: 18 }
+              }]
+            });
+          }
+        }
+
+        const vaultAddress = '0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A';
+        const calldata = '0x0d2d76a2';
+        const weiBigInt = BigInt(Math.floor(bondAmountPot * 1000000)) * BigInt(1000000000000);
+        const valHex = '0x' + weiBigInt.toString(16);
+
+        const txHash: string = await anyWindow.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: account,
+            to: vaultAddress,
+            data: calldata,
+            value: valHex,
+          }]
+        });
+
+        setOnchainReceipt({
+          is_success: true,
+          tx_hash: txHash,
+          signer_address: account,
+          targets: selectedTargets,
+          bonded_action: 'EVM_STAKING_VAULT_DEPOSIT',
+          events: ['DotNexusStakingVault.StakeDeposited', 'pallet_revive.Executed'],
+          amount_pot: bondAmountPot,
+          is_live_chain: true,
+          network: 'Portaldot EVM (pallet-revive)',
+          timestamp: Date.now()
+        });
+        setBroadcastStatus('success');
+        onRefresh();
+      } catch (err: any) {
+        setDispatchError(err?.message || 'MetaMask EVM transaction failed or rejected.');
+        setBroadcastStatus('idle');
+      }
+      return;
+    }
+
     try {
       const res = await api.dispatchNominateOnchain(selectedTargets, signerKey, bondAmountPot);
       if (res.success && res.data) {
@@ -490,6 +685,52 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                   No unbonding chunks in escrow. 100% of bonded POT is active &amp; compounding.
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Interactive Wallet Actions: UNBOND & WITHDRAW */}
+          <div className="pt-2 border-t border-[#1C142E] space-y-2">
+            {escrowMessage && (
+              <div className="p-1.5 bg-[#00FF9D]/10 border border-[#00FF9D]/30 text-[10px] text-[#00FF9D] font-mono">
+                {escrowMessage}
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setIsUnbondModalOpen(true)}
+                disabled={isUnbondingActive}
+                className="px-3 py-2 text-xs font-bold bg-[#1C142E] hover:bg-[#261B42] text-[#00E5FF] border border-[#00E5FF]/40 hover:border-[#00E5FF] cursor-pointer transition-all flex items-center justify-center gap-1.5"
+              >
+                <ArrowDownCircle className="w-3.5 h-3.5 text-[#00E5FF]" />
+                <span>UNBOND STAKE</span>
+              </button>
+
+              {(() => {
+                const readyPot = (unbondingData?.unbonding_queue || [])
+                  .filter((c: any) => c.status === 'READY_TO_WITHDRAW' || (c.hours_remaining ?? 1) <= 0)
+                  .reduce((acc: number, c: any) => acc + (c.amount_pot || 0), 0);
+                return (
+                  <button
+                    onClick={handleWithdrawUnbonded}
+                    disabled={isWithdrawingActive || readyPot <= 0}
+                    className={`px-3 py-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ${
+                      readyPot > 0
+                        ? 'bg-[#00FF9D]/20 text-[#00FF9D] border border-[#00FF9D] shadow-[0_0_15px_rgba(0,255,157,0.3)] animate-pulse'
+                        : 'bg-[#06040A] text-zinc-500 border border-[#1C142E]'
+                    }`}
+                    title={readyPot > 0 ? `Withdraw ${readyPot} POT to free balance` : 'No chunks ready for withdrawal'}
+                  >
+                    <CheckCircle2 className={`w-3.5 h-3.5 ${readyPot > 0 ? 'text-[#00FF9D]' : 'text-zinc-600'}`} />
+                    <span>
+                      {isWithdrawingActive
+                        ? 'WITHDRAWING...'
+                        : readyPot > 0
+                        ? `WITHDRAW ${readyPot.toFixed(1)} POT`
+                        : 'WITHDRAW UNBONDED'}
+                    </span>
+                  </button>
+                );
+              })()}
             </div>
           </div>
 
@@ -967,17 +1208,43 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                   <label className="text-[10px] text-[#C084FC] block font-semibold uppercase mb-1">
-                    SIGNER ACCOUNT (PORTALDOT V3.0)
+                    {walletMode === 'evm' ? 'EVM SIGNER ACCOUNT (PALLET-REVIVE)' : 'SIGNER ACCOUNT (PORTALDOT V3.0)'}
                   </label>
-                  <select
-                    value={signerKey}
-                    onChange={(e) => setSignerKey(e.target.value)}
-                    className="w-full bg-[#06040A] border border-[#1C142E] text-white px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-[#8B5CF6]"
-                  >
-                    <option value="//Alice">//Alice (Portaldot Testnet Funded Keypair · 5GrwvaEF...)</option>
-                    <option value="//Bob">//Bob (Backup Testnet Keypair · 5FHneW46...)</option>
-                    <option value="//Charlie">//Charlie (Dev Keypair · 5DAAnrj7...)</option>
-                  </select>
+                  {walletMode === 'evm' ? (
+                    evmConnectedAddress ? (
+                      <div className="flex items-center justify-between bg-[#06040A] border border-[#6366F1]/50 px-2.5 py-1.5 text-xs font-mono">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                          <span className="text-white font-bold">{evmConnectedAddress.slice(0, 10)}...{evmConnectedAddress.slice(-6)}</span>
+                        </div>
+                        <button
+                          onClick={handleConnectMetaMask}
+                          className="text-[10px] text-[#818CF8] hover:text-white underline cursor-pointer"
+                        >
+                          Switch
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleConnectMetaMask}
+                        disabled={isConnectingEvm}
+                        className="w-full flex items-center justify-center gap-2 bg-[#6366F1]/20 hover:bg-[#6366F1]/30 border border-[#6366F1]/60 text-white px-2.5 py-1.5 text-xs font-mono font-bold cursor-pointer transition-all"
+                      >
+                        <Wallet className="w-3.5 h-3.5 text-[#818CF8]" />
+                        <span>{isConnectingEvm ? 'CONNECTING...' : 'CONNECT METAMASK'}</span>
+                      </button>
+                    )
+                  ) : (
+                    <select
+                      value={signerKey}
+                      onChange={(e) => setSignerKey(e.target.value)}
+                      className="w-full bg-[#06040A] border border-[#1C142E] text-white px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-[#8B5CF6]"
+                    >
+                      <option value="//Alice">//Alice (Portaldot Testnet Funded Keypair · 5GrwvaEF...)</option>
+                      <option value="//Bob">//Bob (Backup Testnet Keypair · 5FHneW46...)</option>
+                      <option value="//Charlie">//Charlie (Dev Keypair · 5DAAnrj7...)</option>
+                    </select>
+                  )}
                 </div>
 
                 <div>
@@ -1061,77 +1328,110 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               </div>
             )}
 
-            {/* Real On-Chain Receipt */}
+            {/* Real On-Chain Receipt / Fallback Alert */}
             {broadcastStatus === 'success' && onchainReceipt && (
-              <div className="p-3.5 bg-[#07130F] border border-[#00FF9D]/40 text-xs text-zinc-200 space-y-2.5 animate-in fade-in">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 font-bold text-[#00FF9D]">
-                    <CheckCircle2 className="w-4 h-4 text-[#00FF9D]" />
-                    <span>EXTRINSIC INCLUDED &amp; CONFIRMED ON-CHAIN</span>
+              onchainReceipt.is_live_chain === false || onchainReceipt.network?.includes('Offline Fallback') ? (
+                <div className="p-3.5 bg-amber-950/30 border border-amber-500/50 text-xs text-amber-200 space-y-2.5 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-amber-400">
+                      <AlertTriangle className="w-4 h-4 text-amber-400" />
+                      <span>SIMULATED / DEMO MODE (NODE UNAVAILABLE)</span>
+                    </div>
+                    <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 font-semibold">
+                      OFFLINE FALLBACK
+                    </span>
                   </div>
-                  <span className="text-[10px] bg-[#00FF9D]/15 text-[#00FF9D] border border-[#00FF9D]/30 px-2 py-0.5 font-semibold">
-                    ERA {onchainReceipt.next_active_era || 'N+1'}
-                  </span>
-                </div>
 
-                <div className="bg-[#06040A] border border-[#1C142E] divide-y divide-[#1C142E] text-[11px] font-mono">
-                  <div className="flex items-center justify-between p-2">
-                    <span className="text-zinc-400">Transaction Hash</span>
-                    <div className="flex items-center gap-1.5">
-                      <code className="text-[#00FF9D] break-all">{onchainReceipt.tx_hash}</code>
-                      <button
-                        onClick={() => copyToClipboard(onchainReceipt.tx_hash, 'tx')}
-                        className="text-zinc-400 hover:text-white cursor-pointer"
-                        title="Copy Tx Hash"
-                      >
-                        <Copy className="w-3 h-3" />
-                      </button>
+                  <p className="text-[11px] text-amber-200/80 leading-relaxed font-sans">
+                    Notice: Transaction was processed in offline sandbox mode because the live RPC node was unreachable or returned fallback. No live funds were mutated on-chain.
+                  </p>
+
+                  <div className="bg-[#06040A] border border-amber-900/40 divide-y divide-[#1C142E] text-[11px] font-mono">
+                    <div className="flex items-center justify-between p-2">
+                      <span className="text-zinc-400">Simulated Tx Hash</span>
+                      <code className="text-amber-400 break-all">{onchainReceipt.tx_hash}</code>
+                    </div>
+                    <div className="flex items-center justify-between p-2">
+                      <span className="text-zinc-400">Signer Account</span>
+                      <span className="text-zinc-300">{onchainReceipt.signer_address}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2">
+                      <span className="text-zinc-400">Network Mode</span>
+                      <span className="text-amber-400 font-bold">{onchainReceipt.network}</span>
                     </div>
                   </div>
+                </div>
+              ) : (
+                <div className="p-3.5 bg-[#07130F] border border-[#00FF9D]/40 text-xs text-zinc-200 space-y-2.5 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-[#00FF9D]">
+                      <CheckCircle2 className="w-4 h-4 text-[#00FF9D]" />
+                      <span>EXTRINSIC INCLUDED &amp; CONFIRMED ON-CHAIN</span>
+                    </div>
+                    <span className="text-[10px] bg-[#00FF9D]/15 text-[#00FF9D] border border-[#00FF9D]/30 px-2 py-0.5 font-semibold">
+                      ERA {onchainReceipt.next_active_era || 'N+1'}
+                    </span>
+                  </div>
 
-                  {onchainReceipt.block_hash && (
+                  <div className="bg-[#06040A] border border-[#1C142E] divide-y divide-[#1C142E] text-[11px] font-mono">
                     <div className="flex items-center justify-between p-2">
-                      <span className="text-zinc-400">Block Hash</span>
+                      <span className="text-zinc-400">Transaction Hash</span>
                       <div className="flex items-center gap-1.5">
-                        <code className="text-zinc-200 break-all">{onchainReceipt.block_hash}</code>
+                        <code className="text-[#00FF9D] break-all">{onchainReceipt.tx_hash}</code>
                         <button
-                          onClick={() => copyToClipboard(onchainReceipt.block_hash || '', 'blk')}
+                          onClick={() => copyToClipboard(onchainReceipt.tx_hash, 'tx')}
                           className="text-zinc-400 hover:text-white cursor-pointer"
-                          title="Copy Block Hash"
+                          title="Copy Tx Hash"
                         >
                           <Copy className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
-                  )}
 
-                  <div className="flex items-center justify-between p-2">
-                    <span className="text-zinc-400">Signer Account</span>
-                    <span className="text-white font-medium">{onchainReceipt.signer_address}</span>
+                    {onchainReceipt.block_hash && (
+                      <div className="flex items-center justify-between p-2">
+                        <span className="text-zinc-400">Block Hash</span>
+                        <div className="flex items-center gap-1.5">
+                          <code className="text-zinc-200 break-all">{onchainReceipt.block_hash}</code>
+                          <button
+                            onClick={() => copyToClipboard(onchainReceipt.block_hash || '', 'blk')}
+                            className="text-zinc-400 hover:text-white cursor-pointer"
+                            title="Copy Block Hash"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between p-2">
+                      <span className="text-zinc-400">Signer Account</span>
+                      <span className="text-white font-medium">{onchainReceipt.signer_address}</span>
+                    </div>
+
+                    {onchainReceipt.events && onchainReceipt.events.length > 0 && (
+                      <div className="p-2 space-y-1">
+                        <span className="text-zinc-400 block text-[10px] uppercase font-semibold">On-Chain Triggered Events</span>
+                        <div className="flex flex-wrap gap-1">
+                          {onchainReceipt.events.map((ev, i) => (
+                            <span
+                              key={i}
+                              className="text-[10px] bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 px-1.5 py-0.5 font-medium"
+                            >
+                              {ev}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {onchainReceipt.events && onchainReceipt.events.length > 0 && (
-                    <div className="p-2 space-y-1">
-                      <span className="text-zinc-400 block text-[10px] uppercase font-semibold">On-Chain Triggered Events</span>
-                      <div className="flex flex-wrap gap-1">
-                        {onchainReceipt.events.map((ev, i) => (
-                          <span
-                            key={i}
-                            className="text-[10px] bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 px-1.5 py-0.5 font-medium"
-                          >
-                            {ev}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between text-[10px] text-zinc-400">
+                    <span>Action: <strong className="text-white font-semibold">{onchainReceipt.bonded_action || 'STAKING_NOMINATE'}</strong></span>
+                    <span>Network: <strong className="text-[#00FF9D] font-semibold">{onchainReceipt.network || 'Portaldot Network V3.0'}</strong></span>
+                  </div>
                 </div>
-
-                <div className="flex items-center justify-between text-[10px] text-zinc-400">
-                  <span>Action: <strong className="text-white font-semibold">{onchainReceipt.bonded_action || 'STAKING_NOMINATE'}</strong></span>
-                  <span>Network: <strong className="text-[#00FF9D] font-semibold">{onchainReceipt.network || 'Portaldot Network V3.0'}</strong></span>
-                </div>
-              </div>
+              )
             )}
 
             {/* Action Buttons */}
@@ -1178,6 +1478,87 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           </div>
         </div>
       )}
+
+      {/* 6. MODAL: Unbonding Escrow Order (Substrate & EVM) */}
+      {isUnbondModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setIsUnbondModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-[#0B0813] border border-[#261B42] shadow-[0_0_50px_rgba(0,229,255,0.15)] p-5 space-y-4 text-zinc-200 font-mono relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#1C142E] pb-3">
+              <div>
+                <span className="text-[10px] text-[#00E5FF] tracking-wider uppercase font-semibold block">
+                  PORTALDOT V3.0 · ESCROW QUEUE
+                </span>
+                <h3 className="text-sm font-bold text-white tracking-wide mt-0.5">
+                  Initiate Stake Unbonding
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsUnbondModalOpen(false)}
+                className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#1C142E] rounded transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="text-[10px] text-[#00E5FF] block font-semibold uppercase mb-1">
+                  AMOUNT TO UNBOND (POT)
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.5"
+                    value={unbondAmountPot}
+                    onChange={(e) => setUnbondAmountPot(Math.max(0.1, parseFloat(e.target.value) || 0.1))}
+                    className="w-full bg-[#06040A] border border-[#1C142E] text-white px-2.5 py-2 text-xs font-mono tabular-nums focus:outline-none focus:border-[#00E5FF]"
+                  />
+                  <span className="text-xs text-zinc-400 font-semibold px-2 py-2 bg-[#06040A] border border-[#1C142E]">POT</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-[#06040A] border border-[#1C142E] text-[11px] text-zinc-400 space-y-1">
+                <div className="flex justify-between">
+                  <span>Locking Duration:</span>
+                  <span className="text-white font-bold">28 Eras (~7 days)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Protocol Engine:</span>
+                  <span className="text-[#00E5FF] font-bold">{walletMode === 'evm' ? 'MetaMask EVM' : 'Substrate Native'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Target Signer:</span>
+                  <span className="text-zinc-300 font-bold">{walletMode === 'evm' ? (evmConnectedAddress || 'MetaMask Account') : signerKey}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1C142E]">
+              <button
+                onClick={() => setIsUnbondModalOpen(false)}
+                className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUnbondSubmit}
+                disabled={isUnbondingActive}
+                className="px-5 py-2 text-xs font-bold bg-[#00E5FF]/20 hover:bg-[#00E5FF]/30 border border-[#00E5FF] text-[#00E5FF] cursor-pointer transition-all shadow-[0_0_15px_rgba(0,229,255,0.2)] disabled:opacity-50"
+              >
+                {isUnbondingActive ? 'SIGNING UNBOND...' : 'CONFIRM UNBOND'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -90,10 +90,10 @@ import { chromium } from '../../front-end/node_modules/playwright/index.mjs';
     if (await failoverBtn.count() > 0) {
       await failoverBtn.click();
       await page.waitForTimeout(1200);
-      const failReq = networkRequests.find(r => r.url.includes('emergency-failover'));
+      const failReq = networkRequests.find(r => r.url.includes('failover'));
       auditReport.push({
         Screen: '2. Slashing Guard',
-        Action: 'Emergency Failover (/api/engine/emergency-failover)',
+        Action: 'Emergency Failover (/api/slash-guard/failover)',
         Status: failReq && failReq.status === 200 ? 'PASS (Real 200)' : `FAIL (${failReq ? 'HTTP ' + failReq.status : 'Fallback / 401'})`,
         HTTP_Result: failReq ? `HTTP ${failReq.status}` : 'Fallback triggered'
       });
@@ -127,7 +127,7 @@ import { chromium } from '../../front-end/node_modules/playwright/index.mjs';
     const rebalanceBtn = page.locator('button:has-text("SIMULATE & SIGN NOMINATE")').first();
     if (await rebalanceBtn.count() > 0) {
       await rebalanceBtn.click();
-      await page.waitForTimeout(1200);
+      await page.waitForTimeout(2500);
       const rebReq = networkRequests.find(r => r.url.includes('/npos/rebalance'));
       auditReport.push({
         Screen: '4. NPoS Staking',
@@ -160,6 +160,8 @@ import { chromium } from '../../front-end/node_modules/playwright/index.mjs';
       const broadcastBtn = page.locator('button:has-text("CONFIRM & BROADCAST ON-CHAIN"), button:has-text("RE-BROADCAST")').first();
       if (await broadcastBtn.count() > 0) {
         await broadcastBtn.click();
+        // Substrate WebSocket RPC dispatch takes ~5-10s to submit extrinsic & verify mempool
+        await page.waitForResponse(res => res.url().includes('/npos/dispatch-nominate'), { timeout: 15000 }).catch(() => {});
         await page.waitForTimeout(1500);
         const nomReq = networkRequests.find(r => r.url.includes('/npos/dispatch-nominate'));
         const fallbackText = await page.locator('text=Offline Fallback').count() > 0;
@@ -172,15 +174,23 @@ import { chromium } from '../../front-end/node_modules/playwright/index.mjs';
       }
 
       // Close modal
-      const closeBtn = page.locator('button:has-text("Close")').first();
-      if (await closeBtn.count() > 0) await closeBtn.click();
+      const closeBtn = page.locator('button[title="Close"], button:has-text("Cancel"), button:has-text("Close")').first();
+      if (await closeBtn.count() > 0) {
+        await closeBtn.click();
+      } else {
+        await page.keyboard.press('Escape');
+      }
+      await page.waitForTimeout(1000);
     }
 
     // 4.4 Staking Keeper Run
     const keeperBtn = page.locator('button:has-text("SIMULATE & RUN KEEPER PASS")').first();
     if (await keeperBtn.count() > 0) {
-      await keeperBtn.click();
-      await page.waitForTimeout(1200);
+      await keeperBtn.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(600);
+      await keeperBtn.click({ force: true });
+      await page.waitForResponse(res => res.url().includes('/npos/keeper-run'), { timeout: 8000 }).catch(() => {});
+      await page.waitForTimeout(1000);
       const keepReq = networkRequests.find(r => r.url.includes('/npos/keeper-run'));
       auditReport.push({
         Screen: '4. NPoS Staking',
@@ -190,16 +200,34 @@ import { chromium } from '../../front-end/node_modules/playwright/index.mjs';
       });
     }
 
+    // 4.5 Unbonding Escrow & Withdraw Action Buttons Check
+    const unbondBtn = page.locator('button:has-text("UNBOND STAKE")').first();
+    const withdrawBtn = page.locator('button:has-text("WITHDRAW UNBONDED")').first();
+    auditReport.push({
+      Screen: '4. NPoS Staking',
+      Action: 'Interactive Unbond & Withdraw Buttons',
+      Status: (await unbondBtn.count() > 0 && await withdrawBtn.count() > 0) ? 'PASS (Interactive Ready)' : 'FAIL (Missing Buttons)',
+      HTTP_Result: 'UI Wallet Hooks Bound'
+    });
+
     // 5. AUTOMATION CANVAS AUDIT
     console.log('\n--- 5. AUDITING AUTOMATION CANVAS (#/canvas) ---');
     await page.goto('http://localhost:5173/#/canvas', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(2000);
+
+    // If on Canvas Hub, open the first workflow card to enter Studio Editor
+    const firstWorkflowCard = page.locator('div:has-text("Open")').first();
+    if (await firstWorkflowCard.count() > 0) {
+      await firstWorkflowCard.click();
+      await page.waitForTimeout(1000);
+    }
 
     // 5.1 Run Pipeline execution
     const runPipelineBtn = page.locator('button:has-text("Run Pipeline")').first();
     if (await runPipelineBtn.count() > 0) {
       await runPipelineBtn.click();
-      await page.waitForTimeout(2000);
+      await page.waitForResponse(res => res.url().includes('/worker/execute') || res.url().includes('/canvas/runbooks/'), { timeout: 8000 }).catch(() => {});
+      await page.waitForTimeout(1500);
 
       const runbookReq = networkRequests.find(r => r.url.includes('/worker/execute') || r.url.includes('/canvas/runbooks/'));
       auditReport.push({

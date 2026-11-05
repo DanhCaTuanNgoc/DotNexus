@@ -580,7 +580,7 @@ def rotate_keys():
 
 
 @app.route("/api/slash-guard/failover", methods=["POST"])
-
+@app.route("/api/engine/emergency-failover", methods=["POST"])
 def trigger_failover():
 
     """Emergency failover transfer between Primary and Standby without key rotation"""
@@ -801,6 +801,38 @@ def get_unbonding_queue():
 
 
 
+
+
+@app.route("/api/npos/unbond", methods=["POST"])
+def dispatch_unbond():
+    """Dispatches on-chain Staking.unbond extrinsic to place POT into 28-era escrow queue"""
+    if not check_auth(request):
+        return jsonify({"success": False, "error": "Unauthorized: Invalid X-DotNexus-Auth token"}), 401
+    body = request.get_json(silent=True) or {}
+    amount_pot = float(body.get("amount_pot", 1.0))
+    signer_key = body.get("signer_key", "//Alice")
+    try:
+        res = NPOS_OPTIMIZER.unbond_onchain(amount_pot=amount_pot, signer_key=signer_key)
+        return jsonify({"success": True, "data": res})
+    except Exception as e:
+        logger.error(f"On-chain unbond failed: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/npos/withdraw-unbonded", methods=["POST"])
+def dispatch_withdraw_unbonded():
+    """Dispatches on-chain Staking.withdraw_unbonded extrinsic to release matured POT back to free balance"""
+    if not check_auth(request):
+        return jsonify({"success": False, "error": "Unauthorized: Invalid X-DotNexus-Auth token"}), 401
+    body = request.get_json(silent=True) or {}
+    signer_key = body.get("signer_key", "//Alice")
+    num_slashing_spans = int(body.get("num_slashing_spans", 0))
+    try:
+        res = NPOS_OPTIMIZER.withdraw_unbonded_onchain(signer_key=signer_key, num_slashing_spans=num_slashing_spans)
+        return jsonify({"success": True, "data": res})
+    except Exception as e:
+        logger.error(f"On-chain withdraw_unbonded failed: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 @app.route("/api/npos/keeper-status", methods=["GET"])
 
 def get_keeper_status():

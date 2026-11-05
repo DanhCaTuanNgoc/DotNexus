@@ -2726,9 +2726,15 @@ async function fetchWithFallback<T>(
 
 
     if (!res.ok) {
-
-      throw new Error(`HTTP ${res.status}`);
-
+      try {
+        const errPayload = await res.json();
+        if (errPayload && typeof errPayload === 'object' && errPayload.error) {
+          return { success: false, data: undefined as any, error: errPayload.error, isFallback: false } as any;
+        }
+      } catch {
+        // Fall through
+      }
+      throw new Error('HTTP ' + res.status);
     }
 
 
@@ -3265,13 +3271,14 @@ export const api = {
 
     return fetchWithFallback(
 
-      `${BASE_URL}/slash-guard/failover`,
+      `${BASE_URL}/engine/emergency-failover`,
 
       {
 
         method: 'POST',
 
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+        'X-DotNexus-Auth': 'nexus-ops-secret-key-2026' },
 
         body: JSON.stringify({ reason: reason || 'Manual toggle from UI' })
 
@@ -3477,7 +3484,8 @@ export const api = {
 
         method: 'POST',
 
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+        'X-DotNexus-Auth': 'nexus-ops-secret-key-2026' },
 
         body: JSON.stringify({ stake_pot: stakeAmount })
 
@@ -3535,7 +3543,8 @@ export const api = {
 
         method: 'POST',
 
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+        'X-DotNexus-Auth': 'nexus-ops-secret-key-2026' },
 
         body: JSON.stringify({ targets, signer_key: signerKey, bond_pot: bondPot })
 
@@ -3607,7 +3616,8 @@ export const api = {
 
         method: 'POST',
 
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+        'X-DotNexus-Auth': 'nexus-ops-secret-key-2026' },
 
         body: JSON.stringify({ amount_pot: amountPot, signer_key: signerKey })
 
@@ -3640,6 +3650,79 @@ export const api = {
   },
 
 
+
+  dispatchUnbondOnchain: async (
+    amountPot: number = 1.0,
+    signerKey: string = '//Alice'
+  ): Promise<{ success: boolean; data?: any; error?: string }> => {
+    return fetchWithFallback(
+      `${BASE_URL}/npos/unbond`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-DotNexus-Auth': 'nexus-ops-secret-key-2026'
+        },
+        body: JSON.stringify({ amount_pot: amountPot, signer_key: signerKey })
+      },
+      () => {
+        const txHash = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+        dynamicLogs.push({
+          source: 'STAKING_ESCROW',
+          level: 'WARN',
+          time: Math.floor(Date.now() / 1000),
+          text: `Staking.unbond (${amountPot} POT) simulated fallback. Escrow lock: 28 Eras.`
+        });
+        return {
+          is_success: true,
+          tx_hash: txHash,
+          signer_address: signerKey,
+          amount_pot: amountPot,
+          action: 'staking.unbond',
+          is_live_chain: false,
+          is_simulated_fallback: true,
+          network: 'Portaldot Testnet V3.0 (Offline Fallback)',
+          timestamp: Date.now()
+        };
+      }
+    );
+  },
+
+  dispatchWithdrawUnbondedOnchain: async (
+    signerKey: string = '//Alice',
+    numSlashingSpans: number = 0
+  ): Promise<{ success: boolean; data?: any; error?: string }> => {
+    return fetchWithFallback(
+      `${BASE_URL}/npos/withdraw-unbonded`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-DotNexus-Auth': 'nexus-ops-secret-key-2026'
+        },
+        body: JSON.stringify({ signer_key: signerKey, num_slashing_spans: numSlashingSpans })
+      },
+      () => {
+        const txHash = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+        dynamicLogs.push({
+          source: 'STAKING_ESCROW',
+          level: 'SUCCESS',
+          time: Math.floor(Date.now() / 1000),
+          text: `Staking.withdraw_unbonded claimed matured POT back to free balance.`
+        });
+        return {
+          is_success: true,
+          tx_hash: txHash,
+          signer_address: signerKey,
+          action: 'staking.withdrawUnbonded',
+          is_live_chain: false,
+          is_simulated_fallback: true,
+          network: 'Portaldot Testnet V3.0 (Offline Fallback)',
+          timestamp: Date.now()
+        };
+      }
+    );
+  },
 
   getUnbondingQueue: async (account?: string): Promise<{ success: boolean; data: any }> => {
 
@@ -3701,7 +3784,8 @@ export const api = {
 
         method: 'POST',
 
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+        'X-DotNexus-Auth': 'nexus-ops-secret-key-2026' },
 
         body: JSON.stringify({ force })
 
@@ -3949,7 +4033,8 @@ export const api = {
 
         method: 'POST',
 
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+        'X-DotNexus-Auth': 'nexus-ops-secret-key-2026' },
 
         body: JSON.stringify({ runbook, dry_run: dryRun })
 
@@ -4002,12 +4087,15 @@ export const api = {
 
 
   executeRunbook: async (runbookId: string) => {
-
     return fetchWithFallback(
-
       `${BASE_URL}/canvas/runbooks/${runbookId}/execute`,
-
-      { method: 'POST' },
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-DotNexus-Auth': 'nexus-ops-secret-key-2026'
+        }
+      },
 
       () => {
 

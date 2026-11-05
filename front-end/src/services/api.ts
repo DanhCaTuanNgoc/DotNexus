@@ -2701,7 +2701,7 @@ async function fetchWithFallback<T>(
 
   fallbackGenerator?: () => T,
 
-  timeoutMs: number = 20000
+  timeoutMs: number = 4500
 
 ): Promise<{ success: boolean; data: T }> {
 
@@ -2811,6 +2811,36 @@ export const api = {
 
   getCachedDualState: (): DualTelemetryState => {
     return dynamicDualState;
+  },
+
+  getCachedSecurityState: (): SecurityDashboardState => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const stored = localStorage.getItem('dotnexus_cached_sec_state');
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return dynamicSecurityState;
+  },
+
+  getCachedNposState: (): NPoSRecommendation => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const stored = localStorage.getItem('dotnexus_cached_npos_state');
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return dynamicNPoSState;
+  },
+
+  getCachedShieldState: (): ShieldStatus => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const stored = localStorage.getItem('dotnexus_cached_shield_state');
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return dynamicShieldStatus;
   },
 
   getCachedRecentBlocks: (): DualBlockConduitItem[] => {
@@ -3116,17 +3146,21 @@ export const api = {
 
 
   getSlashGuard: async (): Promise<{ success: boolean; data: SecurityDashboardState }> => {
-
-    return fetchWithFallback(
-
+    const res = await fetchWithFallback<SecurityDashboardState>(
       `${BASE_URL}/slash-guard`,
-
       undefined,
-
-      () => JSON.parse(JSON.stringify(dynamicSecurityState))
-
+      () => JSON.parse(JSON.stringify(dynamicSecurityState)),
+      4500
     );
-
+    if (res?.success && res.data && !(res as any).isFallback) {
+      dynamicSecurityState = res.data;
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          localStorage.setItem('dotnexus_cached_sec_state', JSON.stringify(res.data));
+        } catch {}
+      }
+    }
+    return res;
   },
 
 
@@ -3414,17 +3448,21 @@ export const api = {
 
 
   getTop16Validators: async (): Promise<{ success: boolean; data: NPoSRecommendation }> => {
-
-    return fetchWithFallback(
-
+    const res = await fetchWithFallback<NPoSRecommendation>(
       `${BASE_URL}/npos/top-16`,
-
       undefined,
-
-      () => JSON.parse(JSON.stringify(dynamicNPoSState))
-
+      () => JSON.parse(JSON.stringify(dynamicNPoSState)),
+      4500
     );
-
+    if (res?.success && res.data && !(res as any).isFallback) {
+      dynamicNPoSState = res.data;
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          localStorage.setItem('dotnexus_cached_npos_state', JSON.stringify(res.data));
+        } catch {}
+      }
+    }
+    return res;
   },
 
 
@@ -3686,17 +3724,21 @@ export const api = {
 
 
   getRpcShield: async (): Promise<{ success: boolean; data: ShieldStatus }> => {
-
-    return fetchWithFallback(
-
+    const res = await fetchWithFallback<ShieldStatus>(
       `${BASE_URL}/rpc-shield`,
-
       undefined,
-
-      () => JSON.parse(JSON.stringify(dynamicShieldStatus))
-
+      () => JSON.parse(JSON.stringify(dynamicShieldStatus)),
+      4500
     );
-
+    if (res?.success && res.data && !(res as any).isFallback) {
+      dynamicShieldStatus = res.data;
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          localStorage.setItem('dotnexus_cached_shield_state', JSON.stringify(res.data));
+        } catch {}
+      }
+    }
+    return res;
   },
 
 

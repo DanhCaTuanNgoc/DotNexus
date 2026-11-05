@@ -55,3 +55,4 @@ graphify-out/*.pending.json
 
 scratch/
 ARCHITECTURAL_ANALYSIS.md
+!docs/ARCHITECTURAL_ANALYSIS.md

@@ -123,11 +123,11 @@ export const App: React.FC = () => {
     });
   };
 
-  // States - DualVM initialized with persistent cache; specialized tab data initialized null to eliminate fake mockups
+  // States - Initialized with persistent SWR cache to eliminate "Querying Live..." blank freezes
   const [dualData, setDualData] = useState<DualTelemetryState>(() => api.getCachedDualState());
-  const [secData, setSecData] = useState<SecurityDashboardState | null>(null);
-  const [nposData, setNposData] = useState<NPoSRecommendation | null>(null);
-  const [shieldData, setShieldData] = useState<ShieldStatus | null>(null);
+  const [secData, setSecData] = useState<SecurityDashboardState>(() => api.getCachedSecurityState());
+  const [nposData, setNposData] = useState<NPoSRecommendation>(() => api.getCachedNposState());
+  const [shieldData, setShieldData] = useState<ShieldStatus>(() => api.getCachedShieldState());
   const [logs, setLogs] = useState<any[]>([]);
   const [selectedCanvasNodeId, setSelectedCanvasNodeId] = useState<string | null>(null);
   const [isTerminalOpen, setIsTerminalOpen] = useState<boolean>(() => storage.getTerminalOpen(true));
@@ -257,18 +257,18 @@ export const App: React.FC = () => {
     }
   }, [fetchDualData, fetchSlashGuard, fetchStakingData, fetchShieldData, fetchLogs, isTerminalOpen]);
 
-  // Tab switch on-demand trigger: fetch immediately when navigating to an uninitialized tab
+  // Tab switch on-demand trigger: fetch fresh data in background when switching tabs
   useEffect(() => {
     if (viewMode === 'console') {
-      if (activeTab === 'slashing' && !secData) {
+      if (activeTab === 'slashing') {
         fetchSlashGuard();
-      } else if (activeTab === 'staking' && !nposData) {
+      } else if (activeTab === 'staking') {
         fetchStakingData();
-      } else if (activeTab === 'shield' && !shieldData) {
+      } else if (activeTab === 'shield') {
         fetchShieldData();
       }
     }
-  }, [activeTab, viewMode, secData, nposData, shieldData, fetchSlashGuard, fetchStakingData, fetchShieldData]);
+  }, [activeTab, viewMode, fetchSlashGuard, fetchStakingData, fetchShieldData]);
 
   // Periodic polling tailored to the active tab
   useEffect(() => {

@@ -752,10 +752,10 @@ class SlashingGuard:
         return fallback_session
 
     def get_security_dashboard(self, force_refresh: bool = False) -> Dict[str, Any]:
-        """Full overview for Security & Slashing Guard UI view with 5s SWR cache"""
+        """Full overview for Security & Slashing Guard UI view with 15s SWR cache"""
         now = time.time()
         if not force_refresh and hasattr(self, "_cached_dashboard") and self._cached_dashboard:
-            if (now - getattr(self, "_cached_dashboard_time", 0.0)) < 5.0:
+            if (now - getattr(self, "_cached_dashboard_time", 0.0)) < 15.0:
                 cached = dict(self._cached_dashboard)
                 elapsed_lease = round(now - self.last_lease_renew_time, 1)
                 remaining_lease = max(0.0, round(CONFIG.heartbeat_lock_lease_seconds - elapsed_lease, 1))

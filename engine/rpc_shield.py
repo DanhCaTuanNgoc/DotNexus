@@ -662,10 +662,10 @@ class RPCShield:
         return "\n".join(lines)
 
     def get_shield_status(self, force_refresh: bool = False) -> Dict[str, Any]:
-        """Returns aggregated metrics for Frontend Radar & Shield panel with 5s SWR cache"""
+        """Returns aggregated metrics for Frontend Radar & Shield panel with 15s SWR cache"""
         now = time.time()
         if not force_refresh and hasattr(self, "_cached_shield_status") and self._cached_shield_status:
-            if (now - getattr(self, "_cached_shield_time", 0.0)) < 5.0:
+            if (now - getattr(self, "_cached_shield_time", 0.0)) < 15.0:
                 return self._cached_shield_status
 
         avg_overhead = (self.total_overhead_ms / self.total_inspected) if self.total_inspected > 0 else 0.25

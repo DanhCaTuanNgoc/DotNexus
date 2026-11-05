@@ -93,6 +93,18 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
     }).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsDispatchModalOpen(false);
+        setIsUnbondModalOpen(false);
+        setSelectedValidator(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleRunKeeper = async () => {
     setIsKeeperRunning(true);
     try {

@@ -123,7 +123,34 @@ import { chromium } from '../../front-end/node_modules/playwright/index.mjs';
     await page.goto('http://localhost:5173/#/staking', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
 
-    // 4.1 Rebalance Simulate
+    // 4.1 Staking Keeper Run
+    const keeperBtn = page.locator('button:has-text("SIMULATE & RUN KEEPER PASS")').first();
+    if (await keeperBtn.count() > 0) {
+      await keeperBtn.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(600);
+      await keeperBtn.click();
+      await page.waitForResponse(res => res.url().includes('/npos/keeper-run'), { timeout: 8000 }).catch(() => {});
+      await page.waitForTimeout(1000);
+      const keepReq = networkRequests.find(r => r.url.includes('/npos/keeper-run'));
+      auditReport.push({
+        Screen: '4. NPoS Staking',
+        Action: 'Era Staking Keeper Trigger (/api/npos/keeper-run)',
+        Status: keepReq && keepReq.status === 200 ? 'PASS (Real 200)' : `FAIL (HTTP ${keepReq ? keepReq.status : 'Missing / 401'})`,
+        HTTP_Result: keepReq ? `HTTP ${keepReq.status}` : 'Swallowed by Fallback'
+      });
+    }
+
+    // 4.2 Unbonding Escrow & Withdraw Action Buttons Check
+    const unbondBtn = page.locator('button:has-text("UNBOND STAKE")').first();
+    const withdrawBtn = page.locator('button:has-text("WITHDRAW UNBONDED")').first();
+    auditReport.push({
+      Screen: '4. NPoS Staking',
+      Action: 'Interactive Unbond & Withdraw Buttons',
+      Status: (await unbondBtn.count() > 0 && await withdrawBtn.count() > 0) ? 'PASS (Interactive Ready)' : 'FAIL (Missing Buttons)',
+      HTTP_Result: 'UI Wallet Hooks Bound'
+    });
+
+    // 4.3 Rebalance Simulate
     const rebalanceBtn = page.locator('button:has-text("SIMULATE & SIGN NOMINATE")').first();
     if (await rebalanceBtn.count() > 0) {
       await rebalanceBtn.click();
@@ -136,7 +163,7 @@ import { chromium } from '../../front-end/node_modules/playwright/index.mjs';
         HTTP_Result: rebReq ? `HTTP ${rebReq.status}` : 'Swallowed by Fallback'
       });
 
-      // 4.2 EVM Tab Check
+      // 4.4 EVM Tab Check
       const evmTab = page.locator('button:has-text("MetaMask EVM")').first();
       if (await evmTab.count() > 0) {
         await evmTab.click();
@@ -150,7 +177,7 @@ import { chromium } from '../../front-end/node_modules/playwright/index.mjs';
         });
       }
 
-      // 4.3 Substrate Broadcast
+      // 4.5 Substrate Broadcast
       const subTab = page.locator('button:has-text("Substrate Native")').first();
       if (await subTab.count() > 0) {
         await subTab.click();
@@ -173,42 +200,15 @@ import { chromium } from '../../front-end/node_modules/playwright/index.mjs';
         });
       }
 
-      // Close modal
-      const closeBtn = page.locator('button[title="Close"], button:has-text("Cancel"), button:has-text("Close")').first();
-      if (await closeBtn.count() > 0) {
-        await closeBtn.click();
-      } else {
-        await page.keyboard.press('Escape');
+      // Close modal cleanly via Escape key
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+      const closeBtn = page.locator('button[title="Close"]').last();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.click().catch(() => {});
       }
       await page.waitForTimeout(1000);
     }
-
-    // 4.4 Staking Keeper Run
-    const keeperBtn = page.locator('button:has-text("SIMULATE & RUN KEEPER PASS")').first();
-    if (await keeperBtn.count() > 0) {
-      await keeperBtn.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(600);
-      await keeperBtn.click({ force: true });
-      await page.waitForResponse(res => res.url().includes('/npos/keeper-run'), { timeout: 8000 }).catch(() => {});
-      await page.waitForTimeout(1000);
-      const keepReq = networkRequests.find(r => r.url.includes('/npos/keeper-run'));
-      auditReport.push({
-        Screen: '4. NPoS Staking',
-        Action: 'Era Staking Keeper Trigger (/api/npos/keeper-run)',
-        Status: keepReq && keepReq.status === 200 ? 'PASS (Real 200)' : `FAIL (HTTP ${keepReq ? keepReq.status : 'Missing / 401'})`,
-        HTTP_Result: keepReq ? `HTTP ${keepReq.status}` : 'Swallowed by Fallback'
-      });
-    }
-
-    // 4.5 Unbonding Escrow & Withdraw Action Buttons Check
-    const unbondBtn = page.locator('button:has-text("UNBOND STAKE")').first();
-    const withdrawBtn = page.locator('button:has-text("WITHDRAW UNBONDED")').first();
-    auditReport.push({
-      Screen: '4. NPoS Staking',
-      Action: 'Interactive Unbond & Withdraw Buttons',
-      Status: (await unbondBtn.count() > 0 && await withdrawBtn.count() > 0) ? 'PASS (Interactive Ready)' : 'FAIL (Missing Buttons)',
-      HTTP_Result: 'UI Wallet Hooks Bound'
-    });
 
     // 5. AUTOMATION CANVAS AUDIT
     console.log('\n--- 5. AUDITING AUTOMATION CANVAS (#/canvas) ---');

@@ -562,18 +562,28 @@ def get_session_authorities():
 
 
 @app.route("/api/slash-guard/rotate-keys", methods=["POST"])
-
 def rotate_keys():
-
     """Triggers planned session key rotation (author_rotateKeys with Metadata V14 unpack)"""
-
     if not check_auth(request):
-
         return jsonify({"success": False, "error": "Unauthorized: Invalid X-DotNexus-Auth token"}), 401
-
     rot = SLASH_GUARD.rotate_session_keys()
-
     return jsonify({"success": True, "data": rot})
+
+
+@app.route("/api/slash-guard/submit-set-keys", methods=["POST"])
+def submit_set_keys():
+    """Submits on-chain session.setKeys extrinsic signed by Validator Stash/Controller account"""
+    if not check_auth(request):
+        return jsonify({"success": False, "error": "Unauthorized: Invalid X-DotNexus-Auth token"}), 401
+    body = request.get_json(silent=True) or {}
+    signer_key = body.get("signer_key")
+    rotation_id = body.get("rotation_id")
+    try:
+        res = SLASH_GUARD.submit_set_keys_extrinsic(signer_key=signer_key, rotation_id=rotation_id)
+        return jsonify({"success": True, "data": res})
+    except Exception as e:
+        logger.error(f"Error submitting set_keys on-chain: {e}")
+        return jsonify({"success": False, "error": str(e)}), 400
 
 
 

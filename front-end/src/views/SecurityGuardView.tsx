@@ -13,7 +13,11 @@ import {
   Zap,
   Activity,
   History,
-  ShieldAlert
+  ShieldAlert,
+  Send,
+  X,
+  Copy,
+  Check
 } from 'lucide-react';
 import { SecurityDashboardState, api } from '../services/api';
 
@@ -28,6 +32,46 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
   const [simulatingMiss, setSimulatingMiss] = useState(false);
   const [resettingHb, setResettingHb] = useState(false);
   const [lastGeneratedKey, setLastGeneratedKey] = useState<any | null>(null);
+  const [submittingOnchain, setSubmittingOnchain] = useState(false);
+  const [showSignerModal, setShowSignerModal] = useState(false);
+  const [signerKeyInput, setSignerKeyInput] = useState('');
+  const [broadcastTxResult, setBroadcastTxResult] = useState<{
+    txHash: string;
+    submittedBy: string;
+    status: string;
+  } | null>(null);
+  const [broadcastError, setBroadcastError] = useState<string | null>(null);
+  const [copiedTx, setCopiedTx] = useState(false);
+
+  const handleSubmitSetKeys = async () => {
+    setSubmittingOnchain(true);
+    setBroadcastError(null);
+    try {
+      const rotId = activeKeyRotation?.rotation_id;
+      const res = await api.submitSetKeysOnChain(signerKeyInput.trim() || undefined, rotId);
+      if (res && res.success && res.data) {
+        setBroadcastTxResult({
+          txHash: res.data.tx_hash,
+          submittedBy: res.data.submitted_by,
+          status: res.data.status || 'INCLUDED_ONCHAIN'
+        });
+        setShowSignerModal(false);
+        onRefresh();
+      } else {
+        setBroadcastError((res as any)?.error || 'Extrinsic broadcast was rejected by chain.');
+      }
+    } catch (err: any) {
+      setBroadcastError(err.message || 'Network error while broadcasting extrinsic');
+    } finally {
+      setSubmittingOnchain(false);
+    }
+  };
+
+  const handleCopyTx = (hash: string) => {
+    navigator.clipboard.writeText(hash);
+    setCopiedTx(true);
+    setTimeout(() => setCopiedTx(false), 2000);
+  };
 
   const handleRotateKeys = async () => {
     setRotating(true);
@@ -527,18 +571,68 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
           </div>
         </div>
 
-        {/* SCALE Call Encapsulation */}
-        <div className="p-2.5 bg-[#06040A] border border-[#1C142E] text-[11px] flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-zinc-500">ON-CHAIN EXTRINSIC:</span>
-            <code className="text-[#C084FC] bg-[#0E091B] px-1.5 py-0.5 border border-[#2E1F4A] text-[10px]">
-              {activeKeyRotation?.extrinsic_call || 'session.setKeys(keys=SCALE_128B, proof=0x00)'}
-            </code>
+        {/* SCALE Call Encapsulation & On-Chain Broadcast (Step 2) */}
+        <div className="p-3 bg-[#06040A] border border-[#1C142E] space-y-2.5 text-[11px]">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 max-w-full overflow-hidden">
+              <span className="text-zinc-500 shrink-0">ON-CHAIN EXTRINSIC:</span>
+              <code className="text-[#C084FC] bg-[#0E091B] px-1.5 py-0.5 border border-[#2E1F4A] text-[10px] truncate max-w-md" title={activeKeyRotation?.extrinsic_call}>
+                {activeKeyRotation?.extrinsic_call || 'session.setKeys(keys=SCALE_128B, proof=0x00)'}
+              </code>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[#00FF9D] flex items-center gap-1 font-bold shrink-0">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                VALIDATED FOR N+2 ROTATION
+              </span>
+
+              {/* Action Button: Broadcast Extrinsic On-Chain (Step 2) */}
+              <button
+                onClick={() => {
+                  setBroadcastError(null);
+                  setShowSignerModal(true);
+                }}
+                disabled={submittingOnchain}
+                className="flex items-center gap-1.5 px-3 py-1 bg-[#1A0F33] hover:bg-[#28154F] border border-[#8B5CF6] text-white hover:text-[#00FF9D] font-bold text-[10px] tracking-wider uppercase transition-colors cursor-pointer"
+                title="Execute Step 2: Sign and broadcast session.setKeys extrinsic on-chain"
+              >
+                <Send className={`w-3 h-3 text-[#C084FC] ${submittingOnchain ? 'animate-spin' : ''}`} />
+                <span>{submittingOnchain ? 'BROADCASTING...' : 'BROADCAST SET_KEYS ON-CHAIN'}</span>
+              </button>
+            </div>
           </div>
-          <span className="text-[#00FF9D] flex items-center gap-1 font-bold">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            VALIDATED FOR N+2 ROTATION
-          </span>
+
+          {/* On-Chain Inclusion Feedback Callout */}
+          {(broadcastTxResult || activeKeyRotation?.tx_hash) && (
+            <div className="p-2.5 bg-[#0A1A12] border border-emerald-800/80 text-[11px] text-emerald-200 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#00FF9D] shrink-0" />
+                <span>
+                  <strong>EXTRINSIC INCLUDED ON-CHAIN:</strong>{' '}
+                  <code className="text-white font-mono text-[10px] bg-[#050D09] px-1.5 py-0.5 border border-emerald-900/60">
+                    {broadcastTxResult?.txHash || activeKeyRotation?.tx_hash}
+                  </code>
+                </span>
+              </div>
+              <button
+                onClick={() => handleCopyTx(broadcastTxResult?.txHash || activeKeyRotation?.tx_hash || '')}
+                className="flex items-center gap-1 text-[10px] text-emerald-400 hover:text-white px-2 py-0.5 border border-emerald-700/60 bg-[#06140D] cursor-pointer"
+              >
+                {copiedTx ? <Check className="w-3 h-3 text-[#00FF9D]" /> : <Copy className="w-3 h-3" />}
+                <span>{copiedTx ? 'COPIED' : 'COPY TX HASH'}</span>
+              </button>
+            </div>
+          )}
+
+          {broadcastError && (
+            <div className="p-2.5 bg-rose-950/40 border border-rose-800/80 text-[11px] text-rose-300 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <div>
+                <strong>Broadcast Failed:</strong> {broadcastError}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -636,12 +730,87 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
                   <div className="text-[10px] text-zinc-400 truncate">
                     Hex: <code className="text-zinc-300">{rot.session_keys_hex ? `${rot.session_keys_hex.slice(0, 18)}...${rot.session_keys_hex.slice(-10)}` : '0x...'}</code>
                   </div>
+                  {rot.tx_hash && (
+                    <div className="text-[9px] text-[#00FF9D] font-mono truncate flex items-center gap-1 pt-0.5">
+                      <span className="text-zinc-500">Tx:</span>
+                      <code className="text-emerald-300">{rot.tx_hash.slice(0, 18)}...{rot.tx_hash.slice(-8)}</code>
+                    </div>
+                  )}
                 </div>
               ))
             )}
           </div>
         </div>
       </div>
+
+      {/* Modal: Broadcast session.setKeys on-chain */}
+      {showSignerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-mono">
+          <div className="w-full max-w-lg bg-[#080512] border border-[#8B5CF6]/60 p-5 space-y-4 shadow-2xl relative">
+            <div className="flex items-center justify-between border-b border-[#1C142E] pb-3">
+              <div className="flex items-center gap-2">
+                <Send className="w-4 h-4 text-[#00FF9D]" />
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  BROADCAST SESSION.SETKEYS ON-CHAIN (STEP 2)
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowSignerModal(false)}
+                className="text-zinc-400 hover:text-white p-1 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-zinc-300 leading-relaxed">
+              This action constructs, signs, and broadcasts the <code className="text-[#C084FC]">session.setKeys</code> extrinsic to <strong>Portaldot Network V3.0</strong>. Once included in block, new session keys will take effect at <strong>Session N+2</strong>.
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                Validator Stash Account (Seed / URI / Mnemonic)
+              </label>
+              <input
+                type="password"
+                value={signerKeyInput}
+                onChange={(e) => setSignerKeyInput(e.target.value)}
+                placeholder="//Alice (leave blank to use default dev URI)"
+                className="w-full bg-[#05030A] border border-[#2E1F4A] focus:border-[#8B5CF6] px-3 py-2 text-xs text-white placeholder-zinc-600 outline-none"
+              />
+              <p className="text-[10px] text-zinc-500">
+                Default <code className="text-zinc-400">//Alice</code> is funded on development/local testnet. For public testnet, supply your funded Validator Stash account.
+              </p>
+            </div>
+
+            {broadcastError && (
+              <div className="p-2.5 bg-rose-950/40 border border-rose-800/80 text-[11px] text-rose-300 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">{broadcastError}</div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#1C142E]">
+              <button
+                type="button"
+                onClick={() => setShowSignerModal(false)}
+                disabled={submittingOnchain}
+                className="px-3.5 py-1.5 text-xs text-zinc-400 hover:text-white border border-white/[0.08] hover:border-white/[0.2] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmitSetKeys}
+                disabled={submittingOnchain}
+                className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold bg-[#8B5CF6] hover:bg-[#7C3AED] text-white transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Send className={`w-3.5 h-3.5 ${submittingOnchain ? 'animate-spin' : ''}`} />
+                <span>{submittingOnchain ? 'BROADCASTING...' : 'SIGN & BROADCAST EXTRINSIC'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

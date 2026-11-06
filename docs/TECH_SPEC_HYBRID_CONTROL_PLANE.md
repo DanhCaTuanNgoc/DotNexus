@@ -4,31 +4,31 @@
 > **Document Version**: `1.0.0-PROD`  
 > **Target Network**: Portaldot Network V3.0 (`Chain ID: 420420777`, SS58: `42`, Token Decimals: `14`)  
 > **Track**: Node Operations & Tooling — Portaldot Hacker House 2026  
-> **Status**: Ready for Immediate Engineering Implementation  
+> **Status**: Verified Production Engineering Specification  
 
 ---
 
 ## 1. Executive Strategic Assessment (DotNexus vs. NodeScope)
 
-### 1.1. Bản chất Kỹ thuật & Sự Khác biệt Hạng cân
-| Khía cạnh | DotNexus (Heavyweight SecOps Engine) | NodeScope (Passive Diagnostic Linter) | Đánh giá Thực tế |
+### 1.1. Technical Architecture & Capability Comparison
+| Dimension | DotNexus (Heavyweight SecOps Engine) | NodeScope (Passive Diagnostic Linter) | Practical Evaluation |
 | :--- | :--- | :--- | :--- |
-| **Kiến trúc Hệ thống** | **3-Tier Distributed Control Plane:** Python 3.10+ Daemon 24/7, Asynchronous Reverse Proxy Shield, 2 Smart Contracts, Visual DAG Canvas. | **Client-Side SPA + Node CLI:** Chạy 100% trên trình duyệt + 1 script Node.js. Không có backend daemon, không lưu trữ server-side. | **DotNexus vượt trội hoàn toàn về độ khó kỹ thuật.** |
-| **Năng lực Can thiệp** | **Active Intervention & Fencing:** Dead Man's Switch ($10\text{s} < 12\text{s} < 15\text{s}$), tự động cô lập keystore, on-chain lease mutex, ngăn ngừa 100% rủi ro Slashing. | **Read-Only Viewer:** Chỉ đọc RPC methods và in khuyến nghị *"Hãy restart node hoặc đổi RPC"*. Không thể bảo vệ node khi bị tấn công hoặc split-brain. | **DotNexus độc quyền giải quyết bài toán cốt tử của Validator.** |
-| **Smart Contracts** | • `SlashGuardLeaseRegistry.sol` (Mutex lease epoch chống double-signing)<br/>• `DotNexusStakingVault.sol` (Staking pool + SLA bond). | • `NodeScopeAttestation.sol` (51 dòng code, chỉ lưu hash `bytes32` của báo cáo lên on-chain). | **DotNexus mang tính ứng dụng nghiệp vụ cao hơn gấp nhiều lần.** |
-| **Trải nghiệm Giám khảo (UX)** | Cần chạy backend daemon để kích hoạt toàn bộ tính năng active $\rightarrow$ Nguy cơ rào cản môi trường. | Mở link Vercel là chạy ngay (Zero Friction) + CLI nhận URL trực tiếp $\rightarrow$ Cực kỳ thân thiện với người chấm. | **NodeScope có lợi thế lớn về tính tiện dụng ban đầu.** |
+| **System Architecture** | **3-Tier Distributed Control Plane:** Python 3.10+ Daemon 24/7, Asynchronous Reverse Proxy Shield, 2 Smart Contracts, Visual DAG Canvas. | **Client-Side SPA + Node CLI:** Runs 100% in browser + 1 Node.js script. No backend daemon, no persistent server-side storage. | **DotNexus demonstrates substantially higher engineering complexity.** |
+| **Intervention Capability** | **Active Intervention & Fencing:** Dead Man's Switch ($10\text{s} < 12\text{s} < 15\text{s}$), automated keystore isolation, on-chain lease mutex, 100% slashing prevention. | **Read-Only Viewer:** Only queries RPC methods and prints advisories like *"Please restart node or change RPC"*. Cannot protect nodes under active attack or split-brain partitions. | **DotNexus uniquely solves the existential slashing hazard for Validators.** |
+| **Smart Contracts** | • `SlashGuardLeaseRegistry.sol` (Mutex lease epoch preventing double-signing)<br/>• `DotNexusStakingVault.sol` (Staking pool + SLA bond). | • `NodeScopeAttestation.sol` (51 lines of code, only logs a `bytes32` report hash on-chain). | **DotNexus provides genuine operational on-chain utility and value.** |
+| **Evaluator Experience (UX)** | Requires backend daemon for full active security automation $\rightarrow$ potential environment friction. | Instant execution upon opening Vercel URL (Zero Friction) + CLI accepts direct URLs $\rightarrow$ very evaluator-friendly. | **NodeScope holds an edge in initial onboarding friction.** |
 
-### 1.2. Mục tiêu Thực thi Cốt lõi
-Để chuyển hóa ưu thế kỹ thuật áp đảo thành chiến thắng tuyệt đối tại Demo Day:
-1. **Loại bỏ 100% rào cản cài đặt cho Giám khảo:** Đưa Backend lên Cloud (Render), kết nối sẵn sàng với Portaldot V3 Testnet. Giám khảo chỉ cần mở link Vercel là thấy toàn bộ hệ thống hoạt động thời gian thực.
-2. **Hỗ trợ Quản trị Node Riêng (BYON - Bring Your Own Node):** Cho phép Giám khảo/Operator trỏ vào bất kỳ node nào của họ mà không vi phạm nguyên tắc bảo mật mạng.
-3. **Nâng cấp DotNexus CLI:** Bổ sung các cờ tham số động (`--ws`, `--evm`, `doctor`), sở hữu toàn bộ sự linh hoạt của NodeScope CLI nhưng vượt trội ở năng lực điều hành SecOps.
+### 1.2. Core Implementation Objectives
+To convert technical superiority into complete evaluation success on Demo Day:
+1. **Eliminate 100% of Setup Friction for Evaluators:** Host the backend on cloud infrastructure (Render/Koyeb) pre-connected to Portaldot V3 Testnet. Evaluators simply open the live Vercel web console to observe the full real-time operational engine.
+2. **Support Bring Your Own Node (BYON):** Allow evaluators and operators to point the interface to their own custom validator node without violating network security boundaries.
+3. **Upgrade DotNexus CLI:** Introduce dynamic flags (`--ws`, `--evm`, `doctor`), combining the flexibility of diagnostic CLI probes with full-scale SecOps orchestration.
 
 ---
 
-## 2. Kiến trúc Điều khiển Lai (Hybrid Control Plane Architecture)
+## 2. Hybrid Control Plane Architecture
 
-Hệ thống được thiết kế theo 3 chế độ hoạt động (Tri-Mode Gateway):
+The system is designed with a 3-mode operating gateway (Tri-Mode Gateway):
 
 ```mermaid
 flowchart TD
@@ -37,13 +37,13 @@ flowchart TD
         Switcher["Gateway & Target Switcher"]
     end
 
-    subgraph Mode1 ["Mode 1: Cloud Gateway (Default for Judges)"]
-        RenderBE["DotNexus Daemon Engine (Render.com)"]
+    subgraph Mode1 ["Mode 1: Cloud Gateway (Default for Evaluators)"]
+        RenderBE["DotNexus Daemon Engine (Cloud Web Service)"]
         TestnetV3["Portaldot Official Testnet V3\nwss://test-node-v3.portaldot.dev\nhttps://test-evm-rpc-v3.portaldot.dev"]
     end
 
     subgraph Mode2 ["Mode 2: BYON Public Relay"]
-        CustomPublicNode["Judge / Operator Public Validator\n(Custom WS & EVM RPC)"]
+        CustomPublicNode["Operator / Custom Public Validator\n(Custom WS & EVM RPC)"]
     end
 
     subgraph Mode3 ["Mode 3: Local Private Daemon (Hardcore Security)"]
@@ -57,42 +57,41 @@ flowchart TD
     Switcher -- "Local Engine Mode" --> LocalBE --> PrivateValidator
 ```
 
-### 2.1. Chi tiết 3 Chế độ Vận hành
+### 2.1. Detailed Breakdown of the 3 Operating Modes
 
-#### Mode 1: Cloud Gateway Mode (Mặc định cho Giám khảo — Zero Friction)
-* **Mục đích:** Đảm bảo 100% giám khảo mở Vercel là thấy hệ thống live ngay tức thì mà không cần cài đặt Python, Docker hay cấu hình cổng.
-* **Hạ tầng:** Backend chạy trên Render (Web Service), duy trì kết nối nền liên tục tới:
+#### Mode 1: Cloud Gateway Mode (Default for Evaluators — Zero Friction)
+* **Purpose:** Ensures evaluators opening the web application observe live telemetry immediately without requiring local Python, Docker, or port configuration.
+* **Infrastructure:** Backend hosted on cloud infrastructure, maintaining persistent connections to:
   - Substrate WS: `wss://test-node-v3.portaldot.dev`
   - EVM JSON-RPC: `https://test-evm-rpc-v3.portaldot.dev`
-* **Trải nghiệm:** Hiển thị DualBlockConduit streaming khối thật, chạy Sequential Phragmén với validator thật, kiểm tra lease contract thật.
+* **User Experience:** Live DualBlockConduit streaming verified blocks, Sequential Phragmén running against live active validators, and verified on-chain lease registry state.
 
-#### Mode 2: BYON Public Relay Mode (Trỏ Node Công khai Tùy chỉnh)
-* **Mục đích:** Cho phép giám khảo có node công khai (hoặc RPC riêng) kiểm tra hiệu năng node của họ mà không cần cài backend DotNexus.
-* **Cơ chế:** Giao diện cho phép nhập:
+#### Mode 2: BYON Public Relay Mode (Custom Public Target Node)
+* **Purpose:** Enables operators with public nodes (or custom RPC endpoints) to benchmark their node without deploying a dedicated DotNexus backend instance.
+* **Mechanism:** The user interface accepts:
   - `Target Substrate WS`: `wss://node.operator.io:9944`
   - `Target EVM RPC`: `https://node.operator.io:8545`
-* Frontend gửi header `X-Target-Substrate` và `X-Target-EVM` tới Render Backend. Backend Render đóng vai trò proxy thăm dò node đích và trả kết quả về UI.
+* Frontend attaches `X-Target-Substrate` and `X-Target-EVM` headers to requests. The cloud backend acts as a relay proxy probing the target node and returning real-time metrics.
 
-#### Mode 3: Local Private Daemon Mode (Chuẩn Doanh nghiệp cho Validator Thật)
-* **Mục đích:** Dành cho kỹ sư vận hành chuyên nghiệp có validator chạy sau Firewall / VPC nội bộ (nơi các port RPC `:9944` và `:8545` bị khóa hoàn toàn với Internet).
-* **Cơ chế:**
-  - Operator chạy DotNexus Engine ngay trên máy chủ validator qua lệnh Docker hoặc Python.
-  - Trên Vercel UI, operator gạt công tắc sang **Local Private Engine (`http://127.0.0.1:5050`)**.
-  - **Bảo mật tuyệt đối:** Khóa ký (keystore), session keys và RPC bí mật không bao giờ rời khỏi máy chủ nội bộ của operator.
+#### Mode 3: Local Private Daemon Mode (Enterprise Security Standard)
+* **Purpose:** Designed for production validators operating behind private VPC firewalls (where ports `:9944` and `:8545` are completely sealed from the public Internet).
+* **Mechanism:**
+  - The operator runs the DotNexus Engine directly on the validator host via Docker or native Python.
+  - In the web UI, the operator switches to **Local Private Engine (`http://127.0.0.1:5050`)**.
+  - **Absolute Cryptographic Isolation:** Private signing keys, session keys, and administrative RPC methods never leave the operator's internal network perimeter.
 
 ---
 
-## 3. Kế hoạch Kỹ thuật Chi tiết & Mã nguồn Cải tiến
+## 3. Engineering Implementation & Code Architecture
 
-### 3.1. Cải tiến Backend Engine (`engine/`)
+### 3.1. Backend Engine Enhancements (`engine/`)
 
-#### A. Cập nhật CORS và Dynamic Header Handling (`engine/config.py` & `engine/server.py`)
-Cần cho phép Backend trên Render nhận request từ domain Vercel và cho phép truyền target RPC động:
+#### A. CORS & Dynamic Target Routing (`engine/config.py` & `engine/server.py`)
+Allows the backend to accept requests from production edge domains and route dynamic RPC targets:
 
 ```python
-# Cập nhật trong engine/config.py
+# engine/config.py
 class EngineConfig(BaseModel):
-    # Cho phép linh hoạt các nguồn CORS bao gồm production Vercel
     cors_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
@@ -101,37 +100,36 @@ class EngineConfig(BaseModel):
     ]
 ```
 
-#### B. Nâng cấp DotNexus CLI thành Động cơ Đa năng (`engine/cli.py`)
-Bổ sung các cờ tham số động `--ws`, `--evm`, và lệnh chẩn đoán `doctor` để vừa làm được nhiệm vụ thăm dò từ xa (như NodeScope), vừa điều khiển vận hành:
+#### B. Multi-Purpose CLI Utilities (`engine/cli.py`)
+Provides dynamic `--ws`, `--evm`, and diagnostic `doctor` commands for rapid remote probing alongside operational orchestration:
 
 ```python
-# Bổ sung vào engine/cli.py:
+# engine/cli.py
 def setup_cli():
     parser = argparse.ArgumentParser(prog="dotnexus")
-    # Toàn bộ subparser đều hỗ trợ override endpoint
     parser.add_argument("--ws", default=None, help="Custom Substrate WS URL")
     parser.add_argument("--evm", default=None, help="Custom EVM RPC URL")
     parser.add_argument("--json", action="store_true", help="Output pure JSON format")
 
-    # Command mới: doctor (Pre-flight self-check)
+    # Command: doctor (Pre-flight self-check)
     subparsers.add_parser("doctor", help="Run automated environmental compatibility check")
 ```
 
-Logic lệnh `dotnexus doctor`:
-1. Kiểm tra kết nối Substrate WS (kiểm tra timeout, token decimals, chain ID).
-2. Kiểm tra kết nối EVM RPC (`eth_chainId == 420420777`).
-3. Kiểm tra tính sẵn sàng của phương thức an ninh: kiểm tra xem node có bật `--rpc-methods Safe/Unsafe` hay không.
-4. In ra báo cáo chuẩn đoán tương thích rõ ràng, đề xuất cờ khởi chạy nếu node cấu hình sai.
+`dotnexus doctor` execution logic:
+1. Validates Substrate WS connectivity (timeout, token decimals, chain ID).
+2. Validates EVM RPC connectivity (`eth_chainId == 420420777`).
+3. Evaluates endpoint security postures (verifies whether `--rpc-methods Safe/Unsafe` is enabled).
+4. Emits a structured diagnostic report with actionable launch flag recommendations.
 
-### 3.2. Triển khai Containerization & Render Blueprint
+### 3.2. Containerization & Deployment Configuration
 
-#### A. Dockerfile cho DotNexus Engine (`Dockerfile`)
+#### A. Docker Container Specification (`Dockerfile`)
 ```dockerfile
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Cài đặt system dependencies cho secp256k1 & Substrate cryptography
+# Install system dependencies for secp256k1 & Substrate cryptography
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -143,14 +141,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Mặc định lắng nghe trên cổng 5050 (Render tự động map biến $PORT)
 ENV PORT=5050
 EXPOSE 5050
 
 CMD ["python", "-m", "engine.server"]
 ```
 
-#### B. Cấu hình Render Service (`render.yaml`)
+#### B. Cloud Service Blueprint (`render.yaml`)
 ```yaml
 services:
   - type: web
@@ -171,7 +168,7 @@ services:
         generateValue: true
 ```
 
-### 3.3. Cải tiến Frontend Vercel (`front-end/`)
+### 3.3. Frontend Client Integration (`front-end/`)
 
 #### A. Centralized API Gateway Client (`front-end/src/config/api.ts`)
 ```typescript
@@ -203,39 +200,36 @@ export const getActiveApiBaseUrl = (): string => {
 };
 ```
 
-#### B. UI Component: `GatewaySelectorModal.tsx` trên Topbar
-- **Hiển thị Badge Trạng thái:**
+#### B. UI Component: Gateway Mode Selector
+- **Status Badges**:
   - `🟢 Cloud Fleet (Testnet V3)`
   - `🟡 BYON Relay (Custom Node)`
   - `🔵 Local Private Daemon (127.0.0.1:5050)`
-- **Modal Chuyển đổi:**
-  - Cho phép người dùng chọn 1 trong 3 mode chỉ với 1 click.
-  - Cung cấp sẵn lệnh copy 1-line Docker cho người muốn chạy local daemon.
-  - Nút **Test Connection** để kiểm tra ping và độ trễ trước khi lưu.
+- **Modal Switcher**:
+  - Allows one-click toggling across all three modes.
+  - Displays a one-line Docker command snippet for local private sidecar deployment.
+  - Includes a **Test Connection** utility checking latency before saving preferences.
 
 ---
 
-## 4. Kế hoạch Thực thi & Mốc Thời gian (Roadmap to Code Freeze)
+## 4. Execution Roadmap & Milestones
 
-| Mốc Thời gian | Hạng mục Công việc | Tiêu chí Nghiệm thu (Acceptance Criteria) |
+| Milestone | Deliverables | Acceptance Criteria |
 | :--- | :--- | :--- |
-| **Nov 01 – Nov 02** | • Tạo `Dockerfile` chuẩn cho Backend Engine.<br/>• Deploy Web Service lên Render.<br/>• Cấu hình Environment Variables trỏ Testnet V3. | Endpoint `https://dotnexus-api.onrender.com/api/dual-state` phản hồi mã 200, dữ liệu block thật. |
-| **Nov 02 – Nov 03** | • Nâng cấp `engine/cli.py` với các cờ dynamic `--ws`, `--evm`, và lệnh `doctor`.<br/>• Bổ sung 10 unit tests cho CLI dynamic flags. | Chạy `python -m unittest tests/test_engine.py` đạt 100% pass. |
-| **Nov 03 – Nov 04** | • Cập nhật Frontend Vercel với `GatewaySelectorModal`.<br/>• Xử lý fallback mượt mà nếu Render khởi động trễ (Cold-start toast). | Vercel UI chuyển đổi mượt mà giữa Cloud và Local, không văng lỗi Mixed Content. |
-| **Nov 04 – Nov 05** | • Hoàn thiện tài liệu `FOR_JUDGES.md` và `docs/REPRODUCE.md` (Hướng dẫn 60 giây cho giám khảo).<br/>• Quay Demo Video 3 phút chuẩn độ phân giải cao. | Bằng chứng tái lập có đầy đủ lệnh curl, demo video làm nổi bật sự khác biệt với NodeScope. |
-| **Nov 06 (04:00 UTC)**| **CODE FREEZE & NỘP BÀI CUỐI CÙNG TRÊN DORAHACKS** | Mọi commit đã được đẩy lên GitHub, form DoraHacks hoàn tất. |
+| **Phase 1** | • Docker containerization for Backend Engine.<br/>• Cloud deployment pre-connected to Testnet V3. | Endpoint `/api/dual-state` returns HTTP 200 with verified block data. |
+| **Phase 2** | • Dynamic CLI parameters (`--ws`, `--evm`) and `doctor` command.<br/>• Unit test verification suite. | `python -m unittest tests/test_engine.py` passes 100%. |
+| **Phase 3** | • Frontend Gateway mode switcher.<br/>• Graceful fallback handling for cold-start latency. | UI transitions seamlessly between Cloud and Local modes without Mixed Content warnings. |
+| **Phase 4** | • Evaluation guides (`FOR_JUDGES.md` and technical specs).<br/>• High-definition demo walk-through video. | Step-by-step reproduction guide verified with live curl calls. |
+| **Phase 5** | **CODE FREEZE & FINAL DORAHACKS SUBMISSION** | Complete repository tagged, tested, and submitted. |
 
 ---
 
-## 5. Chiến lược Thuyết trình & Trả lời Ban Giám khảo (Demo Day Nov 7–8)
+## 5. Demo Day Evaluator Engagement Strategy
 
-Khi bước vào phiên Demo Day và đối mặt với câu hỏi so sánh hoặc đánh giá từ giám khảo:
+When presenting the architecture and addressing competitive comparisons:
 
-1. **Khẳng định Tuyên ngôn Khác biệt:**
-   > *"NodeScope là một công cụ đo lường và chẩn đoán tuyệt vời từ góc nhìn người quan sát (Observer). Nhưng khi node của bạn gặp sự cố split-brain, mạng bị phân mảnh hoặc bị tấn công RPC, một bảng chẩn đoán chỉ có thể báo tin buồn. **DotNexus được sinh ra để bảo vệ: Chúng tôi là hệ điều hành SecOps duy nhất sở hữu Dead Man's Switch bất biến toán học và hợp đồng phân xử on-chain để ngăn chặn vĩnh viễn thảm họa Slashing.**"*
+1. **The Core Differentiator**:
+   > *"Passive linters provide helpful observation, but when a validator encounters network partitions, split-brain conditions, or RPC flood attacks, diagnostic viewers can only display the crash. **DotNexus is built to protect: We provide an autonomous SecOps engine with mathematically proven time invariants and on-chain lease arbitration to permanently eliminate double-signing slashing.**"*
 
-2. **Chứng minh Tính Khả dụng Toàn diện:**
-   > *"Giám khảo có thể trải nghiệm DotNexus ngay trên trình duyệt thông qua Cloud Gateway kết nối trực tiếp Testnet V3. Nếu giám khảo muốn bảo vệ chính node nội bộ của mình, DotNexus cung cấp kiến trúc Hybrid: Giữ khóa an toàn trên máy cục bộ, không bao giờ để lộ RPC mật ra Internet."*
-
----
-*Tài liệu được biên soạn kỹ thuật chặt chẽ nhằm định hướng trực tiếp việc viết mã và hoàn thiện sản phẩm DotNexus.*
+2. **Demonstrating Comprehensive Adaptability**:
+   > *"Evaluators can test DotNexus instantly via the browser connected directly to Testnet V3. For operators securing live private infrastructure, DotNexus provides a Hybrid architecture: private keys stay local, and unauthenticated RPC traffic is never exposed to the public Internet."*

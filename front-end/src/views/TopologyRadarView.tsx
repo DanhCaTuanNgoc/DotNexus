@@ -238,10 +238,10 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
         <div className={`p-3 font-mono border flex flex-wrap items-center justify-between gap-3 text-xs ${
           data.sybil_analysis.is_sybil_cluster_detected
             ? 'bg-[#14080D] border-rose-800 text-rose-300'
-            : 'bg-[#060B12] border-[#00E5FF]/30 text-zinc-300'
+            : 'bg-[#0B0616] border-[#8B5CF6]/30 text-zinc-300 shadow-sm'
         }`}>
           <div className="flex items-center gap-2.5">
-            <Shield className={`w-4 h-4 ${data.sybil_analysis.is_sybil_cluster_detected ? 'text-[#EF4444] animate-pulse' : 'text-[#00E5FF]'}`} />
+            <Shield className={`w-4 h-4 ${data.sybil_analysis.is_sybil_cluster_detected ? 'text-[#EF4444] animate-pulse' : 'text-[#A78BFA]'}`} />
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-white uppercase tracking-wider text-[11px]">
@@ -250,7 +250,7 @@ export const TopologyRadarView: React.FC<TopologyRadarViewProps> = ({ data, onRe
                 <span className={`px-2 py-0.5 text-[9px] font-bold border uppercase ${
                   data.sybil_analysis.is_sybil_cluster_detected
                     ? 'bg-rose-950 text-rose-400 border-rose-700'
-                    : 'bg-[#00E5FF]/10 text-[#00E5FF] border-[#00E5FF]/40'
+                    : 'bg-[#8B5CF6]/15 text-[#C084FC] border-[#8B5CF6]/40'
                 }`}>
                   [{data.sybil_analysis.eclipse_threat_level}]
                 </span>

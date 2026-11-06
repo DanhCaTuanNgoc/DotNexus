@@ -8,15 +8,15 @@
 ### *Track: Node Operations & Tooling — Portaldot Hacker House 2026*
 <br/>
 
-[![Portaldot V3.0 Testnet](https://img.shields.io/badge/Portaldot-V3.0_Testnet_--_420420777-24C6DC?style=for-the-badge&logo=polkadot&logoColor=white)](https://portaldot.network)
+[![Portaldot V3.0 Testnet](https://img.shields.io/badge/Portaldot-V3.0_Testnet_(420420777)-24C6DC?style=for-the-badge&logo=polkadot&logoColor=white)](https://portaldot.network)
 [![Track: Node Operations & Tooling](https://img.shields.io/badge/Track-Node_Operations_%26_Tooling-FF6B6B?style=for-the-badge)](https://dorahacks.io/hackathon/2362/detail)
-[![DoraHacks Final Submission](https://img.shields.io/badge/DoraHacks_Submission-FINAL_READY_--_Nov_6-8B5CF6?style=for-the-badge)](https://dorahacks.io)
+[![DoraHacks Final Submission](https://img.shields.io/badge/DoraHacks_Submission-FINAL_READY_(Nov_6)-8B5CF6?style=for-the-badge)](https://dorahacks.io)
 [![Live Web3 App](https://img.shields.io/badge/Live_App-dotnexus--hackerhouse.vercel.app-00FF9D?style=for-the-badge&logo=vercel&logoColor=black)](https://dotnexus-hackerhouse.vercel.app/)
 [![Smart Contracts](https://img.shields.io/badge/Smart_Contracts-SlashGuard_%26_Vault-8B5CF6?style=for-the-badge&logo=solidity&logoColor=white)](contracts/)
-[![Tests Passing](https://img.shields.io/badge/Tests-215%2F215_Passed-00e676?style=for-the-badge&logo=checkmarx&logoColor=white)](tests/test_engine.py)
-[![Substrate WASM Engine](https://img.shields.io/badge/Substrate-WASM_Runtime_--_SS58%3A42-282C34?style=for-the-badge&logo=rust&logoColor=white)](https://substrate.io)
-[![pallet-revive EVM](https://img.shields.io/badge/Dual--VM-pallet--revive_--_Paris-627EEA?style=for-the-badge&logo=ethereum&logoColor=white)](contracts/build/)
-[![React 19](https://img.shields.io/badge/Frontend-React_19_%26_Vite-61DAFB?style=for-the-badge&logo=react&logoColor=black)](front-end/)
+[![Tests Passing](https://img.shields.io/badge/Tests-215_Passed-00e676?style=for-the-badge&logo=checkmarx&logoColor=white)](tests/test_engine.py)
+[![Substrate WASM Engine](https://img.shields.io/badge/Substrate-WASM_Runtime_(SS58%3A42)-282C34?style=for-the-badge&logo=rust&logoColor=white)](https://substrate.io)
+[![pallet-revive EVM](https://img.shields.io/badge/Dual--VM-pallet--revive_(Paris)-627EEA?style=for-the-badge&logo=ethereum&logoColor=white)](contracts/build/)
+[![React 19](https://img.shields.io/badge/Frontend-React_19_Vite-61DAFB?style=for-the-badge&logo=react&logoColor=black)](front-end/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
 <br/>

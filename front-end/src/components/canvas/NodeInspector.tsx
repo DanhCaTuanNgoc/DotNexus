@@ -4,6 +4,7 @@ import { CanvasNode, SafetyIssue } from './types';
 import { CATEGORY_THEMES } from './constants';
 import { isValidDiscordWebhookUrl, sendDiscordAlert } from '../../services/discordAlert';
 import { fetchEvmBlockNumber } from '../../services/chainClientProbe';
+import { storage } from '../../services/storage';
 
 interface NodeInspectorProps {
   node: CanvasNode | null;
@@ -55,10 +56,15 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
       ...node.data.config,
       [key]: parsedVal,
     });
+
+    if (key === 'webhookUrl' && isValidDiscordWebhookUrl(value)) {
+      storage.setSavedDiscordWebhook(value.trim());
+    }
   };
 
   const handleTestDiscordPing = async () => {
     if (!isWebhookValid) return;
+    storage.setSavedDiscordWebhook(webhookUrl.trim());
     setTestStatus({ loading: true });
 
     let liveBlock = 342720;

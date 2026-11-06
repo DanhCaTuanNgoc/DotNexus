@@ -48,6 +48,7 @@ def main():
     p_rb.add_argument(
         "id",
         choices=[
+            "runbook-mission-critical-sentry",
             "runbook-slash-guard",
             "runbook-dual-vm-sync",
             "runbook-npos-compound",

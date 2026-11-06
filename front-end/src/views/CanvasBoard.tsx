@@ -129,7 +129,7 @@ function loadInitialWorkflows(): { workflows: CanvasWorkflow[]; activeId: string
     const existingIds = new Set(merged.map((w) => w.id));
     for (const def of defaultWfs) {
       if (!existingIds.has(def.id)) {
-        merged.push(def);
+        merged.unshift(def);
       }
     }
     const finalActiveId = merged.some((w) => w.id === savedActiveId) ? savedActiveId : merged[0].id;
@@ -1431,10 +1431,6 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
           {/* Active Job Controls: Running Indicator & Stop Job */}
           {executing ? (
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#00FF9D]/10 border border-[#00FF9D]/40 text-[#00FF9D] text-xs font-mono font-bold animate-pulse">
-                <span className="w-2 h-2 rounded-full bg-[#00FF9D] animate-ping" />
-                <span>PIPELINE RUNNING</span>
-              </span>
               <button
                 type="button"
                 onClick={handleStopPipeline}

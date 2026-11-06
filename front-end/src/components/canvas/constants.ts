@@ -337,6 +337,90 @@ export function getHandlePoint(
 // Pre-configured Default Operational Runbooks
 export const DEFAULT_RUNBOOKS = [
   {
+    id: 'runbook-mission-critical-sentry',
+    name: 'Mission-Critical Dual-VM Sentinel & On-Chain Slashing Prevention',
+    description: 'Production-grade automated SRE runbook: Probes live Substrate & EVM lockstep, enforces on-chain SlashGuard lease (0xba11...7355), rotates BABE/GRANDPA session keys, sweeps staking rewards, and broadcasts real-time telemetry proof to Discord.',
+    category: 'SECURITY',
+    nodes: [
+      {
+        id: 'sentry-sub',
+        type: 'infra',
+        label: 'Substrate WS (:9944)',
+        position: { x: 50, y: 70 },
+        data: { endpoint: 'ws://127.0.0.1:9944', role: 'WASM Runtime', status: 'STREAMING' },
+      },
+      {
+        id: 'sentry-evm',
+        type: 'infra',
+        label: 'Frontier EVM RPC (:8545)',
+        position: { x: 50, y: 250 },
+        data: { endpoint: 'http://127.0.0.1:8545', role: 'EVM Host', status: 'STREAMING' },
+      },
+      {
+        id: 'sentry-sync',
+        type: 'watcher',
+        label: 'Cross-VM Desync Detector',
+        position: { x: 370, y: 160 },
+        data: { max_lag: 2, metric: 'Delta Blocks', status: 'EVALUATING' },
+      },
+      {
+        id: 'sentry-era',
+        type: 'watcher',
+        label: 'NPoS Era & Staking Scanner',
+        position: { x: 370, y: 340 },
+        data: { frequency: 'Every Era', metric: 'Era Points', status: 'WATCHING' },
+      },
+      {
+        id: 'sentry-mutex',
+        type: 'security',
+        label: 'Anti-Equivocation Mutex Lock',
+        position: { x: 690, y: 160 },
+        data: {
+          contract: '0xba114d21CC41a30880CcfA53673B743316387355',
+          leaseDuration: '30s',
+          check: 'Strict Mutex',
+          status: 'ARMED',
+        },
+      },
+      {
+        id: 'sentry-rotate',
+        type: 'action',
+        label: 'Rotate Session Keys',
+        position: { x: 1010, y: 110 },
+        data: { rpcTarget: 'ws://127.0.0.1:9944', keys: 'BABE + GRANDPA', status: 'READY' },
+      },
+      {
+        id: 'sentry-payout',
+        type: 'action',
+        label: 'Auto-Bond & Compound POT',
+        position: { x: 1010, y: 280 },
+        data: { extrinsic: 'staking.payoutStakersByPage', boost: '+1.16% APY', status: 'ARMED' },
+      },
+      {
+        id: 'sentry-alert',
+        type: 'action',
+        label: 'Urgent Discord / Ops Alert',
+        position: { x: 1330, y: 190 },
+        data: {
+          webhookUrl: '',
+          channel: '#ops-alerts',
+          level: 'P1_CRITICAL',
+          mention: '@here',
+          status: 'STANDBY',
+        },
+      },
+    ],
+    edges: [
+      { id: 'es-sub-sync', source: 'sentry-sub', target: 'sentry-sync', animated: true, label: 'Feed WASM Head' },
+      { id: 'es-evm-sync', source: 'sentry-evm', target: 'sentry-sync', animated: true, label: 'Feed EVM Logs' },
+      { id: 'es-sync-mutex', source: 'sentry-sync', target: 'sentry-mutex', animated: true, label: 'Delta <= 2 Blocks: Parity OK' },
+      { id: 'es-mutex-rotate', source: 'sentry-mutex', target: 'sentry-rotate', animated: true, label: 'Mutex Lease Granted' },
+      { id: 'es-era-payout', source: 'sentry-era', target: 'sentry-payout', animated: true, label: 'Era Finalized (Top 16)' },
+      { id: 'es-rotate-alert', source: 'sentry-rotate', target: 'sentry-alert', animated: true, label: 'Keys Verified' },
+      { id: 'es-payout-alert', source: 'sentry-payout', target: 'sentry-alert', animated: true, label: 'Yield Dispatched' },
+    ],
+  },
+  {
     id: 'runbook-slash-guard',
     name: 'Automated Slashing Guard & Standby Failover',
     description: 'Monitors pallet_im_online heartbeat and safely switches to standby node without double-signing.',
@@ -670,6 +754,18 @@ export function convertRunbookToWorkflow(rb: any): CanvasWorkflow {
     const posX = Number.isFinite(n?.position?.x) ? n.position.x : 80 + idx * 300;
     const posY = Number.isFinite(n?.position?.y) ? n.position.y : 160;
 
+    const nodeConfig = { ...(n.data || {}) };
+    if (matchedKind === 'discord_alert' && (!nodeConfig.webhookUrl || !nodeConfig.webhookUrl.startsWith('https://discord.com/api/webhooks/'))) {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          const savedWebhook = window.localStorage.getItem('dotnexus_saved_discord_webhook');
+          if (savedWebhook && savedWebhook.startsWith('https://discord.com/api/webhooks/')) {
+            nodeConfig.webhookUrl = savedWebhook;
+          }
+        } catch {}
+      }
+    }
+
     return {
       id: n.id,
       type: n.type || 'infra',
@@ -680,7 +776,7 @@ export function convertRunbookToWorkflow(rb: any): CanvasWorkflow {
         label: n.label,
         description: `Configured operational step: ${n.label}`,
         status: 'idle',
-        config: { ...(n.data || {}) },
+        config: nodeConfig,
       },
     };
   });

@@ -172,4 +172,9 @@ export const storage = {
       window.dispatchEvent(new CustomEvent('dotnexus:running_jobs_changed', { detail: next }));
     }
   },
+  // Saved Discord Webhook for Seamless Demo & Runbooks
+  getSavedDiscordWebhook: (): string =>
+    getItem<string>('dotnexus_saved_discord_webhook', ''),
+  setSavedDiscordWebhook: (url: string) =>
+    setItem('dotnexus_saved_discord_webhook', url),
 };

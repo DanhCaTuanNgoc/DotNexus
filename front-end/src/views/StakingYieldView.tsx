@@ -267,6 +267,9 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
       const res = await api.rebalanceStake(stakeInput);
       if (res.success) {
         setRebalanceResult(res.data);
+        setBroadcastStatus('idle');
+        setOnchainReceipt(null);
+        setDispatchError(null);
         setIsDispatchModalOpen(true);
       }
     } finally {
@@ -578,7 +581,10 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                 NONCE: #{rebalanceResult.allocated_nonce} | READY TO BROADCAST
               </span>
               <button
-                onClick={() => setIsDispatchModalOpen(true)}
+                onClick={() => {
+                  setBroadcastStatus('idle');
+                  setIsDispatchModalOpen(true);
+                }}
                 className="px-2 py-0.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-[10px] font-bold cursor-pointer transition-colors"
               >
                 OPEN DISPATCH STUDIO
@@ -991,15 +997,15 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
       {/* 4. MODAL: Detailed Validator Inspection (DotNexus Institutional Profile) */}
       {selectedValidator && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150"
           onClick={() => setSelectedValidator(null)}
         >
           <div
-            className="w-full max-w-xl bg-[#0B0813] border border-[#261B42] shadow-[0_0_50px_rgba(139,92,246,0.15)] p-5 space-y-4 text-zinc-200 font-mono relative"
+            className="w-full max-w-xl max-h-[90vh] flex flex-col bg-[#0B0813] border border-[#261B42] shadow-[0_0_50px_rgba(139,92,246,0.15)] text-zinc-200 font-mono relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#1C142E] pb-3">
+            <div className="flex items-center justify-between border-b border-[#1C142E] p-4 shrink-0 bg-[#0B0813]">
               <div>
                 <span className="text-[10px] text-[#C084FC] tracking-wider uppercase font-semibold block">
                   PORTALDOT V3.0 EARN · VALIDATOR PROFILE
@@ -1029,8 +1035,10 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               </button>
             </div>
 
-            {/* Stash Address with 1-click Copy */}
-            <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
+            {/* Scrollable Body */}
+            <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
+              {/* Stash Address with 1-click Copy */}
+              <div className="p-2.5 bg-[#06040A] border border-[#1C142E] space-y-1">
               <div className="flex items-center justify-between text-[10px] text-zinc-400">
                 <span className="font-semibold uppercase tracking-wider">SS58 STASH ACCOUNT</span>
                 <button
@@ -1130,8 +1138,10 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               )}
             </div>
 
+            </div>
+
             {/* Modal Actions */}
-            <div className="flex items-center justify-between pt-3 border-t border-[#1C142E]">
+            <div className="flex items-center justify-between p-4 border-t border-[#1C142E] shrink-0 bg-[#0E091B]">
               <button
                 onClick={() => handleToggleTarget(selectedValidator.stash_address)}
                 className={`px-4 py-2 text-xs font-semibold border cursor-pointer transition-colors ${
@@ -1162,15 +1172,15 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
       {/* 5. MODAL: Extrinsic Dispatch & Order Studio (DotNexus Dual-VM Dispatch) */}
       {isDispatchModalOpen && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150"
           onClick={() => setIsDispatchModalOpen(false)}
         >
           <div
-            className="w-full max-w-2xl bg-[#0B0813] border border-[#261B42] shadow-[0_0_50px_rgba(139,92,246,0.15)] p-5 space-y-4 text-zinc-200 font-mono relative"
+            className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-[#0B0813] border border-[#261B42] shadow-[0_0_50px_rgba(139,92,246,0.15)] text-zinc-200 font-mono relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#1C142E] pb-3">
+            <div className="flex items-center justify-between border-b border-[#1C142E] p-4 shrink-0 bg-[#0B0813]">
               <div>
                 <span className="text-[10px] text-[#C084FC] tracking-wider uppercase font-semibold block">
                   PORTALDOT V3.0 DUAL-VM · ORDER DISPATCH
@@ -1188,8 +1198,10 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               </button>
             </div>
 
-            {/* Protocol Mode Switch (Dual-VM Segmented Tabs) */}
-            <div className="flex items-center justify-between p-2 bg-[#06040A] border border-[#1C142E]">
+            {/* Scrollable Content Body */}
+            <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
+              {/* Protocol Mode Switch (Dual-VM Segmented Tabs) */}
+              <div className="flex items-center justify-between p-2 bg-[#06040A] border border-[#1C142E]">
               <span className="text-xs text-zinc-400 font-semibold uppercase tracking-wider">PROTOCOL ENGINE:</span>
               <div className="flex items-center gap-1 bg-[#0E091B] p-0.5 border border-[#1C142E]">
                 <button
@@ -1446,8 +1458,10 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               )
             )}
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center justify-between pt-3 border-t border-[#1C142E] gap-2">
+            </div>
+
+            {/* Action Buttons (Fixed Footer - ALWAYS 100% VISIBLE) */}
+            <div className="flex flex-wrap items-center justify-between p-3.5 sm:p-4 border-t border-[#1C142E] gap-2 shrink-0 bg-[#0E091B]/95 backdrop-blur-sm">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsDispatchModalOpen(false)}
@@ -1482,7 +1496,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                   {broadcastStatus === 'broadcasting'
                     ? 'BROADCASTING ON-CHAIN TO PORTALDOT…'
                     : broadcastStatus === 'success'
-                    ? 'RE-BROADCAST ON-CHAIN'
+                    ? 'CONFIRM & RE-BROADCAST ON-CHAIN'
                     : 'CONFIRM & BROADCAST ON-CHAIN'}
                 </span>
               </button>
@@ -1494,14 +1508,14 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
       {/* 6. MODAL: Unbonding Escrow Order (Substrate & EVM) */}
       {isUnbondModalOpen && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150"
           onClick={() => setIsUnbondModalOpen(false)}
         >
           <div
-            className="w-full max-w-md bg-[#0B0813] border border-[#261B42] shadow-[0_0_50px_rgba(0,229,255,0.15)] p-5 space-y-4 text-zinc-200 font-mono relative"
+            className="w-full max-w-md max-h-[90vh] flex flex-col bg-[#0B0813] border border-[#261B42] shadow-[0_0_50px_rgba(0,229,255,0.15)] text-zinc-200 font-mono relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-[#1C142E] pb-3">
+            <div className="flex items-center justify-between border-b border-[#1C142E] p-4 shrink-0 bg-[#0B0813]">
               <div>
                 <span className="text-[10px] text-[#00E5FF] tracking-wider uppercase font-semibold block">
                   PORTALDOT V3.0 · ESCROW QUEUE
@@ -1518,7 +1532,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="p-4 sm:p-5 space-y-3 text-xs overflow-y-auto flex-1">
               <div>
                 <label className="text-[10px] text-[#00E5FF] block font-semibold uppercase mb-1">
                   AMOUNT TO UNBOND (POT)
@@ -1552,7 +1566,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1C142E]">
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-[#1C142E] shrink-0 bg-[#0E091B]">
               <button
                 onClick={() => setIsUnbondModalOpen(false)}
                 className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white cursor-pointer"

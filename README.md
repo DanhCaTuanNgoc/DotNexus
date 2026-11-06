@@ -8,15 +8,15 @@
 ### *Track: Node Operations & Tooling — Portaldot Hacker House 2026*
 <br/>
 
-[![Portaldot V3.0 Testnet](https://img.shields.io/badge/Portaldot-V3.0_Testnet_(420420777)-24C6DC?style=for-the-badge&logo=polkadot&logoColor=white)](https://portaldot.network)
+[![Portaldot V3.0 Testnet](https://img.shields.io/badge/Portaldot-V3.0_Testnet_--_420420777-24C6DC?style=for-the-badge&logo=polkadot&logoColor=white)](https://portaldot.network)
 [![Track: Node Operations & Tooling](https://img.shields.io/badge/Track-Node_Operations_%26_Tooling-FF6B6B?style=for-the-badge)](https://dorahacks.io/hackathon/2362/detail)
-[![DoraHacks Final Submission](https://img.shields.io/badge/DoraHacks_Submission-FINAL_READY_(Nov_6)-8B5CF6?style=for-the-badge)](https://dorahacks.io)
+[![DoraHacks Final Submission](https://img.shields.io/badge/DoraHacks_Submission-FINAL_READY_--_Nov_6-8B5CF6?style=for-the-badge)](https://dorahacks.io)
 [![Live Web3 App](https://img.shields.io/badge/Live_App-dotnexus--hackerhouse.vercel.app-00FF9D?style=for-the-badge&logo=vercel&logoColor=black)](https://dotnexus-hackerhouse.vercel.app/)
 [![Smart Contracts](https://img.shields.io/badge/Smart_Contracts-SlashGuard_%26_Vault-8B5CF6?style=for-the-badge&logo=solidity&logoColor=white)](contracts/)
-[![Tests Passing](https://img.shields.io/badge/Tests-215%2F215_Passed_(100%25)-00e676?style=for-the-badge&logo=checkmarx&logoColor=white)](tests/test_engine.py)
-[![Substrate WASM Engine](https://img.shields.io/badge/Substrate-WASM_Runtime_(SS58%3A42)-282C34?style=for-the-badge&logo=rust&logoColor=white)](https://substrate.io)
-[![pallet-revive EVM](https://img.shields.io/badge/Dual--VM-pallet--revive_(Paris)-627EEA?style=for-the-badge&logo=ethereum&logoColor=white)](contracts/build/)
-[![React 19](https://img.shields.io/badge/Frontend-React_19_%2B_Vite_8-61DAFB?style=for-the-badge&logo=react&logoColor=black)](front-end/)
+[![Tests Passing](https://img.shields.io/badge/Tests-215%2F215_Passed-00e676?style=for-the-badge&logo=checkmarx&logoColor=white)](tests/test_engine.py)
+[![Substrate WASM Engine](https://img.shields.io/badge/Substrate-WASM_Runtime_--_SS58%3A42-282C34?style=for-the-badge&logo=rust&logoColor=white)](https://substrate.io)
+[![pallet-revive EVM](https://img.shields.io/badge/Dual--VM-pallet--revive_--_Paris-627EEA?style=for-the-badge&logo=ethereum&logoColor=white)](contracts/build/)
+[![React 19](https://img.shields.io/badge/Frontend-React_19_%26_Vite-61DAFB?style=for-the-badge&logo=react&logoColor=black)](front-end/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
 <br/>
@@ -226,8 +226,8 @@ Any delayed block broadcast by Primary signed with an older epoch is permanently
 > $$\forall t \ge 0, \quad \left| \{ N_i \mid \text{CanSignBlock}(N_i, t) \} \right| \le 1$$
 
 #### Proof (By Contradiction):
-1. Assume for contradiction that at physical time $t^*$, both $N_1$ and $N_2$ are in state $\text{SIGNING\_ACTIVE}$.
-2. In order for $N_2$ to enter $\text{SIGNING\_ACTIVE}$, $N_2$ must execute `acquireFailoverLease(expectedEpoch = E + 1)` on contract $\mathcal{C}$ ([`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol)).
+1. Assume for contradiction that at physical time $t^*$, both $N_1$ and $N_2$ are in state `SIGNING_ACTIVE`.
+2. In order for $N_2$ to enter `SIGNING_ACTIVE`, $N_2$ must execute `acquireFailoverLease(expectedEpoch = E + 1)` on contract $\mathcal{C}$ ([`SlashGuardLeaseRegistry.sol`](contracts/SlashGuardLeaseRegistry.sol)).
 3. By contract preconditions:
    $$\text{expectedEpoch} > \text{currentLease.fencingEpoch}$$
    This requires that a failover transaction was included and finalized on-chain at time $t_{\text{tx}} \le t^*$.
@@ -241,12 +241,12 @@ Any delayed block broadcast by Primary signed with an older epoch is permanently
    - The OS transition from readable ($0700$) to unreadable ($0000$) occurs at:
      $$t_{\text{fenced}} = t_0 + T_{\text{fence}} + \epsilon_{\text{os}} \le t_0 + 10.1\text{s}$$
 7. Thus, for all $t > t_0 + 10.1\text{s}$, $N_1$ has no read or execute access to session private keys:
-   $$\sigma_{N_1}(t) = \text{FENCED\_ISOLATED} \neq \text{SIGNING\_ACTIVE}$$
+   $$\sigma_{N_1}(t) = \text{FENCED-ISOLATED} \neq \text{SIGNING-ACTIVE}$$
 8. Since $N_2$ cannot begin signing until at earliest:
-   $$t_{\text{standby\_sign}} \ge t_0 + T_{\text{standby}} = t_0 + 15.0\text{s}$$
+   $$t_{\text{standby-sign}} \ge t_0 + T_{\text{standby}} = t_0 + 15.0\text{s}$$
 9. We observe the non-overlapping positive safety margin:
-   $$\Delta_{\text{safety}} = t_{\text{standby\_sign}} - t_{\text{fenced}} \ge 15.0\text{s} - 10.1\text{s} = 4.9\text{s} > 0$$
-10. Consequently, at time $t^*$, $N_1$ is already irreversibly fenced and cannot sign. This contradicts the assumption that both were in $\text{SIGNING\_ACTIVE}$. $\blacksquare$
+   $$\Delta_{\text{safety}} = t_{\text{standby-sign}} - t_{\text{fenced}} \ge 15.0\text{s} - 10.1\text{s} = 4.9\text{s} > 0$$
+10. Consequently, at time $t^*$, $N_1$ is already irreversibly fenced and cannot sign. This contradicts the assumption that both were in `SIGNING_ACTIVE`. $\blacksquare$
 
 ---
 
@@ -255,7 +255,7 @@ Any delayed block broadcast by Primary signed with an older epoch is permanently
 > **Theorem 2 (Liveness: Bounded Failover Convergence)**  
 > If Primary node $N_1$ suffers a fatal hardware crash or network blackout at time $t_0$, Standby node $N_2$ will reliably take over signing authority within a deterministic upper bound:
 > 
-> $$t_{\text{recovery}} \le t_0 + T_{\text{standby}} + \Delta_{\text{tx\_latency}} + \Delta_{\text{key\_mount}} \le 21.5\text{s}$$
+> $$t_{\text{recovery}} \le t_0 + T_{\text{standby}} + \Delta_{\text{tx-latency}} + \Delta_{\text{key-mount}} \le 21.5\text{s}$$
 
 #### Proof:
 1. $N_1$ halts heartbeat emission at $t_0$.
@@ -263,7 +263,7 @@ Any delayed block broadcast by Primary signed with an older epoch is permanently
 3. At $t = t_0 + T_{\text{standby}} = t_0 + 15.0\text{s}$, elapsed silence is satisfied.
 4. $N_2$ verifies via TCP socket probe that $N_1$'s P2P Libp2p port `:30333` is unreachable.
 5. $N_2$ signs and dispatches `acquireFailoverLease(operator, epoch + 1, peerIdHash, 200)` to `SlashGuardLeaseRegistry.sol`.
-6. With Portaldot V3 block time $T_{\text{block}} = 6.0\text{s}$, the transaction is mined into the next EVM block within $\Delta_{\text{tx\_latency}} \le 6.0\text{s} + \epsilon_{\text{propagation}}$.
+6. With Portaldot V3 block time $T_{\text{block}} = 6.0\text{s}$, the transaction is mined into the next EVM block within $\Delta_{\text{tx-latency}} \le 6.0\text{s} + \epsilon_{\text{propagation}}$.
 7. Upon event `LeaseAcquired(operator, epoch + 1)`, $N_2$ unlocks its local keystore mount and arms session authoring.
 8. Maximum recovery bound:
    $$t_{\text{recovery}} \le 15.0\text{s} + 6.0\text{s} + 0.5\text{s} = 21.5\text{s} \quad (\approx 3.5 \text{ BABE Slots})$$

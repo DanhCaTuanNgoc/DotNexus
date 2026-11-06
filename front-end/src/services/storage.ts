@@ -144,4 +144,32 @@ export const storage = {
     getItem<boolean>(STORAGE_KEYS.ONBOARDING_COMPLETED, fallback),
   setOnboardingCompleted: (completed: boolean) =>
     setItem(STORAGE_KEYS.ONBOARDING_COMPLETED, completed),
+
+  // Running Pipeline Jobs (Canvas Visual Indicator & Stop Management)
+  getRunningWorkflowIds: (): string[] =>
+    getItem<string[]>('dotnexus_running_workflow_ids', []),
+  setRunningWorkflowIds: (ids: string[]) => {
+    setItem('dotnexus_running_workflow_ids', ids);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dotnexus:running_jobs_changed', { detail: ids }));
+    }
+  },
+  addRunningWorkflowId: (id: string) => {
+    const ids = getItem<string[]>('dotnexus_running_workflow_ids', []);
+    if (!ids.includes(id)) {
+      const next = [...ids, id];
+      setItem('dotnexus_running_workflow_ids', next);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('dotnexus:running_jobs_changed', { detail: next }));
+      }
+    }
+  },
+  removeRunningWorkflowId: (id: string) => {
+    const ids = getItem<string[]>('dotnexus_running_workflow_ids', []);
+    const next = ids.filter((item) => item !== id);
+    setItem('dotnexus_running_workflow_ids', next);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dotnexus:running_jobs_changed', { detail: next }));
+    }
+  },
 };

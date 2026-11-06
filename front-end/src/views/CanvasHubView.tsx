@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { storage } from '../services/storage';
 import { 
   Workflow, 
   Plus, 
@@ -50,6 +51,17 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
   const [editingWorkflow, setEditingWorkflow] = useState<CanvasWorkflow | null>(null);
   const [deletingWorkflow, setDeletingWorkflow] = useState<CanvasWorkflow | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [runningWorkflowIds, setRunningWorkflowIds] = useState<string[]>(() => storage.getRunningWorkflowIds());
+
+  useEffect(() => {
+    const handleRunningJobsChanged = (e: any) => {
+      setRunningWorkflowIds(e?.detail || storage.getRunningWorkflowIds());
+    };
+    window.addEventListener('dotnexus:running_jobs_changed', handleRunningJobsChanged);
+    return () => {
+      window.removeEventListener('dotnexus:running_jobs_changed', handleRunningJobsChanged);
+    };
+  }, []);
 
   const filteredWorkflows = useMemo(() => {
     return workflows.filter((w) => {
@@ -208,12 +220,17 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
           {filteredWorkflows.map((workflow) => {
             const badge = getCategoryBadge(workflow.category);
             const is24_7 = workflow.id === 'runbook-health-bot';
+            const isRunning = runningWorkflowIds.includes(workflow.id);
 
             return (
               <div
                 key={workflow.id}
                 onClick={() => onOpenWorkflow(workflow.id)}
-                className="flex flex-col justify-between border border-[#1C142E] bg-[#08050F] hover:border-[#2E1F4A] hover:bg-[#0B0813] transition-all p-3 space-y-3 group relative cursor-pointer"
+                                className={`flex flex-col justify-between transition-all p-3 space-y-3 group relative cursor-pointer ${
+                  isRunning
+                    ? 'border border-[#00FF9D]/60 bg-[#06140E] shadow-lg shadow-[#00FF9D]/10 ring-1 ring-[#00FF9D]/30'
+                    : 'border border-[#1C142E] bg-[#08050F] hover:border-[#2E1F4A] hover:bg-[#0B0813]'
+                }`}
               >
                 {/* Top: Category Badge & Quick Actions */}
                 <div className="flex items-center justify-between gap-1.5">
@@ -225,6 +242,12 @@ export const CanvasHubView: React.FC<CanvasHubViewProps> = ({
                     {workflow.isCustom && (
                       <span className="px-1 py-0.5 text-[8px] bg-[#110C1E] text-zinc-400 border border-[#1C142E]">
                         USER
+                      </span>
+                    )}
+                    {isRunning && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-bold border border-[#00FF9D]/60 bg-[#00FF9D]/20 text-[#00FF9D] animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D] animate-ping" />
+                        RUNNING
                       </span>
                     )}
                   </div>

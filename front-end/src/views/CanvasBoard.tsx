@@ -17,8 +17,10 @@ import {
   Sparkles,
   Edit3,
   Wallet,
-  ExternalLink
+  ExternalLink,
+  Square
 } from 'lucide-react';
+import { sendDiscordAlert } from '../services/discordAlert';
 import { RenameWorkflowModal } from '../components/canvas/RenameWorkflowModal';
 import { RunbookDAG, api, LogItem } from '../services/api';
 import { 
@@ -182,6 +184,10 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   const [isWeb3Dispatching, setIsWeb3Dispatching] = useState<boolean>(false);
   const [onChainTxHash, setOnChainTxHash] = useState<string | null>(null);
   const [walletAccount, setWalletAccount] = useState<string | null>(null);
+  const abortExecutionRef = useRef<boolean>(false);
+  const consecutiveFailuresRef = useRef<number>(0);
+  const hiddenTimerRef = useRef<any>(null);
+
 
   const [activeWorkflowId, setActiveWorkflowId] = useState<string>(() => {
     if (subRoute && initialData.workflows.some((w) => w.id === subRoute)) {
@@ -257,6 +263,54 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   const [execResult, setExecResult] = useState<any | null>(null);
   const [activeEdgeId, setActiveEdgeId] = useState<string | null>(null);
   const [completedEdgeIds, setCompletedEdgeIds] = useState<string[]>([]);
+
+  // Stop active pipeline job
+  const handleStopPipeline = useCallback(() => {
+    abortExecutionRef.current = true;
+    setExecuting(false);
+    setActiveEdgeId(null);
+    storage.removeRunningWorkflowId(activeWorkflow.id);
+    setNodes((prev) =>
+      prev.map((n) => (n.data.status === 'running' ? { ...n, data: { ...n.data, status: 'idle' } } : n))
+    );
+    onLog?.({
+      source: 'DAG_ENGINE',
+      level: 'WARN',
+      time: Date.now() / 1000,
+      text: `Pipeline "${activeWorkflow.name}" execution stopped by operator (Stop Job triggered).`,
+    });
+  }, [activeWorkflow.id, activeWorkflow.name, onLog]);
+
+  // Resource Saver: Inactive tab auto-pause (5 minutes background threshold)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && executing) {
+        hiddenTimerRef.current = setTimeout(() => {
+          if (executing) {
+            handleStopPipeline();
+            onLog?.({
+              source: 'DAG_ENGINE',
+              level: 'WARN',
+              time: Date.now() / 1000,
+              text: 'Auto-shutdown triggered: Browser tab inactive for >5m. Pipeline stopped to conserve system and network resources.',
+            });
+          }
+        }, 300000);
+      } else {
+        if (hiddenTimerRef.current) {
+          clearTimeout(hiddenTimerRef.current);
+          hiddenTimerRef.current = null;
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (hiddenTimerRef.current) clearTimeout(hiddenTimerRef.current);
+    };
+  }, [executing, handleStopPipeline, onLog]);
+
 
   // Auto-save active canvas state into workflows list with debounce
   useEffect(() => {
@@ -976,6 +1030,8 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
   const handleExecute = async () => {
     if (hasCritical || executing || nodes.length === 0) return;
     setExecuting(true);
+    abortExecutionRef.current = false;
+    storage.addRunningWorkflowId(activeWorkflow.id);
     setExecResult(null);
     setActiveEdgeId(null);
     setCompletedEdgeIds([]);
@@ -1026,6 +1082,15 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
           res.data.steps || res.data.steps_result || [];
 
         for (let i = 0; i < sortedNodes.length; i++) {
+          if (abortExecutionRef.current) {
+            onLog?.({
+              source: 'DAG_ENGINE',
+              level: 'WARN',
+              time: Date.now() / 1000,
+              text: `Pipeline execution halted: remaining steps aborted by operator.`,
+            });
+            break;
+          }
           const currentNode = sortedNodes[i];
           const matchedStep =
             steps.find((s) => s.node_id === currentNode.id) ||
@@ -1071,13 +1136,66 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
 
           await sleep(400);
 
-          // Active node actions: Trigger real file generation & download when Export or Report nodes execute!
+          // Active node actions: Trigger real file generation, export, or real Discord Webhook dispatch!
           if (currentNode.data.kind === 'export_cli' || currentNode.data.label.toLowerCase().includes('export')) {
             handleExportCLI();
             matchedStep.detail = `Compiled & downloaded standalone Python runner: runbook_${activeWorkflow.id}.py`;
           } else if (currentNode.data.kind === 'incident_report' || currentNode.data.label.toLowerCase().includes('report')) {
             handleExportIncidentReport();
             matchedStep.detail = `Generated & downloaded cryptographic incident post-mortem report (sha256 digest)`;
+          } else if (
+            currentNode.data.kind === 'discord_alert' ||
+            currentNode.data.label.toLowerCase().includes('discord') ||
+            currentNode.data.label.toLowerCase().includes('ops alert')
+          ) {
+            const rawWebhook = currentNode.data.config?.webhookUrl || currentNode.data.config?.webhook;
+            if (rawWebhook && typeof rawWebhook === 'string' && rawWebhook.startsWith('https://discord.com/api/webhooks/')) {
+              const alertRes = await sendDiscordAlert({
+                webhookUrl: rawWebhook.trim(),
+                channel: currentNode.data.config?.channel || '#ops-alerts',
+                level: currentNode.data.config?.level || 'P1_CRITICAL',
+                mention: currentNode.data.config?.mention || '',
+                title: `DotNexus SRE Alert: ${activeWorkflow.name}`,
+                description: `Automated incident runbook pipeline executed step [${currentNode.data.label}] on Portaldot Network V3.0.`,
+                bestBlock: 265210,
+                deltaBlocks: 0,
+                activeNode: 'dotnexus-primary-validator-01',
+              });
+
+              if (alertRes.success) {
+                consecutiveFailuresRef.current = 0;
+                matchedStep.detail = `Dispatched real live telemetry signal to Discord (${currentNode.data.config?.channel || '#ops-alerts'})`;
+                onLog?.({
+                  source: 'DISCORD_ALERT',
+                  level: 'SUCCESS',
+                  time: Date.now() / 1000,
+                  nodeId: currentNode.id,
+                  text: `Live Discord Alert broadcast to ${currentNode.data.config?.channel || '#ops-alerts'} successfully!`,
+                });
+              } else {
+                consecutiveFailuresRef.current++;
+                matchedStep.detail = `Discord alert delivery failed: ${alertRes.error}`;
+                onLog?.({
+                  source: 'DISCORD_ALERT',
+                  level: 'ERROR',
+                  time: Date.now() / 1000,
+                  nodeId: currentNode.id,
+                  text: `Discord Webhook delivery error: ${alertRes.error}`,
+                });
+
+                // Circuit breaker: Auto-shutdown on 3 consecutive failures to avoid resource exhaustion
+                if (consecutiveFailuresRef.current >= 3) {
+                  abortExecutionRef.current = true;
+                  onLog?.({
+                    source: 'DAG_ENGINE',
+                    level: 'CRITICAL',
+                    time: Date.now() / 1000,
+                    text: 'Circuit Breaker: Auto-stopping pipeline due to 3 consecutive webhook delivery errors. Conserving network resources.',
+                  });
+                  break;
+                }
+              }
+            }
           }
 
           setNodes((prev) =>
@@ -1119,6 +1237,7 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
     } finally {
       setExecuting(false);
       setActiveEdgeId(null);
+      storage.removeRunningWorkflowId(activeWorkflow.id);
     }
   };
 
@@ -1296,21 +1415,38 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
             </div>
           )}
 
-          {/* Execute Pipeline */}
-          <button
-            onClick={handleExecute}
-            disabled={executing || hasCritical || nodes.length === 0}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-mono font-bold touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08050F] transition-[background-color,border-color,color,box-shadow] duration-150 cursor-pointer ${
-              hasCritical || nodes.length === 0
-                ? 'border border-[#1C142E] bg-[#0B0813] text-zinc-600 cursor-not-allowed'
-                : executing
-                ? 'bg-[#1E1035] border border-[#8B5CF6] text-white animate-pulse cursor-wait'
-                : 'border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white shadow-md shadow-[#8B5CF6]/25'
-            }`}
-          >
-            <Play className={`w-3.5 h-3.5 fill-current ${executing ? 'animate-pulse' : ''}`} />
-            <span>{executing ? 'Executing...' : 'Run Pipeline'}</span>
-          </button>
+          {/* Active Job Controls: Running Indicator & Stop Job */}
+          {executing ? (
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#00FF9D]/10 border border-[#00FF9D]/40 text-[#00FF9D] text-xs font-mono font-bold animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-[#00FF9D] animate-ping" />
+                <span>PIPELINE RUNNING</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleStopPipeline}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold border border-rose-500/80 bg-rose-950/70 hover:bg-rose-900/90 text-rose-300 transition-colors shadow-sm shadow-rose-950/50 cursor-pointer"
+                title="Stop active pipeline execution"
+              >
+                <Square className="w-3.5 h-3.5 fill-current" />
+                <span>Stop Job</span>
+              </button>
+            </div>
+          ) : (
+            /* Execute Pipeline */
+            <button
+              onClick={handleExecute}
+              disabled={hasCritical || nodes.length === 0}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-mono font-bold touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08050F] transition-[background-color,border-color,color,box-shadow] duration-150 cursor-pointer ${
+                hasCritical || nodes.length === 0
+                  ? 'border border-[#1C142E] bg-[#0B0813] text-zinc-600 cursor-not-allowed'
+                  : 'border border-[#8B5CF6] bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] text-white shadow-md shadow-[#8B5CF6]/25'
+              }`}
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Run Pipeline</span>
+            </button>
+          )}
         </div>
       </div>
 

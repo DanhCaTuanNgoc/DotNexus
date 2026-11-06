@@ -51,6 +51,7 @@ class HeadlessWorkerDaemon:
     def __init__(self):
         self.is_running = False
         self.webhook_limiter = WebhookRateLimiter()
+        self.consecutive_webhook_failures = 0
         self.execution_history: List[Dict[str, Any]] = []
 
     def record_audit(self, action: str, operator: str, status: str, details: Dict[str, Any]):
@@ -216,10 +217,16 @@ class HeadlessWorkerDaemon:
 
         elif kind == "discord_alert" or "discord" in label.lower() or "alert bot" in label.lower() or "ops alert" in label.lower():
             channel = config.get("channel", "#ops-alerts")
+            webhook_url = config.get("webhookUrl") or config.get("webhook") or os.getenv("DISCORD_WEBHOOK_URL")
             curr_b = DUAL_TRACKER.get_substrate_telemetry().get("best_block", 262940)
-            self.send_webhook_alert("Validator Telemetry Signal", f"Heartbeat: HEALTHY, Best Block: #{curr_b}")
+            self.send_webhook_alert(
+                "Validator Telemetry Signal",
+                f"Heartbeat: HEALTHY, Best Block: #{curr_b}",
+                level=config.get("level", "INFO"),
+                webhook_url=webhook_url
+            )
             output = {"alert_dispatched": True, "channel": channel, "block": curr_b}
-            detail = f"Dispatched 24/7 telemetry signal to {channel} & Telegram (Heartbeat: HEALTHY, Best Block: #{curr_b:,})"
+            detail = f"Dispatched 24/7 telemetry signal to {channel} (Heartbeat: HEALTHY, Best Block: #{curr_b:,})"
 
         elif kind == "flush_mempool" or "flush mempool" in label.lower() or "drain & flush" in label.lower() or "purge mempool" in label.lower():
             output = DUAL_TRACKER.execute_remediation("purge_mempool")
@@ -356,13 +363,57 @@ class HeadlessWorkerDaemon:
 
         return exec_record
 
-    def send_webhook_alert(self, title: str, message: str, level: str = "INFO") -> bool:
+    def send_webhook_alert(self, title: str, message: str, level: str = "INFO", webhook_url: Optional[str] = None) -> bool:
         """Sends rate-limited notification to Discord / Telegram webhook"""
         if not self.webhook_limiter.allow():
             logger.warning("Webhook alert dropped by Token Bucket Rate Limiter (Max 5/min).")
             return False
 
+        if getattr(self, "consecutive_webhook_failures", 0) >= 3:
+            logger.warning("Webhook circuit breaker active: Pausing webhook deliveries after 3 consecutive failures.")
+            return False
+
         logger.info(f"DISPATCHING WEBHOOK [{level}] {title}: {message}")
+
+        # Real HTTP dispatch to Discord Webhook with Embeds
+        target_url = webhook_url or os.getenv("DISCORD_WEBHOOK_URL")
+        if target_url and isinstance(target_url, str) and target_url.startswith("https://discord.com/api/webhooks/"):
+            try:
+                import urllib.request
+                color_map = {
+                    "P1_CRITICAL": 0xEF4444,
+                    "P2_WARNING": 0xF59E0B,
+                    "INFO": 0x10B981,
+                    "CRITICAL": 0xEF4444,
+                    "WARNING": 0xF59E0B
+                }
+                embed_color = color_map.get(level, 0x8B5CF6)
+                payload = {
+                    "content": f"🚨 **[DotNexus SecOps] {level} Incident Alert**",
+                    "embeds": [{
+                        "title": title,
+                        "description": message,
+                        "color": embed_color,
+                        "fields": [
+                            {"name": "Runtime", "value": "Portaldot V3.0 (Dual-VM)", "inline": True},
+                            {"name": "Chain ID", "value": str(CONFIG.evm_chain_id), "inline": True},
+                            {"name": "SS58 Prefix", "value": str(CONFIG.ss58_format), "inline": True}
+                        ],
+                        "footer": {"text": "DotNexus Automated SecOps Engine"}
+                    }]
+                }
+                req = urllib.request.Request(
+                    target_url,
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers={"Content-Type": "application/json", "User-Agent": "DotNexus-SecOps-Bot/1.0"}
+                )
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    if 200 <= response.status < 300:
+                        self.consecutive_webhook_failures = 0
+            except Exception as e:
+                self.consecutive_webhook_failures = getattr(self, "consecutive_webhook_failures", 0) + 1
+                logger.warning(f"Failed to post webhook to Discord: {e}")
+
         self.record_audit(
             action="DISPATCH_WEBHOOK",
             operator="HeadlessWorkerDaemon",

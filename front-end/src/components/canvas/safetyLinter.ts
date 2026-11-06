@@ -1,3 +1,4 @@
+import { isValidDiscordWebhookUrl } from '../../services/discordAlert';
 import { CanvasEdge, CanvasNode, SafetyIssue } from './types';
 import { NODE_TEMPLATES } from './constants';
 
@@ -118,6 +119,31 @@ export function validateCanvasSafety(
         edgeId: edge.id,
         title: 'Hành Động Thiếu Điều Kiện Lọc',
         message: `Dây nối giữa "${sNode.data.label}" và "${tNode.data.label}" không có điều kiện kích hoạt. Hành động có thể chạy ngay cả khi hệ thống bình thường.`,
+        autoFixAvailable: false,
+      });
+    }
+  });
+
+
+  // 4. Discord Alert Node Webhook Validation:
+  // Forces operator to input valid Discord Incoming Webhook URL to enable real alert telemetry!
+  const discordNodes = nodes.filter(
+    (n) =>
+      n.data.kind === 'discord_alert' ||
+      n.data.label.toLowerCase().includes('discord') ||
+      n.data.label.toLowerCase().includes('ops alert')
+  );
+
+  discordNodes.forEach((dcNode) => {
+    const rawWebhook = dcNode.data.config?.webhookUrl || dcNode.data.config?.webhook;
+    const isValid = isValidDiscordWebhookUrl(rawWebhook);
+    if (!isValid) {
+      issues.push({
+        id: `discord-webhook-required-${dcNode.id}`,
+        severity: 'critical',
+        nodeId: dcNode.id,
+        title: 'Yeu Cau Nhap Discord Webhook URL',
+        message: `Node "${dcNode.data.label}" yeu cau cau hinh Webhook URL hop le (https://discord.com/api/webhooks/...) de ban tin hieu canh bao. Vui long click vao node de cau hinh.`,
         autoFixAvailable: false,
       });
     }

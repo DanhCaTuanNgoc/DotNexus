@@ -199,7 +199,7 @@ export const NODE_TEMPLATES: NodeTemplate[] = [
     label: 'Discord / Ops Alert Bot',
     description: 'Dispatches high-priority incident webhook alert to Discord or Telegram.',
     iconName: 'Bell',
-    defaultConfig: { channel: '#ops-alerts', level: 'P1_CRITICAL' },
+    defaultConfig: { webhookUrl: '', channel: '#ops-alerts', level: 'P1_CRITICAL', mention: '' },
   },
   {
     kind: 'flush_mempool',
@@ -401,7 +401,7 @@ export const DEFAULT_RUNBOOKS = [
         type: 'action',
         label: 'Urgent Discord / Ops Alert',
         position: { x: 650, y: 140 },
-        data: { channel: '#ops-alerts', webhook: 'configured', status: 'STANDBY' },
+        data: { webhookUrl: '', channel: '#ops-alerts', level: 'P1_CRITICAL', mention: '', status: 'STANDBY' },
       },
     ],
     edges: [
@@ -476,6 +476,7 @@ export const DEFAULT_RUNBOOKS = [
         label: 'Discord / Telegram Alert Bot',
         position: { x: 670, y: 150 },
         data: {
+          webhookUrl: '',
           channel: '#validator-telemetry',
           botMode: '24/7 Continuous Signal',
           telegramChatId: '@PortaldotOpsBot',
@@ -514,7 +515,7 @@ export const DEFAULT_RUNBOOKS = [
         type: 'action',
         label: 'Discord / Ops Alert Bot',
         position: { x: 660, y: 120 },
-        data: { channel: '#security-sentry', level: 'P2_WARNING', status: 'ARMED' },
+        data: { webhookUrl: '', channel: '#security-sentry', level: 'P2_WARNING', mention: '', status: 'ARMED' },
       },
     ],
     edges: [

@@ -1480,7 +1480,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                   ) : (
                     <span className="flex items-center gap-1.5">
                       <Zap className="w-3.5 h-3.5 text-[#C084FC]" />
-                      <span>TEST AUTO-COMPOUND (BOND EXTRA)</span>
+                      <span>TEST AUTO-COMPOUND</span>
                     </span>
                   )}
                 </button>

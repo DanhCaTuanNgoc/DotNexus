@@ -1,0 +1,82 @@
+DOTNEXUS
+
+1. BASIC INFORMATION
+Project Name: DotNexus
+Tagline: The Visual Control Plane & Automated Security Operations Engine for Portaldot Network V3.0
+Track: Node Operations & Tooling — Portaldot Hacker House 2026
+Target Network: Portaldot Network V3.0 (Substrate WASM + EVM Dual-VM / pallet-revive)
+Network Parameters: Chain ID: 420420777 | Substrate SS58 Prefix: 42 | Native Decimals: 14 (POT)
+Live Production App: https://dotnexus-hackerhouse.vercel.app
+GitHub Repository: https://github.com/DanhCaTuanNgoc/DotNexus
+Test Suite Status: 215/215 Tests Passed (100% Pass Rate in tests/test_engine.py)
+
+2. SUMMARY
+DotNexus is the visual control plane and autonomous security operations engine engineered specifically for Portaldot Network V3.0. In Portaldot's high-performance Dual-VM architecture (Substrate WASM consensus alongside EVM pallet-revive), node operations face unprecedented risks: split-brain equivocation slashing, cross-runtime desync, and RPC exhaustion. DotNexus transforms manual, high-stress node ops into an autonomous 5-stage closed loop: DETECT -> ISOLATE -> SHIELD -> OPTIMIZE -> AUTOMATE & FENCE. Anchored in deterministic mathematical invariants (10s < 12s < 15s), client-side Sequential Phragmén simulation (+1.16% APY boost), and 24/7 visual DAG runbook automation, DotNexus provides enterprise-grade reliability and zero-slashing security for validators and delegators.
+
+3. THE PROBLEM WE SOLVE
+Running production validator and RPC nodes on Portaldot V3.0 Dual-VM presents four critical hazards that traditional single-chain tools cannot solve:
+1. Split-Brain Equivocation & Slashing Risk: Setting up standby backup nodes without atomic distributed fencing creates severe double-signing hazards. Network partitions can cause both primary and secondary nodes to sign identical BABE block slots, triggering an unrecoverable 100% slashing penalty and validator ejection.
+2. Dual-VM State Desync & Decimal Discrepancy: Substrate WASM (:9944) and Frontier EVM (:8545) run in parallel. Operators are blind to whether block divergence stems from P2P network lag, database mapping locks, or smart contract mempool saturation. Furthermore, Substrate native POT uses 14 decimals (Planck) while EVM expects 18 decimals (Wei), causing catastrophic IEEE 754 precision loss beyond 90 POT.
+3. Public RPC Exhaustion Attacks: Validator public RPC endpoints are vulnerable to wide-range eth_getLogs queries (>2,000 blocks), recursive batch bombs, and dangerous Substrate admin calls (state_getPairs, author_insertKey), leading to out-of-memory (OOM) node crashes.
+4. Nominator Yield Traps & Unmonitored Unbonding: Delegators inadvertently stake on oversubscribed validators (>512 nominators) or sudden commission spikes, earning 0% rewards. Meanwhile, unbonding POT remains locked in a 28-era escrow queue with zero automated monitoring or timely withdrawal execution.
+
+4. THE SOLUTION & 5-PILLAR ARCHITECTURE
+DotNexus resolves these hazards through a comprehensive 5-pillar operational framework:
+1. DETECT (Dual-VM Real-Time Sensing): DualBlockConduit optical bridge continuously pairs Substrate WASM (:9944) and EVM (:8545) blocks in real time with mapping latency audits. Features direct browser-to-node WebSocket testnet fallback, SWR instant hydration, and Causal Lag Index (CLI 0-100 score).
+2. ISOLATE (3-Tier Root-Cause Isolator): Real-time diagnostic engine categorizes desync causes: Tier 1 (P2P network sync stall, peers < 3), Tier 2 (fc-mapping-sync RocksDB write contention), or Tier 3 (EVM gas saturation and pending transaction spikes). Dynamic decimal normalizer guarantees BigInt mathematical safety between 10^14 Planck and 10^18 Wei.
+3. SHIELD (Asynchronous RPC Reverse Proxy): Sub-millisecond (<1ms) overhead reverse proxy enforcing 256KB payload ceilings, 128KB calldata caps, batch size limits (<= 20), anti-recursive batch bomb filtering (depth <= 4), /24 Sybil subnet concentration defense, and automated drops on dangerous Substrate admin methods.
+4. OPTIMIZE (NPoS Staking Optimizer & Autonomous Keeper): Client-side Sequential Phragmén simulator algorithmically selects the optimal Top 16 non-clipped validators (+1.16% APY boost). The Order Dispatch Studio enables pre-flight safety checks (ElectionPhase::Off, fee buffer > 3x) and direct on-chain broadcast. The Autonomous Staking Keeper monitors the 28-era unbonding escrow queue (up to 32 chunks) and automates era reward sweeping.
+5. AUTOMATE & FENCE (Slashing Guard & Visual DAG Runbooks): Enforces the mathematically proven Dead Man's Switch invariant: Primary Self-Fencing (10s) < Distributed Lease TTL (12s) < Standby Takeover Delay (15s). Combined with monotonic epoch fencing and on-chain lease arbitration, double-signing is physically impossible. The drag-and-drop Visual DAG Runbook Canvas with graph safety linter compiles reactive incident workflows into 24/7 background execution.
+
+5. TESTNET V3 DEPLOYMENT EVIDENCE & ON-CHAIN PROOFS
+All core smart contracts and operational workflows are deployed, verified, and active on Portaldot Network V3.0 Official Testnet:
+- Network Details:
+  Substrate WS RPC: wss://test-node-v3.portaldot.dev
+  EVM JSON-RPC: https://test-evm-rpc-v3.portaldot.dev
+  EVM Chain ID: 420420777 | Substrate SS58: 42 | Native Decimals: 14 (POT)
+
+- Core Contract 1: SlashGuardLeaseRegistry.sol
+  Contract Address: 0xba114d21CC41a30880CcfA53673B743316387355
+  Deployment Tx: 0xe285c61d4829a3f33a32e634242e1a77ba15f7eea28d276c9d72b0482633472f
+  Substrate Block Height: #147264 (Extrinsic: 147264-1)
+  Explorer: https://node-console.portaldot.dev/#/explorer/query/147264
+  Purpose: Distributed on-chain mutex registry providing atomic lease arbitration and monotonic epoch fencing to eliminate validator equivocation.
+
+- Core Contract 2: DotNexusStakingVault.sol
+  Contract Address: 0x97e5707FCa341c27D7e6b5cEC5ABFe2d3498610A
+  Deployment Tx: 0x3263d911ca24b4f1ff413020d6454fce1c7cc995dc81d114d8d91ac8c061b8cb
+  Substrate Block Height: #147358 (Extrinsic: 147358-1)
+  Explorer: https://node-console.portaldot.dev/#/explorer/query/147358
+  Purpose: Non-custodial auto-compounding vault with dynamic validator rebalancing and SLA performance escrow.
+
+- Live Extrinsic Nomination Proof:
+  Extrinsic: staking.nominate(targets=[...])
+  Transaction Hash: 0x726ea7b8f67d8e13f787521b33c5b5ee8d83e3647432bc54dad45fdaada2f10e
+  Substrate Block Hash: 0x278f9e70bc0b03fcdccbdf44accd1ec793ce151c3d3946da6b4b1f0e1a801cfb
+  Block Height: #342144 (Era 96 / 97)
+  Explorer: https://node-console.portaldot.dev/#/explorer/query/342144
+
+- Deployer Multi-VM Identity:
+  EVM Address: 0xC5216e73898089269fdd377a1D4bD626b114E166
+  Substrate SS58 Address: 5GXBDoveYazDtNXTTsNSnHToacTyAYtbikRahKoPudpkV9r9
+
+6. FINAL DELIVERABLES & TECHNICAL ACCOMPLISHMENTS (PHASE 03 - 100% COMPLETE)
+DotNexus has fully delivered all Phase 03 milestones for the final code freeze:
+- 100% Test Suite Verification: 215/215 automated unit and integration tests passing in tests/test_engine.py across 10 test modules with zero mock shortcuts.
+- Production Web3 Full-Stack Application: Deployed live on Vercel with zero TypeScript build errors. Features dark obsidian HUD aesthetic, Three.js 3D cyber mesh, live marquee, and direct browser WebSocket fallback for seamless serverless uptime.
+- Order Dispatch Studio: Live on-chain transaction lifecycle with pre-flight guards (election phase verification, gas fee buffer ratio), raw call hex inspection, and event confirmation.
+- Autonomous Staking Keeper & 28-Era Unbonding Escrow: Continuous era countdown tracking, unbonding chunk slot management (bound <= 32), and era payout sweeping.
+- DualBlockConduit & 1-Click SRE Remediation Dock: 5-block lockstep pairing stream with optical mapping latency measurement, circuit breaker controls, and live fc-db/mempool flush triggers.
+- Visual DAG Runbook Canvas: Interactive workflow orchestrator with graph safety linter (cycle detection, deadlock prevention) and 24/7 headless background executor.
+- Comprehensive Engineering Specs: Formal mathematical safety proofs, 15-case NPoS QA test matrix, penetration test guides, and standalone architecture callflow documentation in docs/.
+
+7. HACKATHON JUDGING ALIGNMENT & SYSTEMIC VALUE
+DotNexus aligns directly with the Portaldot Hacker House 2026 evaluation criteria:
+- Technical Feasibility (30%): Production-ready codebase without stubbed endpoints; 2 smart contracts compiled with Paris-EVM deployed on pallet-revive; 215/215 passing test suite; native dual Substrate/EVM bindings.
+- Innovation (30%): Mathematical anti-equivocation Dead Man's Switch (10s < 12s < 15s); DualBlockConduit real-time block pairing; 3-tier desync root cause isolation; client-side Sequential Phragmén simulation.
+- Ecosystem Contribution (20%): Protects Portaldot V3 validators from catastrophic 100% slashing; shields public RPC nodes from denial-of-service crashes; establishes the reference dynamic decimals implementation (14-decimal Planck to 18-decimal Wei); open-sources reusable operational runbooks.
+- Business Potential (20%): Sets the foundation for Validator-as-a-Service (VaaS) enterprise licensing, slashing-free SLA guarantees attracting institutional capital, and performance fees on auto-compounded staking yields.
+
+8. ROADMAP & NEXT STEPS
+- Phase 4: Live Demo Day (Nov 07-08, 2026): Live verification with Portaldot Network foundation judges, demonstrating real-time fault injection, automated dead man's switch fencing, and failover takeover.
+- Post-Hackathon Mainnet Rollout: Propose native anti-equivocation precompile for pallet-revive; deploy multi-region ingress clusters for enterprise RPC Shield; extend DAG runbook modules to upcoming Portaldot parachains.

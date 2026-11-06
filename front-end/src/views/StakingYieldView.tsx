@@ -606,9 +606,6 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                   ERA AUTONOMOUS STAKING KEEPER
                 </span>
               </div>
-              <span className="text-[10px] px-2 py-0.5 bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 font-bold">
-                {keeperStatus?.keeper_status || 'KEEPER_ACTIVE'}
-              </span>
             </div>
 
             <p className="text-[11px] text-zinc-400 mb-3 leading-relaxed">
@@ -654,31 +651,31 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           </button>
         </div>
 
-        {/* Right: Unbonding Escrow Queue */}
-        <div className="bg-[#08050F] border border-[#1C142E] p-4 flex flex-col justify-between">
+        {/* Right: Unbonding Escrow Queue - Deep Purple-Black Theme */}
+        <div className="bg-[#0A0614] border border-[#2B1B47] p-4 flex flex-col justify-between shadow-[0_4px_24px_rgba(10,6,20,0.6)]">
           <div>
-            <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#1C142E]">
+            <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#26173E]">
               <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-[#00E5FF]" />
+                <Clock className="w-3.5 h-3.5 text-[#C084FC]" />
                 <span className="text-xs font-bold text-white tracking-widest uppercase">
                   UNBONDING ESCROW &amp; LOCK QUEUE
                 </span>
               </div>
-              <span className="text-[10px] px-2 py-0.5 bg-[#00E5FF]/10 text-[#00E5FF] border border-[#00E5FF]/30 font-bold">
+              <span className="text-[10px] px-2 py-0.5 bg-[#8B5CF6]/15 text-[#D8B4FE] border border-[#8B5CF6]/40 font-bold tracking-wide">
                 {unbondingData?.unbonding_era_duration || 28} ERAS LOCK
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-[11px] mb-3">
-              <div className="bg-[#05030A] border border-[#1C142E] p-2">
-                <div className="text-zinc-500 text-[10px]">QUEUED UNBONDING</div>
-                <div className="text-[#00E5FF] font-bold text-sm">
+              <div className="bg-[#06030C] border border-[#26173E] p-2">
+                <div className="text-zinc-500 text-[10px] font-semibold tracking-wider">QUEUED UNBONDING</div>
+                <div className="text-[#C084FC] font-bold text-sm tracking-tight tabular-nums">
                   {(unbondingData?.total_unbonding_pot ?? 0.0).toFixed(2)} POT
                 </div>
               </div>
-              <div className="bg-[#05030A] border border-[#1C142E] p-2">
-                <div className="text-zinc-500 text-[10px]">CHUNKS IN FLIGHT</div>
-                <div className="text-white font-bold text-sm">
+              <div className="bg-[#06030C] border border-[#26173E] p-2">
+                <div className="text-zinc-500 text-[10px] font-semibold tracking-wider">CHUNKS IN FLIGHT</div>
+                <div className="text-white font-bold text-sm tabular-nums">
                   {unbondingData?.total_chunks ?? 0} / 32 Max
                 </div>
               </div>
@@ -687,19 +684,19 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
             <div className="space-y-2 mb-3">
               {unbondingData?.unbonding_queue && unbondingData.unbonding_queue.length > 0 ? (
                 unbondingData.unbonding_queue.map((chunk: any, idx: number) => (
-                  <div key={idx} className="bg-[#05030A] border border-[#1C142E] p-2 text-[10px] flex items-center justify-between">
+                  <div key={idx} className="bg-[#06030C] border border-[#26173E] p-2 text-[10px] flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-[#00E5FF] font-bold">#{chunk.chunk_index + 1}</span>
+                      <span className="text-[#C084FC] font-bold">#{chunk.chunk_index + 1}</span>
                       <span className="text-white font-bold">{chunk.amount_pot} POT</span>
                     </div>
                     <div className="flex items-center gap-3 text-zinc-400">
                       <span>Unlock Era #{chunk.target_era}</span>
-                      <span className="text-[#00FF9D] font-mono">~{chunk.hours_remaining.toFixed(1)}h</span>
+                      <span className="text-[#D8B4FE] font-mono">~{chunk.hours_remaining.toFixed(1)}h</span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="bg-[#05030A] border border-[#1C142E] p-3 text-[11px] text-zinc-500 text-center font-mono">
+                <div className="bg-[#06030C] border border-[#26173E] p-3 text-[11px] text-zinc-500 text-center font-mono">
                   No unbonding chunks in escrow. 100% of bonded POT is active &amp; compounding.
                 </div>
               )}
@@ -707,9 +704,9 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
           </div>
 
           {/* Interactive Wallet Actions: UNBOND & WITHDRAW */}
-          <div className="pt-2 border-t border-[#1C142E] space-y-2">
+          <div className="pt-2 border-t border-[#26173E] space-y-2">
             {escrowMessage && (
-              <div className="p-1.5 bg-[#00FF9D]/10 border border-[#00FF9D]/30 text-[10px] text-[#00FF9D] font-mono">
+              <div className="p-1.5 bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 text-[10px] text-[#D8B4FE] font-mono">
                 {escrowMessage}
               </div>
             )}
@@ -717,9 +714,9 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               <button
                 onClick={() => setIsUnbondModalOpen(true)}
                 disabled={isUnbondingActive}
-                className="px-3 py-2 text-xs font-bold bg-[#1C142E] hover:bg-[#261B42] text-[#00E5FF] border border-[#00E5FF]/40 hover:border-[#00E5FF] cursor-pointer transition-all flex items-center justify-center gap-1.5"
+                className="px-3 py-2 text-xs font-bold bg-[#160D29] hover:bg-[#231442] active:bg-[#2E1B54] text-[#E9D5FF] border border-[#8B5CF6]/50 hover:border-[#A855F7] cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(139,92,246,0.15)]"
               >
-                <ArrowDownCircle className="w-3.5 h-3.5 text-[#00E5FF]" />
+                <ArrowDownCircle className="w-3.5 h-3.5 text-[#C084FC]" />
                 <span>UNBOND STAKE</span>
               </button>
 
@@ -733,12 +730,12 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                     disabled={isWithdrawingActive || readyPot <= 0}
                     className={`px-3 py-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ${
                       readyPot > 0
-                        ? 'bg-[#00FF9D]/20 text-[#00FF9D] border border-[#00FF9D] shadow-[0_0_15px_rgba(0,255,157,0.3)] animate-pulse'
-                        : 'bg-[#06040A] text-zinc-500 border border-[#1C142E]'
+                        ? 'bg-[#8B5CF6]/25 text-[#E9D5FF] border border-[#A855F7] shadow-[0_0_20px_rgba(168,85,247,0.35)] animate-pulse'
+                        : 'bg-[#06030C] text-zinc-500 border border-[#26173E]'
                     }`}
                     title={readyPot > 0 ? `Withdraw ${readyPot} POT to free balance` : 'No chunks ready for withdrawal'}
                   >
-                    <CheckCircle2 className={`w-3.5 h-3.5 ${readyPot > 0 ? 'text-[#00FF9D]' : 'text-zinc-600'}`} />
+                    <CheckCircle2 className={`w-3.5 h-3.5 ${readyPot > 0 ? 'text-[#D8B4FE]' : 'text-zinc-600'}`} />
                     <span>
                       {isWithdrawingActive
                         ? 'WITHDRAWING...'
@@ -750,11 +747,6 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                 );
               })()}
             </div>
-          </div>
-
-          <div className="text-[10px] text-zinc-500 flex items-center justify-between border-t border-[#1C142E] pt-2">
-            <span>Substrate Staking Pallet Lock Duration: 28 Eras</span>
-            <span className="text-zinc-400">Slashing Protection: Active</span>
           </div>
         </div>
       </div>
@@ -1505,19 +1497,19 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
         </div>
       )}
 
-      {/* 6. MODAL: Unbonding Escrow Order (Substrate & EVM) */}
+      {/* 6. MODAL: Unbonding Escrow Order (Substrate & EVM) - Deep Purple-Black Theme */}
       {isUnbondModalOpen && (
         <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150"
           onClick={() => setIsUnbondModalOpen(false)}
         >
           <div
-            className="w-full max-w-md max-h-[90vh] flex flex-col bg-[#0B0813] border border-[#261B42] shadow-[0_0_50px_rgba(0,229,255,0.15)] text-zinc-200 font-mono relative overflow-hidden"
+            className="w-full max-w-md max-h-[90vh] flex flex-col bg-[#0B0716] border border-[#3B2266] shadow-[0_0_50px_rgba(139,92,246,0.25)] text-zinc-200 font-mono relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-[#1C142E] p-4 shrink-0 bg-[#0B0813]">
+            <div className="flex items-center justify-between border-b border-[#26173E] p-4 shrink-0 bg-[#0E081C]">
               <div>
-                <span className="text-[10px] text-[#00E5FF] tracking-wider uppercase font-semibold block">
+                <span className="text-[10px] text-[#C084FC] tracking-wider uppercase font-semibold block">
                   PORTALDOT V3.0 · ESCROW QUEUE
                 </span>
                 <h3 className="text-sm font-bold text-white tracking-wide mt-0.5">
@@ -1526,15 +1518,15 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               </div>
               <button
                 onClick={() => setIsUnbondModalOpen(false)}
-                className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#1C142E] rounded transition-colors"
+                className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#26173E] rounded transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-4 sm:p-5 space-y-3 text-xs overflow-y-auto flex-1">
+            <div className="p-4 sm:p-5 space-y-3 text-xs overflow-y-auto flex-1 bg-[#0A0614]">
               <div>
-                <label className="text-[10px] text-[#00E5FF] block font-semibold uppercase mb-1">
+                <label className="text-[10px] text-[#C084FC] block font-semibold uppercase mb-1">
                   AMOUNT TO UNBOND (POT)
                 </label>
                 <div className="flex items-center gap-1.5">
@@ -1544,20 +1536,20 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
                     step="0.5"
                     value={unbondAmountPot}
                     onChange={(e) => setUnbondAmountPot(Math.max(0.1, parseFloat(e.target.value) || 0.1))}
-                    className="w-full bg-[#06040A] border border-[#1C142E] text-white px-2.5 py-2 text-xs font-mono tabular-nums focus:outline-none focus:border-[#00E5FF]"
+                    className="w-full bg-[#0D071B] border border-[#26173E] text-white px-2.5 py-2 text-xs font-mono tabular-nums focus:outline-none focus:border-[#8B5CF6]"
                   />
-                  <span className="text-xs text-zinc-400 font-semibold px-2 py-2 bg-[#06040A] border border-[#1C142E]">POT</span>
+                  <span className="text-xs text-zinc-400 font-semibold px-2 py-2 bg-[#0D071B] border border-[#26173E]">POT</span>
                 </div>
               </div>
 
-              <div className="p-3 bg-[#06040A] border border-[#1C142E] text-[11px] text-zinc-400 space-y-1">
+              <div className="p-3 bg-[#0D071B] border border-[#26173E] text-[11px] text-zinc-400 space-y-1">
                 <div className="flex justify-between">
                   <span>Locking Duration:</span>
                   <span className="text-white font-bold">28 Eras (~7 days)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Protocol Engine:</span>
-                  <span className="text-[#00E5FF] font-bold">{walletMode === 'evm' ? 'MetaMask EVM' : 'Substrate Native'}</span>
+                  <span className="text-[#C084FC] font-bold">{walletMode === 'evm' ? 'MetaMask EVM' : 'Substrate Native'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Target Signer:</span>
@@ -1566,7 +1558,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 p-4 border-t border-[#1C142E] shrink-0 bg-[#0E091B]">
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-[#26173E] shrink-0 bg-[#0E081C]">
               <button
                 onClick={() => setIsUnbondModalOpen(false)}
                 className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white cursor-pointer"
@@ -1576,7 +1568,7 @@ export const StakingYieldView: React.FC<StakingYieldViewProps> = ({ data, onRefr
               <button
                 onClick={handleUnbondSubmit}
                 disabled={isUnbondingActive}
-                className="px-5 py-2 text-xs font-bold bg-[#00E5FF]/20 hover:bg-[#00E5FF]/30 border border-[#00E5FF] text-[#00E5FF] cursor-pointer transition-all shadow-[0_0_15px_rgba(0,229,255,0.2)] disabled:opacity-50"
+                className="px-5 py-2 text-xs font-bold bg-[#8B5CF6] hover:bg-[#7C3AED] active:bg-[#6D28D9] border border-[#8B5CF6] text-white cursor-pointer transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)] disabled:opacity-50"
               >
                 {isUnbondingActive ? 'SIGNING UNBOND...' : 'CONFIRM UNBOND'}
               </button>

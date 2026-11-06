@@ -392,9 +392,6 @@ export const SecurityGuardView: React.FC<SecurityGuardViewProps> = ({ data, onRe
             <span className="text-xs font-bold text-white tracking-wider">
               ON-CHAIN LEASE &amp; LIVE BABE SESSION AUTHORITIES
             </span>
-            <span className="text-[9px] px-1.5 py-0.5 bg-[#00FF9D]/10 text-[#00FF9D] border border-[#00FF9D]/30 font-bold">
-              100% LIVE ON-CHAIN
-            </span>
           </div>
           <span className="text-[10px] text-zinc-500">
             Smart Contract: <code className="text-[#C084FC]">SlashGuardLeaseRegistry.sol</code>

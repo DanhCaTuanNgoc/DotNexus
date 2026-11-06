@@ -3281,88 +3281,43 @@ export const api = {
 
 
 
-  submitSetKeysOnChain: async (signerKey?: string, rotationId?: string) => {
-
-    return fetchWithFallback<{
-
+  submitSetKeysOnChain: async (signerKey?: string, rotationId?: string): Promise<{
+    success: boolean;
+    data?: {
       success: boolean;
-
       rotation_id?: string;
-
       tx_hash: string;
-
       block_hash?: string;
-
       submitted_by: string;
-
       status: string;
-
       effective_session?: string;
-
       extrinsic_call?: string;
-
-    }>(
-
-      `${BASE_URL}/slash-guard/submit-set-keys`,
-
-      {
-
+    };
+    error?: string;
+  }> => {
+    try {
+      const res = await fetch(`${BASE_URL}/slash-guard/submit-set-keys`, {
         method: 'POST',
-
         headers: {
-
           'Content-Type': 'application/json',
-
           'X-DotNexus-Auth': 'nexus-ops-secret-key-2026'
-
         },
-
         body: JSON.stringify({ signer_key: signerKey, rotation_id: rotationId })
-
-      },
-
-      () => {
-
-        const simulatedTx = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-
-        if (dynamicSecurityState.recent_rotations && dynamicSecurityState.recent_rotations.length > 0) {
-
-          dynamicSecurityState.recent_rotations[0].status = 'INCLUDED_ONCHAIN';
-
-          (dynamicSecurityState.recent_rotations[0] as any).tx_hash = simulatedTx;
-
-        }
-
-        dynamicLogs.push({
-
-          source: 'SLASH_GUARD',
-
-          level: 'SUCCESS',
-
-          time: Math.floor(Date.now() / 1000),
-
-          text: `Extrinsic session.setKeys broadcast on-chain: ${simulatedTx.slice(0, 16)}...`
-
-        });
-
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
         return {
-
-          success: true,
-
-          tx_hash: simulatedTx,
-
-          submitted_by: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
-
-          status: 'INCLUDED_ONCHAIN',
-
-          effective_session: 'Session N+2'
-
+          success: false,
+          error: data.error || `HTTP ${res.status}: Failed to broadcast extrinsic to blockchain.`
         };
-
       }
-
-    );
-
+      return data;
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err.message || 'Cannot reach backend server at http://127.0.0.1:5050. Please ensure python server is running.'
+      };
+    }
   },
 
 

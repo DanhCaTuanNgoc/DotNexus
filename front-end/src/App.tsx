@@ -202,7 +202,19 @@ export const App: React.FC = () => {
     try {
       const res = await api.getTop16Validators();
       if (res?.success && res.data) {
-        setNposData(res.data);
+        if ((res as any).isFallback) {
+          // Guard: Preserve active live on-chain state if already acquired
+          setNposData((prev) => {
+            const prevLiveCount = prev?.validators?.filter((v) => v.is_live_onchain).length || 0;
+            const newLiveCount = res.data?.validators?.filter((v) => v.is_live_onchain).length || 0;
+            if (prevLiveCount > 0 && newLiveCount < prevLiveCount) {
+              return prev;
+            }
+            return res.data;
+          });
+        } else {
+          setNposData(res.data);
+        }
       }
     } catch (e) {
       console.warn('Staking fetch failed:', e);

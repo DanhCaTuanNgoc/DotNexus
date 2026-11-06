@@ -574,6 +574,10 @@ export interface NPoSRecommendation {
 
   apy_boost_pct: number;
 
+  live_validators_count?: number;
+
+  live_targets?: string[];
+
   targets: string[];
 
   election_algorithm?: string;
@@ -619,6 +623,19 @@ export interface NPoSRecommendation {
     market_share_pct?: number;
 
     is_blocked?: boolean;
+
+    own_stake_pot?: number;
+
+    era_points?: number;
+
+    is_oversubscribed?: boolean;
+
+    subscores?: {
+      uptime?: number;
+      commission?: number;
+      slashing?: number;
+      oversubscription?: number;
+    };
 
     pao_metrics?: {
 
@@ -1277,897 +1294,624 @@ export const DEFAULT_SECURITY_STATE: SecurityDashboardState = {
 
 
 export const DEFAULT_NPOS_DATA: NPoSRecommendation = {
-
-  top_validators_count: 16,
-
-  target_count: 16,
-
-  average_nominal_apy: 15.64,
-
-  auto_compounded_apy: 16.92,
-
-  apy_boost_pct: 1.28,
-
-  targets: [
-
-    '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
-
-    '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty',
-
-    '5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXoS59Y',
-
-    '5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFy',
-
-    '5HGjWAeFDfFCWPsjFQdVV2Msvz2XtMktvgocEZcCj68kUMaw',
-
-    '5CiPPseXPECbnhW2fMQETr4KfhWE842mYQA32DCZXMWjMXQZ',
-
-    '5GNJqTPyNqANBkUVMN1LPPrxXnEiWurGAibfTX2CQQAwDftw',
-
-    '5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK1iQ7qUsSWFc',
-
-    '5Ck5SLSHYac6WFt5UZRSsdTFgyjwMpGQqGcoWAZvdVAmECdX',
-
-    '5HKPmK9GYtE1PSaMvE5oD3Qe4Z5f6A7B8C9D0E1F2G3H4I5J',
-
-    '5D34dL5WDSKcHsBGzCzxK3GEUCnVvwHo3aeVKdq1x3LcEdzA',
-
-    '5GWa8eFDfFCWPsjFQdVV2Msvz2XtMktvgocEZcCj68kUMxyz',
-
-    '5EAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXabc',
-
-    '5BLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXoSdef',
-
-    '5JHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM69ghi',
-
-    '5KrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKjkl'
-
+  "top_validators_count": 16,
+  "target_count": 16,
+  "live_validators_count": 2,
+  "live_targets": [
+    "5F4ZyJJ8R3QHZKRLAfDXdUuVE4w3Q7uq7tCNfAtvf2XEBfYY",
+    "5Grj5uKAoduL2EDfgizp2MMbURJKa4rL6Q5pGUnVhhhjhwjk"
   ],
-
-  election_algorithm: 'Client-Side Sequential Phragmén Simulator (Deterministic)',
-
-  pao_phragmen_active: true,
-
-  pao_algorithm_name: 'Predictive Anti-Oversubscription Phragmén (PAO-Phragmén)',
-
-  validators: [
-
+  "average_nominal_apy": 14.99,
+  "auto_compounded_apy": 16.17,
+  "apy_boost_pct": 1.18,
+  "targets": [
+    "5F4ZyJJ8R3QHZKRLAfDXdUuVE4w3Q7uq7tCNfAtvf2XEBfYY",
+    "5Grj5uKAoduL2EDfgizp2MMbURJKa4rL6Q5pGUnVhhhjhwjk",
+    "5CPamMirjkmDeHwRrHhcpDCDUjPvmQAEQHdD9qTgJBzxTF2P",
+    "5HdrQScWhmnGqr2PgdTG91ka237j3fZoKmEXGZkVGcJf7uYA",
+    "5DcvREYunKL9RehRfDy8Tru4ajArGuM9ZMGGLf8tgQMe7mog",
+    "5FpSRbbqnoBLzMhpKAcxW48y1pMZWLWE2R8tYCfTQ3KFxzPP",
+    "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y",
+    "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+    "5FERF1MxJpZeLPuDfBTYEnXELQWedDhWNnZSebt8Jxip2yB2",
+    "5FRmjT719YRLW33nCoVUXa9o5MhCSdm7sWEKGHvNLnuSX1F7",
+    "5DPefZtNWw8ipnpDVDnekbA5MYJ376t66itVnGuByJtCTPMG",
+    "5Eph8ZbXhDDUZtVBCoXbxJLLKSpVM5m98ChiFTbjQv75KpzD",
+    "5HT2tLTWFNJiU5q8CGxx8GyWUgaKsGvbLsmghfKNXJY2fbJC",
+    "5F1hqZsXPdXXDGTRzo7gk7g9kfgGzan5mJS1ihmbdGtQwPEc",
+    "5CfsphH3r9raEhpV64YELmeG1rQNz5p9ypyWtcNQRkfTpBxm",
+    "5Fgatk4LD2TL6W2J1LUZc5szpQvitHmr1jZpe2nx9LGE3s1q"
+  ],
+  "validators": [
     {
-
-      stash_address: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
-
-      identity: 'Alice (Genesis Validator)',
-
-      commission_pct: 1.0,
-
-      uptime_pct: 99.98,
-
-      total_stake_pot: 1254300.5,
-
-      nominator_count: 78,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 16.2,
-
-      health_score: 99.5,
-
-      recommendation: 'STRONG_BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 98.4,
-
-        safety_margin_mvu: 178,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 16.04,
-
-        margin_factor_tanh: 0.94,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 840.0
-
+      "stash_address": "5F4ZyJJ8R3QHZKRLAfDXdUuVE4w3Q7uq7tCNfAtvf2XEBfYY",
+      "identity": "PortaldotV3-Validator-5F4ZyJ...BfYY",
+      "commission_pct": 0.0,
+      "is_blocked": false,
+      "uptime_pct": 99.9,
+      "total_stake_pot": 10282.19,
+      "own_stake_pot": 10168.13,
+      "market_share_pct": 50.0,
+      "nominator_count": 4,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 16.0,
+      "era_points": 18000,
+      "token_decimals": 14,
+      "storage_schema": "PAGED_REWARDS_V2",
+      "is_live_onchain": true,
+      "source": "ONCHAIN_LIVE_V3",
+      "health_score": 99.0,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 15.96,
+        "safety_margin_mvu": 2.244,
+        "safety_margin_rating": "SECURE_WHALE_RESISTANT",
+        "net_apy": 16.0,
+        "margin_factor_tanh": 0.998,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 385.58,
+        "median_stake_pot": 2056.44
+      },
+      "subscores": {
+        "uptime": 34.3,
+        "commission": 25.0,
+        "slashing": 20.0,
+        "oversubscription": 19.7
       }
-
     },
-
     {
-
-      stash_address: '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty',
-
-      identity: 'Bob (Core Node #1)',
-
-      commission_pct: 1.5,
-
-      uptime_pct: 99.95,
-
-      total_stake_pot: 982100.0,
-
-      nominator_count: 64,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 15.9,
-
-      health_score: 98.8,
-
-      recommendation: 'STRONG_BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 97.2,
-
-        safety_margin_mvu: 192,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 15.66,
-
-        margin_factor_tanh: 0.92,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 790.0
-
+      "stash_address": "5Grj5uKAoduL2EDfgizp2MMbURJKa4rL6Q5pGUnVhhhjhwjk",
+      "identity": "PortaldotV3-Validator-5Grj5u...hwjk",
+      "commission_pct": 1.0,
+      "is_blocked": false,
+      "uptime_pct": 99.9,
+      "total_stake_pot": 10282.18,
+      "own_stake_pot": 10167.02,
+      "market_share_pct": 50.0,
+      "nominator_count": 2,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 15.9,
+      "era_points": 18000,
+      "token_decimals": 14,
+      "storage_schema": "PAGED_REWARDS_V2",
+      "is_live_onchain": true,
+      "source": "ONCHAIN_LIVE_V3",
+      "health_score": 99.1,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 14.36,
+        "safety_margin_mvu": 1.028,
+        "safety_margin_rating": "SECURE_WHALE_RESISTANT",
+        "net_apy": 15.74,
+        "margin_factor_tanh": 0.913,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 771.16,
+        "median_stake_pot": 4112.87
+      },
+      "subscores": {
+        "uptime": 34.3,
+        "commission": 25.0,
+        "slashing": 20.0,
+        "oversubscription": 19.8
       }
-
     },
-
     {
-
-      stash_address: '5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXoS59Y',
-
-      identity: 'Charlie (Zero-SLA Validator)',
-
-      commission_pct: 2.0,
-
-      uptime_pct: 99.92,
-
-      total_stake_pot: 845200.0,
-
-      nominator_count: 52,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 15.7,
-
-      health_score: 98.1,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 96.0,
-
-        safety_margin_mvu: 204,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 15.38,
-
-        margin_factor_tanh: 0.89,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 720.0
-
+      "stash_address": "5CPamMirjkmDeHwRrHhcpDCDUjPvmQAEQHdD9qTgJBzxTF2P",
+      "identity": "Quantum-Validator-Prime",
+      "commission_pct": 1.2,
+      "uptime_pct": 99.91,
+      "total_stake_pot": 1600000.0,
+      "own_stake_pot": 290000.0,
+      "nominator_count": 135,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 15.3,
+      "era_points": 19100,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 88.5,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 7.1,
+        "safety_margin_mvu": 0.34,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 15.12,
+        "margin_factor_tanh": 0.47,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1777.78,
+        "median_stake_pot": 9481.48
+      },
+      "subscores": {
+        "uptime": 34.4,
+        "commission": 24.7,
+        "slashing": 20.0,
+        "oversubscription": 9.5
       }
-
     },
-
     {
-
-      stash_address: '5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFy',
-
-      identity: 'Dave (High-Throughput Pool)',
-
-      commission_pct: 2.2,
-
-      uptime_pct: 99.89,
-
-      total_stake_pot: 760400.0,
-
-      nominator_count: 45,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 15.5,
-
-      health_score: 97.5,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 95.1,
-
-        safety_margin_mvu: 211,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 15.16,
-
-        margin_factor_tanh: 0.87,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 680.0
-
+      "stash_address": "5HdrQScWhmnGqr2PgdTG91ka237j3fZoKmEXGZkVGcJf7uYA",
+      "identity": "ZeroFee-Community-Pool",
+      "commission_pct": 0.5,
+      "uptime_pct": 99.9,
+      "total_stake_pot": 1780000.0,
+      "own_stake_pot": 320000.0,
+      "nominator_count": 175,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 15.6,
+      "era_points": 19450,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 85.6,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 8.77,
+        "safety_margin_mvu": 0.427,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 15.52,
+        "margin_factor_tanh": 0.565,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1525.71,
+        "median_stake_pot": 8137.14
+      },
+      "subscores": {
+        "uptime": 34.3,
+        "commission": 25.0,
+        "slashing": 20.0,
+        "oversubscription": 6.3
       }
-
     },
-
     {
-
-      stash_address: '5HGjWAeFDfFCWPsjFQdVV2Msvz2XtMktvgocEZcCj68kUMaw',
-
-      identity: 'Eve (Community Staking Hub)',
-
-      commission_pct: 2.5,
-
-      uptime_pct: 99.85,
-
-      total_stake_pot: 689000.0,
-
-      nominator_count: 41,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 15.4,
-
-      health_score: 96.9,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 94.3,
-
-        safety_margin_mvu: 215,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 15.01,
-
-        margin_factor_tanh: 0.85,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 620.0
-
+      "stash_address": "5DcvREYunKL9RehRfDy8Tru4ajArGuM9ZMGGLf8tgQMe7mog",
+      "identity": "Orion-Staking-Hub",
+      "commission_pct": 1.0,
+      "uptime_pct": 99.94,
+      "total_stake_pot": 1820000.0,
+      "own_stake_pot": 310000.0,
+      "nominator_count": 160,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 15.4,
+      "era_points": 19300,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 87.1,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 7.55,
+        "safety_margin_mvu": 0.362,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 15.25,
+        "margin_factor_tanh": 0.495,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1706.25,
+        "median_stake_pot": 9100.0
+      },
+      "subscores": {
+        "uptime": 34.6,
+        "commission": 25.0,
+        "slashing": 20.0,
+        "oversubscription": 7.5
       }
-
     },
-
     {
-
-      stash_address: '5CiPPseXPECbnhW2fMQETr4KfhWE842mYQA32DCZXMWjMXQZ',
-
-      identity: 'Ferdie (Low-Latency Frankfurt)',
-
-      commission_pct: 2.0,
-
-      uptime_pct: 99.91,
-
-      total_stake_pot: 642100.0,
-
-      nominator_count: 38,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 15.6,
-
-      health_score: 97.2,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 95.8,
-
-        safety_margin_mvu: 218,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 15.29,
-
-        margin_factor_tanh: 0.88,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 650.0
-
+      "stash_address": "5FpSRbbqnoBLzMhpKAcxW48y1pMZWLWE2R8tYCfTQ3KFxzPP",
+      "identity": "Valkyrie-HighYield-Node",
+      "commission_pct": 1.4,
+      "uptime_pct": 99.94,
+      "total_stake_pot": 1750000.0,
+      "own_stake_pot": 320000.0,
+      "nominator_count": 150,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 15.3,
+      "era_points": 19150,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 87.3,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 7.23,
+        "safety_margin_mvu": 0.348,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 15.09,
+        "margin_factor_tanh": 0.479,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1750.0,
+        "median_stake_pot": 9333.33
+      },
+      "subscores": {
+        "uptime": 34.6,
+        "commission": 24.4,
+        "slashing": 20.0,
+        "oversubscription": 8.3
       }
-
     },
-
     {
-
-      stash_address: '5GNJqTPyNqANBkUVMN1LPPrxXnEiWurGAibfTX2CQQAwDftw',
-
-      identity: 'Genesis Core #7',
-
-      commission_pct: 2.8,
-
-      uptime_pct: 99.82,
-
-      total_stake_pot: 580000.0,
-
-      nominator_count: 35,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 15.2,
-
-      health_score: 96.0,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 93.5,
-
-        safety_margin_mvu: 221,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 14.77,
-
-        margin_factor_tanh: 0.82,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 590.0
-
+      "stash_address": "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y",
+      "identity": "V3-WasmEvm-CoValidator",
+      "commission_pct": 2.0,
+      "uptime_pct": 99.88,
+      "total_stake_pot": 1150000.0,
+      "own_stake_pot": 210000.0,
+      "nominator_count": 92,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 14.9,
+      "era_points": 18100,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 90.5,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 6.38,
+        "safety_margin_mvu": 0.312,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 14.6,
+        "margin_factor_tanh": 0.437,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1875.0,
+        "median_stake_pot": 10000.0
+      },
+      "subscores": {
+        "uptime": 34.2,
+        "commission": 23.5,
+        "slashing": 20.0,
+        "oversubscription": 12.8
       }
-
     },
-
     {
-
-      stash_address: '5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK1iQ7qUsSWFc',
-
-      identity: 'Helix Infrastructure V3',
-
-      commission_pct: 3.0,
-
-      uptime_pct: 99.88,
-
-      total_stake_pot: 540000.0,
-
-      nominator_count: 32,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 15.3,
-
-      health_score: 96.5,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 94.0,
-
-        safety_margin_mvu: 224,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 14.84,
-
-        margin_factor_tanh: 0.84,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 560.0
-
+      "stash_address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+      "identity": "PortalNexus-Validator-01",
+      "commission_pct": 2.5,
+      "uptime_pct": 99.98,
+      "total_stake_pot": 1250000.0,
+      "own_stake_pot": 250000.0,
+      "nominator_count": 142,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 14.8,
+      "era_points": 18400,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 86.5,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 9.45,
+        "safety_margin_mvu": 0.522,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 14.43,
+        "margin_factor_tanh": 0.655,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1320.42,
+        "median_stake_pot": 7042.25
+      },
+      "subscores": {
+        "uptime": 34.9,
+        "commission": 22.8,
+        "slashing": 20.0,
+        "oversubscription": 8.9
       }
-
     },
-
     {
-
-      stash_address: '5Ck5SLSHYac6WFt5UZRSsdTFgyjwMpGQqGcoWAZvdVAmECdX',
-
-      identity: 'Apex Validator Tokyo',
-
-      commission_pct: 3.0,
-
-      uptime_pct: 99.80,
-
-      total_stake_pot: 510000.0,
-
-      nominator_count: 30,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 15.1,
-
-      health_score: 95.8,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 93.2,
-
-        safety_margin_mvu: 226,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 14.65,
-
-        margin_factor_tanh: 0.81,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 540.0
-
+      "stash_address": "5FERF1MxJpZeLPuDfBTYEnXELQWedDhWNnZSebt8Jxip2yB2",
+      "identity": "Substrate-Core-Infra",
+      "commission_pct": 2.0,
+      "uptime_pct": 99.92,
+      "total_stake_pot": 1420000.0,
+      "own_stake_pot": 280000.0,
+      "nominator_count": 120,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 14.7,
+      "era_points": 18600,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 88.6,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 6.78,
+        "safety_margin_mvu": 0.341,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 14.41,
+        "margin_factor_tanh": 0.471,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1775.0,
+        "median_stake_pot": 9466.67
+      },
+      "subscores": {
+        "uptime": 34.4,
+        "commission": 23.5,
+        "slashing": 20.0,
+        "oversubscription": 10.6
       }
-
     },
-
     {
-
-      stash_address: '5HKPmK9GYtE1PSaMvE5oD3Qe4Z5f6A7B8C9D0E1F2G3H4I5J',
-
-      identity: 'Starlight Node London',
-
-      commission_pct: 3.2,
-
-      uptime_pct: 99.78,
-
-      total_stake_pot: 490000.0,
-
-      nominator_count: 28,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 15.0,
-
-      health_score: 95.2,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 92.5,
-
-        safety_margin_mvu: 228,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 14.52,
-
-        margin_factor_tanh: 0.80,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 520.0
-
+      "stash_address": "5FRmjT719YRLW33nCoVUXa9o5MhCSdm7sWEKGHvNLnuSX1F7",
+      "identity": "EcoStake-Portaldot-01",
+      "commission_pct": 1.8,
+      "uptime_pct": 99.89,
+      "total_stake_pot": 1320000.0,
+      "own_stake_pot": 240000.0,
+      "nominator_count": 110,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 14.8,
+      "era_points": 18300,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 89.4,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 6.72,
+        "safety_margin_mvu": 0.333,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 14.53,
+        "margin_factor_tanh": 0.462,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1800.0,
+        "median_stake_pot": 9600.0
+      },
+      "subscores": {
+        "uptime": 34.2,
+        "commission": 23.8,
+        "slashing": 20.0,
+        "oversubscription": 11.4
       }
-
     },
-
     {
-
-      stash_address: '5D34dL5WDSKcHsBGzCzxK3GEUCnVvwHo3aeVKdq1x3LcEdzA',
-
-      identity: 'Solon Validator Singapore',
-
-      commission_pct: 3.5,
-
-      uptime_pct: 99.75,
-
-      total_stake_pot: 460000.0,
-
-      nominator_count: 26,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 14.9,
-
-      health_score: 94.8,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 91.8,
-
-        safety_margin_mvu: 230,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 14.38,
-
-        margin_factor_tanh: 0.78,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 500.0
-
+      "stash_address": "5DPefZtNWw8ipnpDVDnekbA5MYJ376t66itVnGuByJtCTPMG",
+      "identity": "CyberDefense-Node-09",
+      "commission_pct": 1.9,
+      "uptime_pct": 99.9,
+      "total_stake_pot": 1290000.0,
+      "own_stake_pot": 230000.0,
+      "nominator_count": 105,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 14.7,
+      "era_points": 18250,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 89.7,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 6.46,
+        "safety_margin_mvu": 0.321,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 14.42,
+        "margin_factor_tanh": 0.448,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1842.86,
+        "median_stake_pot": 9828.57
+      },
+      "subscores": {
+        "uptime": 34.3,
+        "commission": 23.6,
+        "slashing": 20.0,
+        "oversubscription": 11.8
       }
-
     },
-
     {
-
-      stash_address: '5GWa8eFDfFCWPsjFQdVV2Msvz2XtMktvgocEZcCj68kUMxyz',
-
-      identity: 'Vortex Staking Zurich',
-
-      commission_pct: 3.5,
-
-      uptime_pct: 99.72,
-
-      total_stake_pot: 430000.0,
-
-      nominator_count: 24,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 14.8,
-
-      health_score: 94.2,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 91.0,
-
-        safety_margin_mvu: 232,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 14.28,
-
-        margin_factor_tanh: 0.77,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 480.0
-
+      "stash_address": "5Eph8ZbXhDDUZtVBCoXbxJLLKSpVM5m98ChiFTbjQv75KpzD",
+      "identity": "Nexus-Sentinel-02",
+      "commission_pct": 2.1,
+      "uptime_pct": 99.91,
+      "total_stake_pot": 1380000.0,
+      "own_stake_pot": 260000.0,
+      "nominator_count": 112,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 14.8,
+      "era_points": 18450,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 89.0,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 6.46,
+        "safety_margin_mvu": 0.32,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 14.49,
+        "margin_factor_tanh": 0.446,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1848.21,
+        "median_stake_pot": 9857.14
+      },
+      "subscores": {
+        "uptime": 34.4,
+        "commission": 23.4,
+        "slashing": 20.0,
+        "oversubscription": 11.2
       }
-
     },
-
     {
-
-      stash_address: '5EAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXabc',
-
-      identity: 'Cipher Staking Toronto',
-
-      commission_pct: 3.8,
-
-      uptime_pct: 99.70,
-
-      total_stake_pot: 410000.0,
-
-      nominator_count: 22,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 14.7,
-
-      health_score: 93.9,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 90.4,
-
-        safety_margin_mvu: 234,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 14.14,
-
-        margin_factor_tanh: 0.75,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 460.0
-
+      "stash_address": "5HT2tLTWFNJiU5q8CGxx8GyWUgaKsGvbLsmghfKNXJY2fbJC",
+      "identity": "Sentinel-NPoS-Node",
+      "commission_pct": 2.8,
+      "uptime_pct": 99.85,
+      "total_stake_pot": 890000.0,
+      "own_stake_pot": 150000.0,
+      "nominator_count": 75,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 14.3,
+      "era_points": 17800,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 90.4,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 6.52,
+        "safety_margin_mvu": 0.339,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 13.9,
+        "margin_factor_tanh": 0.469,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1780.0,
+        "median_stake_pot": 9493.33
+      },
+      "subscores": {
+        "uptime": 33.9,
+        "commission": 22.3,
+        "slashing": 20.0,
+        "oversubscription": 14.1
       }
-
     },
-
     {
-
-      stash_address: '5BLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXoSdef',
-
-      identity: 'Prism Node Seoul',
-
-      commission_pct: 4.0,
-
-      uptime_pct: 99.68,
-
-      total_stake_pot: 380000.0,
-
-      nominator_count: 20,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 14.6,
-
-      health_score: 93.4,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 89.6,
-
-        safety_margin_mvu: 236,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 14.02,
-
-        margin_factor_tanh: 0.74,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 440.0
-
+      "stash_address": "5F1hqZsXPdXXDGTRzo7gk7g9kfgGzan5mJS1ihmbdGtQwPEc",
+      "identity": "Titan-Validator-Core",
+      "commission_pct": 2.4,
+      "uptime_pct": 99.87,
+      "total_stake_pot": 1180000.0,
+      "own_stake_pot": 200000.0,
+      "nominator_count": 95,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 14.5,
+      "era_points": 18050,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 89.6,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 6.24,
+        "safety_margin_mvu": 0.316,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 14.15,
+        "margin_factor_tanh": 0.441,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1863.16,
+        "median_stake_pot": 9936.84
+      },
+      "subscores": {
+        "uptime": 34.1,
+        "commission": 22.9,
+        "slashing": 20.0,
+        "oversubscription": 12.6
       }
-
     },
-
     {
-
-      stash_address: '5JHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM69ghi',
-
-      identity: 'Equinox Node Sydney',
-
-      commission_pct: 4.0,
-
-      uptime_pct: 99.65,
-
-      total_stake_pot: 360000.0,
-
-      nominator_count: 18,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 14.5,
-
-      health_score: 93.0,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 88.9,
-
-        safety_margin_mvu: 238,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 13.92,
-
-        margin_factor_tanh: 0.72,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 420.0
-
+      "stash_address": "5CfsphH3r9raEhpV64YELmeG1rQNz5p9ypyWtcNQRkfTpBxm",
+      "identity": "Lighthouse-Security-Node",
+      "commission_pct": 2.2,
+      "uptime_pct": 99.93,
+      "total_stake_pot": 1510000.0,
+      "own_stake_pot": 270000.0,
+      "nominator_count": 128,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 14.6,
+      "era_points": 18500,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 87.7,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 6.75,
+        "safety_margin_mvu": 0.342,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 14.28,
+        "margin_factor_tanh": 0.473,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1769.53,
+        "median_stake_pot": 9437.5
+      },
+      "subscores": {
+        "uptime": 34.5,
+        "commission": 23.2,
+        "slashing": 20.0,
+        "oversubscription": 10.0
       }
-
     },
-
     {
-
-      stash_address: '5KrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKjkl',
-
-      identity: 'Nexus Vanguard Frankfurt',
-
-      commission_pct: 4.2,
-
-      uptime_pct: 99.62,
-
-      total_stake_pot: 340000.0,
-
-      nominator_count: 16,
-
-      max_nominators: 256,
-
-      slash_count: 0,
-
-      estimated_apy: 14.4,
-
-      health_score: 92.5,
-
-      recommendation: 'BUY',
-
-      is_live_onchain: true,
-
-      source: 'ONCHAIN_LIVE_V3',
-
-      pao_metrics: {
-
-        pao_score: 88.1,
-
-        safety_margin_mvu: 240,
-
-        safety_margin_rating: 'OPTIMAL_CAPACITY',
-
-        net_apy: 13.80,
-
-        margin_factor_tanh: 0.70,
-
-        is_rugpull_risk: false,
-
-        rugpull_penalty: 0,
-
-        min_rewarded_stake_pot: 50.0,
-
-        median_stake_pot: 400.0
-
+      "stash_address": "5Fgatk4LD2TL6W2J1LUZc5szpQvitHmr1jZpe2nx9LGE3s1q",
+      "identity": "PolkaGuard-Secure-Node",
+      "commission_pct": 3.0,
+      "uptime_pct": 99.8,
+      "total_stake_pot": 980000.0,
+      "own_stake_pot": 180000.0,
+      "nominator_count": 88,
+      "max_nominators": 256,
+      "slash_count": 0,
+      "estimated_apy": 14.2,
+      "era_points": 17900,
+      "is_live_onchain": false,
+      "source": "STANDBY_REGISTERED",
+      "health_score": 88.7,
+      "is_oversubscribed": false,
+      "risk_warning": null,
+      "recommendation": "OPTIMAL_ACTIVE_SET",
+      "pao_metrics": {
+        "pao_score": 7.0,
+        "safety_margin_mvu": 0.374,
+        "safety_margin_rating": "MODERATE_HEADROOM",
+        "net_apy": 13.77,
+        "margin_factor_tanh": 0.508,
+        "is_rugpull_risk": false,
+        "rugpull_penalty": 0.0,
+        "min_rewarded_stake_pot": 1670.45,
+        "median_stake_pot": 8909.09
+      },
+      "subscores": {
+        "uptime": 33.6,
+        "commission": 22.0,
+        "slashing": 20.0,
+        "oversubscription": 13.1
       }
-
     }
-
   ],
-
-  extrinsic_call: 'staking.nominate(targets: 16)'
-
+  "election_algorithm": "Client-Side Sequential Phragm\u00e9n Simulator",
+  "pao_phragmen_active": true,
+  "pao_algorithm_name": "Predictive Anti-Oversubscription Phragm\u00e9n (PAO-Phragm\u00e9n)",
+  "extrinsic_call": "staking.nominate(targets=['5F4ZyJJ8R3QHZKRLAfDXdUuVE4w3Q7uq7tCNfAtvf2XEBfYY', '5Grj5uKAoduL2EDfgizp2MMbURJKa4rL6Q5pGUnVhhhjhwjk', '5CPamMirjkmDeHwRrHhcpDCDUjPvmQAEQHdD9qTgJBzxTF2P']... [16 total])"
 };
 
 
@@ -2607,9 +2351,53 @@ function getSavedRecentBlocks(): DualBlockConduitItem[] {
 // In-Memory Stateful Simulation Store for Offline Session Persistence
 let dynamicDualState: DualTelemetryState = getSavedDualState();
 
+function sanitizeNPoSRecommendation(data: any): NPoSRecommendation {
+  if (!data || !Array.isArray(data.validators)) return DEFAULT_NPOS_DATA;
+  const liveCount = data.validators.filter((v: any) => v.is_live_onchain).length;
+  // Strict Network Protocol: Under Portaldot Network V3, exactly 2 genesis nodes are live session validators.
+  // Never allow stale mock datasets with 16 live validators to pollute the state.
+  if (liveCount > 2) {
+    data.validators.forEach((v: any, idx: number) => {
+      if (idx >= 2) {
+        v.is_live_onchain = false;
+        v.source = 'STANDBY_REGISTERED';
+      } else {
+        v.is_live_onchain = true;
+        v.source = 'ONCHAIN_LIVE_V3';
+      }
+    });
+    data.live_validators_count = 2;
+    data.live_targets = data.validators.slice(0, 2).map((v: any) => v.stash_address);
+  } else if (liveCount === 0 && Array.isArray(data.validators) && data.validators.length >= 2) {
+    // If somehow unflagged, restore the 2 active session nodes
+    data.validators[0].is_live_onchain = true;
+    data.validators[0].source = 'ONCHAIN_LIVE_V3';
+    data.validators[1].is_live_onchain = true;
+    data.validators[1].source = 'ONCHAIN_LIVE_V3';
+    data.live_validators_count = 2;
+    data.live_targets = [data.validators[0].stash_address, data.validators[1].stash_address];
+  }
+  return data as NPoSRecommendation;
+}
+
+function getSavedNPoSState(): NPoSRecommendation {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const stored = localStorage.getItem('dotnexus_cached_npos_state');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && Array.isArray(parsed.validators)) {
+          return sanitizeNPoSRecommendation(parsed);
+        }
+      }
+    } catch {}
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_NPOS_DATA));
+}
+
 let dynamicSecurityState: SecurityDashboardState = JSON.parse(JSON.stringify(DEFAULT_SECURITY_STATE));
 
-let dynamicNPoSState: NPoSRecommendation = JSON.parse(JSON.stringify(DEFAULT_NPOS_DATA));
+let dynamicNPoSState: NPoSRecommendation = getSavedNPoSState();
 
 let dynamicShieldStatus: ShieldStatus = JSON.parse(JSON.stringify(DEFAULT_SHIELD_STATUS));
 
@@ -2847,7 +2635,16 @@ export const api = {
     if (typeof window !== 'undefined' && window.localStorage) {
       try {
         const stored = localStorage.getItem('dotnexus_cached_npos_state');
-        if (stored) return JSON.parse(stored);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && Array.isArray(parsed.validators)) {
+            const sanitized = sanitizeNPoSRecommendation(parsed);
+            if (JSON.stringify(sanitized) !== stored) {
+              localStorage.setItem('dotnexus_cached_npos_state', JSON.stringify(sanitized));
+            }
+            return sanitized;
+          }
+        }
       } catch {}
     }
     return dynamicNPoSState;
@@ -3514,14 +3311,17 @@ export const api = {
       `${BASE_URL}/npos/top-16`,
       undefined,
       () => JSON.parse(JSON.stringify(dynamicNPoSState)),
-      4500
+      8000
     );
-    if (res?.success && res.data && !(res as any).isFallback) {
-      dynamicNPoSState = res.data;
-      if (typeof window !== 'undefined' && window.localStorage) {
-        try {
-          localStorage.setItem('dotnexus_cached_npos_state', JSON.stringify(res.data));
-        } catch {}
+    if (res?.success && res.data) {
+      res.data = sanitizeNPoSRecommendation(res.data);
+      if (!(res as any).isFallback) {
+        dynamicNPoSState = res.data;
+        if (typeof window !== 'undefined' && window.localStorage) {
+          try {
+            localStorage.setItem('dotnexus_cached_npos_state', JSON.stringify(res.data));
+          } catch {}
+        }
       }
     }
     return res;

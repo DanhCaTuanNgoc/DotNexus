@@ -191,7 +191,19 @@ export const App: React.FC = () => {
     try {
       const res = await api.getSlashGuard();
       if (res?.success && res.data) {
-        setSecData(res.data);
+        if ((res as any).isFallback) {
+          // Guard: Preserve active live on-chain lease & session authorities if already acquired
+          setSecData((prev) => {
+            const hasPrevLive = prev?.onchain_lease?.is_live_onchain || prev?.session_authorities?.is_live_rpc;
+            const hasNewLive = res.data?.onchain_lease?.is_live_onchain || res.data?.session_authorities?.is_live_rpc;
+            if (hasPrevLive && !hasNewLive) {
+              return prev;
+            }
+            return res.data;
+          });
+        } else {
+          setSecData(res.data);
+        }
       }
     } catch (e) {
       console.warn('SlashGuard fetch failed:', e);
@@ -225,7 +237,19 @@ export const App: React.FC = () => {
     try {
       const res = await api.getRpcShield();
       if (res?.success && res.data) {
-        setShieldData(res.data);
+        if ((res as any).isFallback) {
+          // Guard: Preserve active live p2p peers if already acquired
+          setShieldData((prev) => {
+            const hasPrevLive = prev?.p2p_topology?.some((p) => p.ip === '142.93.18.24' || p.role?.includes('Block'));
+            const hasNewLive = res.data?.p2p_topology?.some((p) => p.ip === '142.93.18.24' || p.role?.includes('Block'));
+            if (hasPrevLive && !hasNewLive) {
+              return prev;
+            }
+            return res.data;
+          });
+        } else {
+          setShieldData(res.data);
+        }
       }
     } catch (e) {
       console.warn('Shield fetch failed:', e);

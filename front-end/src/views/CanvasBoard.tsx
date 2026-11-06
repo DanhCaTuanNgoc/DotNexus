@@ -1398,7 +1398,7 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
           )}
 
           {/* On-Chain Web3 Dispatch */}
-          <button
+          {/* <button
             onClick={handleOnChainDispatch}
             disabled={isWeb3Dispatching}
             title="Connect MetaMask / SubWallet and dispatch on-chain renewLease transaction to Testnet V3"
@@ -1410,7 +1410,7 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
           >
             <Wallet className="w-3.5 h-3.5" />
             <span>{isWeb3Dispatching ? 'Signing On-Chain...' : 'On-Chain Dispatch'}</span>
-          </button>
+          </button> */}
 
           {onChainTxHash && (
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/70 border border-emerald-500/50 text-[11px] font-mono text-emerald-300 rounded-none">

@@ -34,6 +34,8 @@
 ## 📑 Table of Contents
 
 - [DotNexus](#dotnexus)
+    - [*The Visual Control Plane \& Automated Security Operations Engine for Portaldot Network V3.0*](#the-visual-control-plane--automated-security-operations-engine-for-portaldot-network-v30)
+    - [*Track: Node Operations \& Tooling — Portaldot Hacker House 2026*](#track-node-operations--tooling--portaldot-hacker-house-2026)
   - [📑 Table of Contents](#-table-of-contents)
   - [🚀 DoraHacks Final Submission Package (Nov 06, 2026 — Code Freeze)](#-dorahacks-final-submission-package-nov-06-2026--code-freeze)
   - [⚡ 1. Fast-Track Briefing for Judges](#-1-fast-track-briefing-for-judges)
@@ -43,8 +45,13 @@
     - [The 5-Pillar Operational Architecture Breakdown](#the-5-pillar-operational-architecture-breakdown)
   - [📐 3. Mathematical \& Algorithmic Foundations](#-3-mathematical--algorithmic-foundations)
     - [1. The Anti-Equivocation Timing Invariant \& Monotonic Epoch Fencing](#1-the-anti-equivocation-timing-invariant--monotonic-epoch-fencing)
+      - [A. Primary Self-Fencing Daemon ($T\_{\\text{fence}} = 10.0\\text{s}$)](#a-primary-self-fencing-daemon-t_textfence--100texts)
+      - [B. On-Chain Lease Expiration ($T\_{\\text{lease}} = 12.0\\text{s}$)](#b-on-chain-lease-expiration-t_textlease--120texts)
+      - [C. Standby Takeover Authorization ($T\_{\\text{standby}} = 15.0\\text{s}$)](#c-standby-takeover-authorization-t_textstandby--150texts)
     - [2. Formal Safety Proof: Mutual Exclusion of Signing Authority](#2-formal-safety-proof-mutual-exclusion-of-signing-authority)
+      - [Proof (By Contradiction):](#proof-by-contradiction)
     - [3. Formal Liveness Proof: Deterministic Bounded Failover Convergence](#3-formal-liveness-proof-deterministic-bounded-failover-convergence)
+      - [Proof:](#proof)
     - [4. Client-Side Sequential Phragmén Simulation \& Pre-Flight Economics](#4-client-side-sequential-phragmén-simulation--pre-flight-economics)
     - [5. Dynamic Decimals \& Arbitrary-Precision Planck-to-Wei Normalization](#5-dynamic-decimals--arbitrary-precision-planck-to-wei-normalization)
     - [6. Causal Lag Index (CLI 2.0) \& 3-Tier Desync Root-Cause Isolation](#6-causal-lag-index-cli-20--3-tier-desync-root-cause-isolation)
@@ -77,7 +84,8 @@
     - [3. Run Automated Tests](#3-run-automated-tests)
     - [4. Administrative CLI Utilities](#4-administrative-cli-utilities)
     - [5. Launch Full Control Center](#5-launch-full-control-center)
-  - [🗺️ 14. Future Roadmap \& Acknowledgements](#-14-future-roadmap--acknowledgements)
+  - [🗺️ 14. Future Roadmap \& Acknowledgements](#️-14-future-roadmap--acknowledgements)
+    - [Acknowledgements](#acknowledgements)
 
 ---
 

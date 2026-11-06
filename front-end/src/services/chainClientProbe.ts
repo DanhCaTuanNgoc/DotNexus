@@ -22,9 +22,9 @@ interface SubstrateHeader {
   digest?: { logs?: string[] };
 }
 
-let lastKnownWasmBlock = 321300;
+let lastKnownWasmBlock = 342720;
 let lastKnownWasmHash = '0x9a8f12c4b8e3921...';
-let lastKnownEvmBlock = 321300;
+let lastKnownEvmBlock = 342720;
 let lastKnownPeers = 1;
 let probeListeners: Array<(items: DualBlockConduitItem[], telemetry: DualTelemetryState) => void> = [];
 let recentItemsBuffer: DualBlockConduitItem[] = [];

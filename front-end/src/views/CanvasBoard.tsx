@@ -21,6 +21,7 @@ import {
   Square
 } from 'lucide-react';
 import { sendDiscordAlert } from '../services/discordAlert';
+import { fetchEvmBlockNumber } from '../services/chainClientProbe';
 import { RenameWorkflowModal } from '../components/canvas/RenameWorkflowModal';
 import { RunbookDAG, api, LogItem } from '../services/api';
 import { 
@@ -1150,15 +1151,30 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
           ) {
             const rawWebhook = currentNode.data.config?.webhookUrl || currentNode.data.config?.webhook;
             if (rawWebhook && typeof rawWebhook === 'string' && rawWebhook.startsWith('https://discord.com/api/webhooks/')) {
+              let liveBlock = 342720;
+              let liveDelta = 0;
+              try {
+                const probe = await fetchEvmBlockNumber();
+                if (probe && probe.blockNumber > 300000) {
+                  liveBlock = probe.blockNumber;
+                }
+              } catch {
+                const cached = api.getCachedDualState();
+                if (cached?.evm?.block_number && cached.evm.block_number > 300000) {
+                  liveBlock = cached.evm.block_number;
+                  liveDelta = cached.sync?.delta_blocks || 0;
+                }
+              }
+
               const alertRes = await sendDiscordAlert({
                 webhookUrl: rawWebhook.trim(),
                 channel: currentNode.data.config?.channel || '#ops-alerts',
                 level: currentNode.data.config?.level || 'P1_CRITICAL',
                 mention: currentNode.data.config?.mention || '',
                 title: `DotNexus SRE Alert: ${activeWorkflow.name}`,
-                description: `Automated incident runbook pipeline executed step [${currentNode.data.label}] on Portaldot Network V3.0.`,
-                bestBlock: 265210,
-                deltaBlocks: 0,
+                description: `Automated incident runbook pipeline executed step [${currentNode.data.label}] on Portaldot Network V3.0 (Best Block #${liveBlock.toLocaleString()}).`,
+                bestBlock: liveBlock,
+                deltaBlocks: liveDelta,
                 activeNode: 'dotnexus-primary-validator-01',
               });
 
@@ -1287,9 +1303,6 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
             >
               <Edit3 className="w-3.5 h-3.5" />
             </button>
-            <span className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono uppercase bg-[#0E091B] border border-[#2E1F4A] text-[#C084FC]">
-              {activeWorkflow.category}
-            </span>
             {activeWorkflow.isCustom && (
               <span className="hidden md:inline-block px-1.5 py-0.5 text-[9px] font-mono uppercase bg-[#110C1E] text-zinc-400 border border-[#1C142E]">
                 CUSTOM
@@ -1319,7 +1332,7 @@ ${nodes.map((n, i) => `${i + 1}. **[${n.data.label}]** (${n.data.category}): Nom
                 ? 'TOPOLOGY HAZARD: EQUIVOCATION'
                 : hasWarning
                 ? 'TOPOLOGY WARNING'
-                : 'TOPOLOGY VALIDATOR: NOMINAL (0 HAZARDS)'}
+                : 'TOPOLOGY VALIDATOR: NOMINAL'}
             </span>
             
           </div>

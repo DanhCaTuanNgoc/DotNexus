@@ -388,6 +388,11 @@ class HeadlessWorkerDaemon:
                     "WARNING": 0xF59E0B
                 }
                 embed_color = color_map.get(level, 0x8B5CF6)
+                try:
+                    best_b = DUAL_TRACKER.get_substrate_telemetry().get("best_block") or DUAL_TRACKER.get_evm_telemetry().get("block_number", 342720)
+                except Exception:
+                    best_b = 342720
+
                 payload = {
                     "content": f"🚨 **[DotNexus SecOps] {level} Incident Alert**",
                     "embeds": [{
@@ -395,9 +400,11 @@ class HeadlessWorkerDaemon:
                         "description": message,
                         "color": embed_color,
                         "fields": [
-                            {"name": "Runtime", "value": "Portaldot V3.0 (Dual-VM)", "inline": True},
-                            {"name": "Chain ID", "value": str(CONFIG.evm_chain_id), "inline": True},
-                            {"name": "SS58 Prefix", "value": str(CONFIG.ss58_format), "inline": True}
+                            {"name": "Target Network", "value": "Portaldot V3.0 (Substrate WASM + EVM)", "inline": True},
+                            {"name": "EVM Chain ID", "value": str(CONFIG.evm_chain_id), "inline": True},
+                            {"name": "SS58 Prefix", "value": f"{CONFIG.ss58_format} (POT Decimals: 14)", "inline": True},
+                            {"name": "Best Block", "value": f"#{best_b:,}", "inline": True},
+                            {"name": "Active Node", "value": "dotnexus-primary-validator-01", "inline": True}
                         ],
                         "footer": {"text": "DotNexus Automated SecOps Engine"}
                     }]

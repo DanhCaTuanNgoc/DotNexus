@@ -117,7 +117,7 @@ export async function sendDiscordAlert(options: DiscordAlertOptions): Promise<Di
   if (options.bestBlock !== undefined) {
     defaultFields.push({
       name: 'Best Block',
-      value: `#${options.bestBlock.toLocaleString()}`,
+      value: `#${options.bestBlock.toLocaleString('en-US')}`,
       inline: true,
     });
   }

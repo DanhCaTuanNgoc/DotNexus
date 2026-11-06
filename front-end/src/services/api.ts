@@ -848,9 +848,9 @@ export const DEFAULT_DUAL_TELEMETRY: DualTelemetryState = {
 
     endpoint: 'wss://test-node-v3.portaldot.dev',
 
-    best_block: 292900,
+    best_block: 342720,
 
-    finalized_block: 292898,
+    finalized_block: 342718,
 
     finality_lag: 2,
 
@@ -874,7 +874,7 @@ export const DEFAULT_DUAL_TELEMETRY: DualTelemetryState = {
 
     endpoint: 'https://test-evm-rpc-v3.portaldot.dev',
 
-    block_number: 292900,
+    block_number: 342720,
 
     chain_id: 420420777,
 
@@ -2422,9 +2422,9 @@ export const DEFAULT_RECENT_BLOCKS: DualBlockConduitItem[] = [
 
   {
 
-    block_number_wasm: 292900,
+    block_number_wasm: 342720,
 
-    block_number_evm: 292900,
+    block_number_evm: 342720,
 
     hash_wasm: '0x1c7d3066e78a208ae74c341f750aa6dd1446388a2f15b1554ae6f183e958c213',
 
